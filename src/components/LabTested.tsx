@@ -1,101 +1,52 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Image from "next/image";
 
 export default function LabTested() {
   return (
-    <section className="relative bg-[#070707] flex justify-center px-4 py-16 overflow-visible">
+    <section className="relative bg-[#070707] flex justify-center px-4 overflow-visible z-10" style={{ height: "481px" }}>
       <div 
-        className="w-full max-w-[1184px] relative"
-        style={{ minHeight: "481px" }} // 579 * 0.83
+        className="w-full max-w-[1184px] relative overflow-visible"
+        style={{ minHeight: "481px" }}
       >
-        {/* Main Card with cutout shape */}
+        {/* Main Card - rectangle with gradient border */}
         <div 
           className="relative"
           style={{
-            width: "1168px", // 1407 * 0.83
-            height: "311px", // 375 * 0.83
+            width: "1168px",
+            height: "311px",
+            borderRadius: "25px",
+            background: "rgba(15, 15, 15, 0.63)",
+            position: "relative",
           }}
         >
-          {/* Card background with SVG clip-path for cutouts */}
-          <svg 
-            className="absolute inset-0 w-full h-full"
-            viewBox="0 0 1168 311"
-            fill="none"
-            preserveAspectRatio="none"
-          >
-            <defs>
-              <clipPath id="cardClip">
-                {/* Main rectangle with bottom-left and bottom-right cutouts */}
-                <path d="
-                  M0 0 
-                  H1168 
-                  V311 
-                  H907 
-                  Q897 311 897 301
-                  V258
-                  Q897 248 887 248
-                  H281
-                  Q271 248 271 258
-                  V301
-                  Q271 311 261 311
-                  H0 
-                  Z
-                " />
-              </clipPath>
-            </defs>
-            
-            {/* Background fill */}
-            <rect 
-              width="1168" 
-              height="311" 
-              fill="rgba(15, 15, 15, 0.63)"
-              clipPath="url(#cardClip)"
-            />
-            
-            {/* Border stroke */}
-            <path 
-              d="
-                M1 1 
-                H1167 
-                V310 
-                H907 
-                Q897 310 897 300
-                V258
-                Q897 248 887 248
-                H281
-                Q271 248 271 258
-                V300
-                Q271 310 261 310
-                H1 
-                Z
-              "
-              stroke="rgba(220, 3, 135, 1)"
-              strokeWidth="1"
-              fill="none"
-            />
-          </svg>
-
+          {/* Gradient border - gray gradient from bottom (solid) to top (15% opacity) */}
+          <div
+            className="absolute inset-0 rounded-[25px] pointer-events-none"
+            style={{
+              padding: "1px",
+              background: "linear-gradient(to bottom, rgba(217,217,217,1) 0%, rgba(217,217,217,0.15) 100%)",
+              mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              maskComposite: "exclude",
+              WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              WebkitMaskComposite: "xor",
+            }}
+          />
           {/* Content inside card */}
           <div className="relative z-10 flex h-full">
             {/* Left Content */}
-            <motion.div
-              className="flex flex-col justify-center"
+            <div
+              className="flex flex-col justify-end"
               style={{ 
-                padding: "52px 0 52px 73px", // Scaled padding
-                width: "394px", // 475 * 0.83
-                gap: "26px", // 31 * 0.83
+                padding: "0 0 37px 60px",
+                width: "394px",
+                gap: "26px",
               }}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
             >
               {/* Title section */}
-              <div className="flex flex-col" style={{ gap: "0" }}>
+              <div className="flex flex-col" style={{ gap: "8px" }}>
                 <h2 
-                  className="text-[42px] font-bold italic leading-[50px]"
+                  className="text-[42px] font-bold italic leading-[42px]"
                   style={{
                     background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                     WebkitBackgroundClip: "text",
@@ -108,7 +59,7 @@ export default function LabTested() {
                   VERIFIED.
                 </h2>
                 <p 
-                  className="text-[13px] leading-[13px] mt-2"
+                  className="text-[13px] leading-[13px]"
                   style={{
                     background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                     WebkitBackgroundClip: "text",
@@ -121,12 +72,12 @@ export default function LabTested() {
               </div>
 
               {/* Button */}
-              <motion.a
+              <a
                 href="#"
-                className="flex items-center justify-center text-[15px] text-white font-normal"
+                className="flex items-center justify-center text-[15px] text-white font-normal hover:brightness-110 transition-all"
                 style={{
-                  width: "221px", // 266 * 0.83
-                  height: "35px", // 42 * 0.83
+                  width: "221px",
+                  height: "35px",
                   borderRadius: "10px",
                   border: "1px solid #FFF",
                   background: `radial-gradient(30.86% 27.56% at 77.68% 0%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), 
@@ -134,31 +85,26 @@ export default function LabTested() {
                                rgba(220, 3, 135, 0.40)`,
                   boxShadow: "inset 0 0 4px 0 #FFF",
                 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
               >
                 VIEW LAB REPORTS
-              </motion.a>
-            </motion.div>
+              </a>
+            </div>
 
             {/* Right Content - Description */}
-            <motion.div
-              className="flex items-end"
+            <div
+              className="flex items-start"
               style={{
-                padding: "0 0 73px 0",
+                padding: "48px 60px 0 0",
                 marginLeft: "auto",
-                marginRight: "289px", // Space for the image
-                maxWidth: "305px", // 368 * 0.83
+                width: "349px",
               }}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
             >
               <p 
-                className="text-[13px] leading-[16px]"
+                className="text-[14px] leading-[14px] font-light"
                 style={{
-                  background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                  fontFamily: "Lato, sans-serif",
+                  fontWeight: 300,
+                  background: "linear-gradient(180deg, rgba(255, 255, 255, 0.60) 0%, rgba(153, 153, 153, 0.60) 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -169,34 +115,30 @@ export default function LabTested() {
                 You get the actual mitragynine percentage, purity verification, and safety screening results. 
                 We&apos;re not hiding behind proprietary formulas—we&apos;re proving our quality with real lab documentation.
               </p>
-            </motion.div>
+            </div>
           </div>
         </div>
 
-        {/* Lab Tested Image - overlapping right side */}
-        <motion.div
-          className="absolute"
+        {/* Lab Tested Image - centered horizontally, overlapping below */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 overflow-visible"
           style={{
-            right: "0",
-            bottom: "-85px", // Overlap below the card
-            width: "402px", // 484 * 0.83
-            height: "395px", // 476 * 0.83
+            bottom: "20px",
+            width: "402px",
+            height: "395px",
+            zIndex: 20,
           }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
         >
           <Image
             src="/images/lab-tested.png"
             alt="Lab Tested Certified"
             fill
             className="object-contain"
+            style={{ filter: "drop-shadow(0 15px 50px rgba(225, 37, 144, 0.40))" }}
             sizes="402px"
           />
-        </motion.div>
+        </div>
       </div>
     </section>
   );
 }
-
