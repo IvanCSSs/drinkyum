@@ -41,7 +41,7 @@ const GradientArrow = () => (
 
 export default function Comparison() {
   return (
-    <section className="relative bg-[#070707] flex justify-center px-4 py-16 overflow-hidden">
+    <section className="relative bg-[#070707] flex justify-center px-4 pt-32 pb-32 overflow-hidden">
       {/* Background decorative text - "LOVE IT.TASTE IT.FEEL IT" */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img 
