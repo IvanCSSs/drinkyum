@@ -1,157 +1,247 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { motion } from "framer-motion";
 
-const testimonials = [
+/*
+  HOW YUM ACTIVATES SUPERHUMAN MODE
+  All dimensions scaled to 83% of Figma values
+*/
+
+const timelineCards = [
   {
-    id: 1,
-    quote:
-      "Been bartending for 10 years. I've never had a Mocktail that tastes this good and delivers a significant kratom experience without the bitter taste.",
-    author: "Mike R.",
-    role: "Professional Bartender",
+    label: "IGNITION",
+    time: "T+15",
+    color: "rgba(225, 37, 144, 1)",
+    dotColor: "rgba(225, 37, 144, 1)", // pink dot
+    features: [
+      "→ Neural pathways light up",
+      "→ Sensory enhancement begins",
+      "→ The world gets sharper",
+    ],
+    tagline: "You feel it before you think it",
+    hasNotch: true,
   },
   {
-    id: 2,
-    quote:
-      "Finally, a kratom product I actually look forward to taking. The Tropical Breeze flavor is incredible - tastes like a vacation in a bottle!",
-    author: "Sarah K.",
-    role: "Wellness Enthusiast",
+    label: "PEAK STATE",
+    time: "T+60",
+    color: "rgba(0, 184, 228, 1)",
+    dotColor: "rgba(0, 184, 228, 1)", // cyan dot
+    features: [
+      "→ Flow state unlocked",
+      "→ Reaction time increases",
+      "→ Multi-tasking becomes instinct",
+    ],
+    tagline: "This is what pro-level feels like",
+    hasNotch: true,
   },
   {
-    id: 3,
-    quote:
-      "YUM changed the game for me. The convenience of the 14ml bottles is perfect for my active lifestyle. Fits right in my gym bag.",
-    author: "James T.",
-    role: "Fitness Coach",
-  },
-  {
-    id: 4,
-    quote:
-      "I was skeptical at first, but after trying the Bubble Gum flavor, I'm a convert. It's like they figured out the secret formula.",
-    author: "Lisa M.",
-    role: "Repeat Customer",
+    label: "SUSTAINED",
+    time: "T+6-8H",
+    color: "rgba(226, 197, 48, 1)",
+    dotColor: "rgba(0, 184, 228, 1)", // cyan dot
+    features: [
+      "→ Zero crash",
+      "→ Smooth decline",
+      "→ Natural re-entry",
+    ],
+    tagline: "No withdrawal. No regrets.",
+    hasNotch: true,
   },
 ];
 
 export default function Testimonials() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const next = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-  };
-
-  const prev = () => {
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  };
-
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-yum-pink/5 blur-3xl" />
-      </div>
+    <section 
+      id="testimonials" 
+      className="relative bg-[#070707] flex justify-center px-4 py-12"
+    >
+      {/* Main Container - 1168x329 (1407x396 * 0.83) */}
+      <div className="w-full max-w-[1168px] relative" style={{ minHeight: "329px" }}>
+        
+        {/* Background bar - full width, behind cards, with gradient border */}
+        <div 
+          className="absolute left-0 right-0"
+          style={{
+            top: "54px",
+            height: "264px",
+            background: "rgba(15, 15, 15, 0.45)",
+            borderRadius: "20px",
+            zIndex: 0,
+          }}
+        />
+        {/* Gradient border - top with rounded corners, dripping down sides */}
+        <div 
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{
+            top: "54px",
+            height: "264px",
+            borderRadius: "20px",
+            padding: "1px",
+            background: "linear-gradient(180deg, rgba(217,217,217,0.6) 0%, rgba(118,1,72,0) 50%)",
+            WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+            WebkitMaskComposite: "xor",
+            maskComposite: "exclude",
+            zIndex: 5,
+          }}
+        />
 
-      <div className="relative z-10 container mx-auto px-6">
-        {/* Section Header */}
-        <motion.div
-          className="mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <span className="w-2 h-2 rounded-full bg-yum-cyan" />
-            <span className="text-sm uppercase tracking-[0.2em] text-white/60">
-              Testimonials
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-bold italic text-gradient">
-            The Proof Is In<br />
-            <span className="text-yum-pink">The Bottle</span>
-          </h2>
-          <p className="text-white/60 max-w-md mt-4">
-            15,000+ activated users can&apos;t be wrong. See why YUM is the secret
-            weapon you&apos;ve been missing.
-          </p>
-        </motion.div>
-
-        {/* Testimonial Carousel */}
-        <div className="flex flex-col lg:flex-row items-start gap-12">
-          {/* Navigation */}
-          <div className="flex lg:flex-col gap-4">
-            <button
-              onClick={prev}
-              className="p-4 rounded-xl glass opacity-50 hover:opacity-100 transition-all duration-300 hover:border-white/20"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <button
-              onClick={next}
-              className="p-4 rounded-xl glass hover:border-white/20 transition-all duration-300"
-            >
-              <ChevronRight size={24} />
-            </button>
-          </div>
-
-          {/* Testimonial Content */}
-          <div className="flex-1">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.4 }}
+        {/* Content Layout - z-10 to appear above background */}
+        <div className="relative flex z-10">
+          {/* Left Section - Title & Description */}
+          <motion.div
+            className="flex flex-col justify-center"
+            style={{
+              width: "403px",
+              padding: "87px 37px 57px 37px",
+            }}
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* Title - Myriad Pro 700 Italic 26px (33 * 0.8), split styling */}
+            <h2 className="text-[26px] font-bold italic leading-[26px] mb-4">
+              <span
+                style={{
+                  background: "linear-gradient(135deg, #FFFFFF 0%, #999999 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
               >
-                {/* Quote Icon */}
-                <Quote
-                  size={52}
-                  className="text-yum-pink mb-6"
-                  strokeWidth={1}
-                />
+                HOW YUM ACTIVATES{" "}
+              </span>
+              <span style={{ color: "rgba(225, 37, 144, 1)" }}>
+                SUPERHUMAN MODE
+              </span>
+            </h2>
 
-                {/* Quote Text */}
-                <blockquote className="text-2xl md:text-4xl lg:text-4xl text-white/80 leading-relaxed mb-8 font-light">
-                  {testimonials[currentIndex].quote}
-                </blockquote>
+            {/* Description - Lato 400 13px (16 * 0.83), 50% opacity, width 307px */}
+            <p 
+              className="text-[13px] leading-[13px]"
+              style={{ 
+                color: "rgba(255, 255, 255, 0.5)",
+                letterSpacing: "-0.13px",
+                maxWidth: "307px",
+              }}
+            >
+              This isn&apos;t caffeine jitters or sugar rushes. YUM activates a clean, powerful energy state that builds fast, peaks hard, and sustains longer than anything else you&apos;ve tried. Feel the ignition at 15 minutes. Own the peak for hours. Exit smoothly with zero regret.
+            </p>
+          </motion.div>
 
-                {/* Author */}
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yum-pink to-yum-cyan flex items-center justify-center text-lg font-bold">
-                    {testimonials[currentIndex].author.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white uppercase tracking-wider">
-                      - {testimonials[currentIndex].author}
-                    </p>
-                    <p className="text-white/50 text-sm">
-                      {testimonials[currentIndex].role}
-                    </p>
-                  </div>
+          {/* Right Section - Timeline Cards */}
+          <div 
+            className="flex"
+            style={{ 
+              gap: "32px",
+              marginLeft: "auto",
+              marginRight: "30px",
+            }}
+          >
+            {timelineCards.map((card, index) => (
+              <motion.div
+                key={card.label}
+                className="flex flex-col justify-center relative"
+                style={{
+                  width: "234px",
+                  height: "289px",
+                  padding: "56px 20px",
+                  background: card.isHighlighted 
+                    ? "linear-gradient(180deg, rgba(15, 25, 30, 1) 0%, rgba(15, 15, 15, 1) 100%)"
+                    : "rgba(15, 15, 15, 1)",
+                  boxShadow: card.isHighlighted 
+                    ? "inset 0 0 60px rgba(0, 184, 228, 0.15)"
+                    : "none",
+                  zIndex: 10,
+                  borderRadius: "16px",
+                }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.15, duration: 0.6 }}
+              >
+                {/* SVG border with notch shape - gradient from bottom */}
+                <svg 
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 234 289"
+                  fill="none"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <linearGradient id={`border-gradient-${index}`} x1="0" y1="1" x2="0" y2="0">
+                      <stop offset="0%" stopColor={card.color} />
+                      <stop offset="60%" stopColor="rgba(123,20,78,0)" />
+                    </linearGradient>
+                  </defs>
+                  {/* Path: rounded rect with notch at bottom center */}
+                  <path 
+                    d="M16 0 H218 Q234 0 234 16 V273 Q234 289 218 289 H182 Q172 289 172 282 V277 Q172 272 162 272 H72 Q62 272 62 277 V282 Q62 289 52 289 H16 Q0 289 0 273 V16 Q0 0 16 0 Z"
+                    stroke={`url(#border-gradient-${index})`}
+                    strokeWidth="1.5"
+                    fill="none"
+                  />
+                </svg>
+                
+                {/* Label with colored dot */}
+                <div className="flex items-center mb-4" style={{ gap: "5px" }}>
+                  <div 
+                    className="w-[4px] h-[4px] rounded-full"
+                    style={{ background: card.dotColor }}
+                  />
+                  <span 
+                    className="text-[17px] font-light leading-[17px] uppercase"
+                    style={{
+                      background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    {card.label}
+                  </span>
                 </div>
-              </motion.div>
-            </AnimatePresence>
 
-            {/* Dots Indicator */}
-            <div className="flex gap-2 mt-8">
-              {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentIndex(i)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    i === currentIndex
-                      ? "w-8 bg-yum-pink"
-                      : "bg-white/20 hover:bg-white/40"
-                  }`}
-                />
-              ))}
-            </div>
+                {/* Time - Myriad Pro 700 Italic 58px (70 * 0.83) */}
+                <span 
+                  className="text-[41px] font-bold italic leading-[41px] mb-4"
+                  style={{ color: card.color }}
+                >
+                  {card.time}
+                </span>
+
+                {/* Features - Lato 300 13px */}
+                <div 
+                  className="flex flex-col mb-4"
+                  style={{ gap: "4px" }}
+                >
+                  {card.features.map((feature, i) => (
+                    <span 
+                      key={i}
+                      className="text-[13px] font-light leading-[16px]"
+                      style={{
+                        background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Tagline - Lato 300 13px, colored */}
+                <span 
+                  className="text-[13px] font-light leading-[13px] mt-auto"
+                  style={{ color: card.color }}
+                >
+                  {card.tagline}
+                </span>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
     </section>
   );
 }
-
