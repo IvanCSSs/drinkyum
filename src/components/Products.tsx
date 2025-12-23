@@ -1,229 +1,249 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShoppingCart, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
+import Image from "next/image";
+
+/*
+  All dimensions scaled to 83% of Figma values
+*/
 
 const products = [
   {
     id: 1,
-    name: "Bubble Gum",
-    size: "14ml",
-    price: 9.99,
-    description: "Sweet nostalgia meets powerful relief",
-    color: "#E1258F",
-    bgGradient: "from-pink-900/20 to-transparent",
-    tag: "Best Seller",
+    name: "Triple Play - YUM Delicious Kratom Extract - Bubble Gum 30ml",
+    price: "$70.00",
+    image: "/images/product-1.png",
   },
   {
     id: 2,
-    name: "Tropical Breeze",
-    size: "14ml",
-    price: 9.99,
-    description: "Exotic fruit blend with smooth finish",
-    color: "#E2C530",
-    bgGradient: "from-yellow-900/20 to-transparent",
-    tag: null,
+    name: "Triple Play - YUM Tropical Breeze 30ml Delicious Kratom Extract",
+    price: "$70.00",
+    image: "/images/product-2.png",
   },
   {
     id: 3,
-    name: "Bubble Gum",
-    size: "30ml",
-    price: 19.99,
-    description: "Double the flavor, double the experience",
-    color: "#E1258F",
-    bgGradient: "from-pink-900/20 to-transparent",
-    tag: "Popular",
-  },
-  {
-    id: 4,
-    name: "Tropical Breeze",
-    size: "30ml",
-    price: 19.99,
-    description: "Extended tropical journey",
-    color: "#E2C530",
-    bgGradient: "from-yellow-900/20 to-transparent",
-    tag: null,
+    name: "333 - Bubble Gum + Tropical Breeze YUM Holiday Bundle (6 Units)",
+    price: "$140.00",
+    image: "/images/product-3.png",
   },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-    },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-};
-
 export default function Products() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const scrollAmount = 302; // (277 + 25) card width + gap
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
-    <section id="products" className="relative py-24 md:py-32">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-yum-dark via-yum-dark-alt to-yum-dark" />
+    <section 
+      id="products" 
+      className="relative bg-[#070707] flex justify-center px-4 py-12"
+    >
+      {/* Main Container - 1119px (1348 * 0.83) */}
+      <div className="w-full max-w-[1119px] relative">
+        {/* Decorative cyan ellipse - 978x262 (scaled), blur 83px */}
+        <div 
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[978px] h-[262px] pointer-events-none"
+          style={{
+            borderRadius: "978px",
+            background: "rgba(0, 184, 228, 0.10)",
+            filter: "blur(83px)",
+          }}
+        />
 
-      <div className="relative z-10 container mx-auto px-6">
-        {/* Section Header */}
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+        {/* Content: HORIZONTAL layout, spacing 92px (111 * 0.83) */}
+        <div 
+          className="relative flex"
+          style={{ gap: "92px", marginTop: "71px" }}
         >
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <span className="w-2 h-2 rounded-full bg-yum-cyan" />
-            <span className="text-sm uppercase tracking-[0.2em] text-white/60">
-              Our Products
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-bold italic text-gradient mb-4">
-            Choose Your Flavor
-          </h2>
-          <p className="text-white/60 max-w-xl mx-auto">
-            Premium kratom extract beverages available in two delicious flavors
-            and convenient sizes.
-          </p>
-        </motion.div>
+          {/* Left Section - Title + Nav - 228px (275 * 0.83) */}
+          <motion.div
+            className="flex flex-col flex-shrink-0"
+            style={{ width: "228px", gap: "278px" }}
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* Title Section - gap 16px (19 * 0.83) */}
+            <div className="flex flex-col" style={{ gap: "16px" }}>
+              {/* Top Sellers - 42px (50 * 0.83) */}
+              <h2 
+                className="text-[42px] font-bold italic leading-[42px]"
+                style={{
+                  background: "linear-gradient(135deg, #FFFFFF 0%, #999999 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Top Sellers
+              </h2>
 
-        {/* Products Grid */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          {products.map((product) => (
-            <motion.div
-              key={product.id}
-              variants={cardVariants}
-              className="group relative rounded-2xl overflow-hidden glass"
-              whileHover={{ y: -8, transition: { duration: 0.3 } }}
-            >
-              {/* Background gradient */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-b ${product.bgGradient}`}
-              />
+              {/* Description - 13px (16 * 0.83) */}
+              <p 
+                className="text-[13px] leading-[13px]"
+                style={{
+                  letterSpacing: "-0.13px",
+                  background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Our most powerful packs at our best prices. Premium 75% extract, unbeatable flavors, proven results.
+              </p>
+            </div>
 
-              {/* Tag */}
-              {product.tag && (
-                <div className="absolute top-4 right-4 z-20">
-                  <span
-                    className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full"
-                    style={{ backgroundColor: product.color, color: "white" }}
+            {/* Navigation Arrows - gap 12px (15 * 0.83) */}
+            <div className="flex" style={{ gap: "12px" }}>
+              {/* Left Arrow - 37x37 (45 * 0.83), radius 10px */}
+              <button
+                onClick={() => scroll("left")}
+                className="w-[37px] h-[37px] flex items-center justify-center transition-opacity hover:opacity-80"
+                style={{
+                  borderRadius: "10px",
+                  border: "1px solid rgba(153, 153, 153, 0.25)",
+                }}
+              >
+                <ChevronLeft size={17} className="text-white/60" />
+              </button>
+
+              {/* Right Arrow - 37x37, radius 10px */}
+              <button
+                onClick={() => scroll("right")}
+                className="w-[37px] h-[37px] flex items-center justify-center transition-opacity hover:opacity-80"
+                style={{
+                  borderRadius: "10px",
+                  border: "1px solid rgba(153, 153, 153, 0.25)",
+                }}
+              >
+                <ChevronRight size={17} className="text-white/60" />
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Right Section - Scrollable Product Cards */}
+          <div 
+            ref={scrollRef}
+            className="flex overflow-x-auto scrollbar-hide"
+            style={{ 
+              gap: "25px",
+              scrollSnapType: "x mandatory",
+            }}
+          >
+            {products.map((product, index) => (
+              <motion.div
+                key={product.id}
+                className="flex-shrink-0 relative"
+                style={{ 
+                  width: "277px",
+                  height: "432px",
+                  scrollSnapAlign: "start",
+                }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.6 }}
+              >
+                {/* Card Background - radius 31.5px (37.958 * 0.83) */}
+                <div 
+                  className="absolute inset-0"
+                  style={{
+                    borderRadius: "31.5px",
+                    border: "1.18px solid #292929",
+                    background: "linear-gradient(180deg, rgba(15, 15, 15, 0.00) 0%, #0F0F0F 100%)",
+                  }}
+                />
+
+                {/* Card Content - padding 9px (11 * 0.83) */}
+                <div 
+                  className="relative flex flex-col items-center"
+                  style={{ padding: "9px" }}
+                >
+                  {/* Product Image - 259x259 (312 * 0.83) */}
+                  <div className="relative w-[259px] h-[259px] mb-3 overflow-hidden rounded-[17px]">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                      style={{ transform: "scale(1.1)" }}
+                    />
+                  </div>
+
+                  {/* Product Info - fixed height 116px (140 * 0.83) */}
+                  <div 
+                    className="w-full flex flex-col justify-between"
+                    style={{ height: "116px", padding: "0 4px" }}
                   >
-                    {product.tag}
-                  </span>
-                </div>
-              )}
-
-              {/* Content */}
-              <div className="relative z-10 p-6">
-                {/* Product Image Placeholder */}
-                <div className="relative aspect-square mb-6 flex items-center justify-center">
-                  <motion.div
-                    className="w-24 h-32 rounded-lg"
-                    style={{
-                      background: `linear-gradient(135deg, ${product.color}40, ${product.color}10)`,
-                      border: `2px solid ${product.color}40`,
-                    }}
-                    whileHover={{ rotate: [0, -5, 5, 0], transition: { duration: 0.4 } }}
-                  >
-                    <div className="h-full flex flex-col items-center justify-center">
-                      <Sparkles
-                        size={24}
-                        style={{ color: product.color }}
-                        className="mb-2"
-                      />
-                      <span
-                        className="text-xs font-bold"
-                        style={{ color: product.color }}
+                    {/* Top section: Name + Price */}
+                    <div className="flex flex-col" style={{ gap: "4px" }}>
+                      {/* Product Name - 14px, height 42px */}
+                      <h3 
+                        className="text-[14px] leading-[14px]"
+                        style={{
+                          height: "42px",
+                          overflow: "hidden",
+                          background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          backgroundClip: "text",
+                        }}
                       >
-                        {product.size}
+                        {product.name}
+                      </h3>
+
+                      {/* Price - 14px (same as name), pink, with padding below */}
+                      <span 
+                        className="text-[14px] font-bold leading-[14px]"
+                        style={{ color: "rgba(225, 37, 144, 1)", marginBottom: "6px" }}
+                      >
+                        {product.price}
                       </span>
                     </div>
-                  </motion.div>
-                </div>
 
-                {/* Product Info */}
-                <div className="text-center">
-                  <span className="text-xs text-white/40 uppercase tracking-wider">
-                    {product.size}
-                  </span>
-                  <h3 className="text-xl font-bold text-white mb-1">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-white/50 mb-4">
-                    {product.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span
-                      className="text-2xl font-bold"
-                      style={{ color: product.color }}
-                    >
-                      ${product.price}
-                    </span>
+                    {/* Add to Cart Button - height 35px (42 * 0.83), radius 10px */}
                     <button
-                      className="p-3 rounded-full transition-all duration-300 hover:scale-110"
+                      className="w-full flex items-center justify-center text-[15px] text-white transition-all hover:brightness-110"
                       style={{
-                        backgroundColor: `${product.color}20`,
-                        color: product.color,
+                        height: "35px",
+                        flexShrink: 0,
+                        borderRadius: "10px",
+                        border: "1px solid #FFF",
+                        background: "radial-gradient(30.86% 27.56% at 77.68% 0%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), radial-gradient(54.33% 42.36% at 29.91% 100%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), rgba(220, 3, 135, 0.40)",
+                        boxShadow: "0 0 3px 0 #FFF inset",
                       }}
                     >
-                      <ShoppingCart size={18} />
+                      Add to Cart
                     </button>
                   </div>
                 </div>
-              </div>
-
-              {/* Hover glow effect */}
-              <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                style={{
-                  background: `radial-gradient(circle at center, ${product.color}10, transparent 70%)`,
-                }}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Bundle Section */}
-        <motion.div
-          className="mt-16 p-8 md:p-12 rounded-3xl glass text-center"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
-          <h3 className="text-2xl md:text-3xl font-bold text-gradient mb-4">
-            Try Our Bundles & Save
-          </h3>
-          <p className="text-white/60 mb-6 max-w-lg mx-auto">
-            Mix and match your favorites with our Twins Play (2-pack) or Triple Play (3-pack) bundles.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="btn-outline flex items-center gap-2">
-              <span>Twins Play</span>
-              <span className="text-yum-cyan">$17.99</span>
-            </button>
-            <button className="btn-primary flex items-center gap-2">
-              <span>Triple Play</span>
-              <span>$24.99</span>
-            </button>
+              </motion.div>
+            ))}
           </div>
-        </motion.div>
+        </div>
       </div>
+
+      {/* Hide scrollbar CSS */}
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </section>
   );
 }
-

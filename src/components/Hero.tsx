@@ -209,10 +209,16 @@ export default function Hero() {
                     </defs>
                   </svg>
                   {/* Inner dark circle - 88x88, centered */}
-                  <div 
-                    className="absolute w-[88px] h-[88px] rounded-full"
-                    style={{ background: "rgba(8,8,8,1)" }}
-                  />
+                  <svg 
+                    className="absolute" 
+                    width="88" 
+                    height="88" 
+                    viewBox="0 0 88 88" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="44" cy="44" r="44" fill="#080808"/>
+                  </svg>
                 </div>
 
                 {/* Body text - 396×80, 60% opacity gradient white→gray, overlaps arc */}

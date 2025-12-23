@@ -1,154 +1,174 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Droplets, Leaf, Zap, Heart } from "lucide-react";
 
-const features = [
+const stats = [
   {
-    icon: Droplets,
-    title: "Premium Extract",
-    description: "High-quality kratom extract crafted for maximum potency and smooth experience.",
-    color: "#00B8E4",
+    label: "PURITY",
+    value: "75%",
+    description: "Pharmaceutical-grade precision. Every bottle.",
   },
   {
-    icon: Leaf,
-    title: "All Natural",
-    description: "Made with carefully sourced, natural ingredients you can trust.",
-    color: "#4CAF50",
+    label: "TESTED",
+    value: "100%",
+    description: "Third-party tested for potency, purity, and safety.",
   },
   {
-    icon: Zap,
-    title: "Fast Acting",
-    description: "Feel the difference quickly with our optimized liquid formula.",
-    color: "#E2C530",
-  },
-  {
-    icon: Heart,
-    title: "Great Taste",
-    description: "No bitter aftertaste - just delicious flavors you'll actually enjoy.",
-    color: "#E1258F",
+    label: "Bitter Aftertaste",
+    value: "0",
+    description: "Pure flavor, no compromise",
   },
 ];
 
 export default function About() {
   return (
-    <section id="about" className="relative py-24 md:py-32">
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-            backgroundSize: "40px 40px",
-          }}
-        />
-      </div>
+    <section 
+      id="about" 
+      className="relative bg-[#070707] flex justify-center px-4 py-16"
+    >
+      {/* Main Container - 1348x561, VERTICAL layout, spacing 51px */}
+      <div 
+        className="w-full max-w-[1348px] flex flex-col"
+        style={{ gap: "51px" }}
+      >
+        {/* Top Section - 1348x257, VERTICAL layout, spacing 17px */}
+        <motion.div 
+          className="flex flex-col"
+          style={{ gap: "17px" }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Label row - right aligned */}
+          <div className="flex items-center justify-end" style={{ gap: "6px" }}>
+            {/* Cyan dot - 5x5 */}
+            <div 
+              className="w-[5px] h-[5px] rounded-full"
+              style={{ background: "rgba(0, 184, 228, 1)" }}
+            />
+            {/* Label text - Myriad Pro 300 20px, gradient, uppercase */}
+            <span 
+              className="text-[20px] font-light leading-[20px] uppercase"
+              style={{
+                background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              about us
+            </span>
+          </div>
 
-      <div className="relative z-10 container mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Left Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-2 h-2 rounded-full bg-yum-cyan" />
-              <span className="text-sm uppercase tracking-[0.2em] text-white/60">
-                Why YUM?
-              </span>
-            </div>
-
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold italic text-gradient mb-6 leading-tight">
-              A Better Experience<br />
-              <span className="text-yum-cyan">Every Time</span>
-            </h2>
-
-            <p className="text-lg text-white/60 mb-8 leading-relaxed">
-              We set out to create the perfect kratom beverage - one that delivers
-              powerful results without compromising on taste. After countless
-              iterations and taste tests, YUM was born.
-            </p>
-
-            <p className="text-white/60 mb-8">
-              Our proprietary blend ensures consistent potency in every bottle,
-              while our signature flavors mask any bitterness for a truly
-              enjoyable experience.
-            </p>
-
-            <div className="flex flex-wrap gap-4">
-              <div className="px-4 py-2 rounded-full glass">
-                <span className="text-yum-gold font-semibold">15,000+</span>
-                <span className="text-white/60 ml-2">Happy Customers</span>
-              </div>
-              <div className="px-4 py-2 rounded-full glass">
-                <span className="text-yum-pink font-semibold">4.9★</span>
-                <span className="text-white/60 ml-2">Average Rating</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Right Content - Features Grid */}
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-6"
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                className="p-6 rounded-2xl glass group hover:border-white/20 transition-all duration-300"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
+          {/* Main paragraph container - padding 10px */}
+          <div className="flex justify-end" style={{ padding: "10px" }}>
+            {/* Main text - 1020px wide, Myriad Pro Light 40px, gradient */}
+            <p 
+              className="text-[40px] font-light leading-[40px] w-[1020px] text-right"
+              style={{
+                letterSpacing: "0",
+              }}
+            >
+              {/* "YUM" in Bold Italic Pink */}
+              <span 
+                className="font-bold italic"
+                style={{ color: "rgba(225, 37, 144, 1)" }}
               >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
-                  style={{ backgroundColor: `${feature.color}20` }}
-                >
-                  <feature.icon size={24} style={{ color: feature.color }} />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-white/50 text-sm">{feature.description}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
+                YUM
+              </span>
+              {/* Rest of text in gradient */}
+              <span
+                style={{
+                  background: "linear-gradient(135deg, #FFFFFF 0%, #999999 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {" "}is the result of relentless experimentation in pursuit of the perfect kratom extract. We&apos;ve achieved what others said was impossible: 75% mitragynine purity, zero bitterness, lab-verified consistency, and flavors so exceptional they&apos;ve become the benchmark for what premium extraction should deliver.
+              </span>
+            </p>
+          </div>
+        </motion.div>
 
-        {/* Bottom Stats Bar */}
-        <motion.div
-          className="mt-20 py-8 px-8 rounded-2xl glass grid grid-cols-2 md:grid-cols-4 gap-8"
+        {/* Bottom Section - 759x253, positioned right */}
+        <motion.div 
+          className="flex justify-end"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="text-center">
-            <p className="text-3xl md:text-4xl font-bold text-yum-pink mb-1">2</p>
-            <p className="text-white/50 text-sm">Delicious Flavors</p>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl md:text-4xl font-bold text-yum-cyan mb-1">2</p>
-            <p className="text-white/50 text-sm">Convenient Sizes</p>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl md:text-4xl font-bold text-yum-gold mb-1">0</p>
-            <p className="text-white/50 text-sm">Bitter Aftertaste</p>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl md:text-4xl font-bold text-yum-pink-light mb-1">∞</p>
-            <p className="text-white/50 text-sm">Possibilities</p>
+          {/* Stats row - 3 boxes, each 253x253 */}
+          <div className="flex">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                className="w-[253px] h-[253px] flex items-center justify-center"
+                style={{
+                  borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 + index * 0.1 }}
+              >
+                {/* Inner content - vertical layout, spacing 52px */}
+                <div 
+                  className="flex flex-col"
+                  style={{ 
+                    gap: "52px",
+                    width: "199px",
+                  }}
+                >
+                  {/* Label with cyan dot */}
+                  <div className="flex items-center" style={{ gap: "6px" }}>
+                    {/* Cyan dot - 5x5 */}
+                    <div 
+                      className="w-[5px] h-[5px] rounded-full flex-shrink-0"
+                      style={{ background: "rgba(0, 184, 228, 1)" }}
+                    />
+                    {/* Label - Myriad Pro 300 20px, gradient, uppercase */}
+                    <span 
+                      className="text-[20px] font-light leading-[20px] uppercase"
+                      style={{
+                        background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      {stat.label}
+                    </span>
+                  </div>
+
+                  {/* Big number - Myriad Pro 600 Italic 70px, pink */}
+                  <span 
+                    className="text-[70px] font-semibold italic leading-[70px]"
+                    style={{ color: "rgba(225, 37, 144, 1)" }}
+                  >
+                    {stat.value}
+                  </span>
+
+                  {/* Description - Myriad Pro 300 16px, gradient */}
+                  <p 
+                    className="text-[16px] font-light leading-[16px]"
+                    style={{
+                      background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    {stat.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
       </div>
     </section>
   );
 }
-
