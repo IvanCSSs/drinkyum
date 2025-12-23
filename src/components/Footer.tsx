@@ -1,174 +1,131 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { Instagram, Twitter, Facebook } from "lucide-react";
+import Image from "next/image";
 
-const footerLinks = {
-  shop: [
-    { label: "All Products", href: "/shop" },
-    { label: "14ml Bottles", href: "/shop?size=14ml" },
-    { label: "30ml Bottles", href: "/shop?size=30ml" },
-    { label: "Bundles", href: "/shop?category=bundles" },
-  ],
-  company: [
-    { label: "About Us", href: "/about" },
-    { label: "Our Story", href: "/about#story" },
-    { label: "Contact", href: "/contact" },
-    { label: "FAQ", href: "/faq" },
-  ],
-  legal: [
-    { label: "Terms & Conditions", href: "/terms" },
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Shipping Info", href: "/shipping" },
-    { label: "Returns", href: "/returns" },
-  ],
-};
-
-const socialLinks = [
-  { icon: Instagram, href: "https://instagram.com/drinkyum", label: "Instagram" },
-  { icon: Twitter, href: "https://twitter.com/drinkyum", label: "Twitter" },
-  { icon: Facebook, href: "https://facebook.com/drinkyum", label: "Facebook" },
+const navLinks = [
+  { number: "01", label: "Home", href: "/" },
+  { number: "02", label: "Shop", href: "/shop" },
+  { number: "03", label: "About us", href: "/about" },
 ];
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
-
   return (
-    <footer className="relative pt-24 pb-8 overflow-hidden">
-      {/* Top border gradient */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-      <div className="container mx-auto px-6">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
-          {/* Brand Column */}
-          <div className="lg:col-span-2">
-            <Link href="/" className="inline-block mb-6">
-              <span className="text-3xl font-bold tracking-tight">
-                <span className="text-yum-pink">Y</span>
-                <span className="text-yum-cyan">U</span>
-                <span className="text-yum-gold">M</span>
-              </span>
+    <footer className="relative bg-[#070707] flex justify-center px-4 pt-20 pb-8">
+      <div 
+        className="w-full flex flex-col"
+        style={{ maxWidth: "1075px", gap: "90px" }}
+      >
+        {/* Main Content */}
+        <div className="flex justify-between">
+          {/* Left Section - Logo & Tagline */}
+          <div className="flex flex-col" style={{ gap: "43px", width: "265px" }}>
+            {/* Logo */}
+            <Link href="/">
+              <Image
+                src="/images/logo.svg"
+                alt="YUM - DrinkYUM"
+                width={254}
+                height={73}
+                className="h-[73px] w-auto"
+              />
             </Link>
-            <p className="text-white/60 mb-6 max-w-sm">
-              Premium kratom extract beverages crafted for exceptional taste and
-              powerful results. Love it. Taste it. Feel it.
+
+            {/* Tagline */}
+            <p 
+              className="text-[25px] font-semibold italic leading-[25px]"
+              style={{
+                background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              LOVE IT.TASTE IT.FEEL IT
             </p>
-            
-            {/* Social Links */}
-            <div className="flex items-center gap-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 rounded-full glass text-white/60 hover:text-white hover:border-white/20 transition-all duration-300"
-                  aria-label={social.label}
+          </div>
+
+          {/* Right Section - Navigation */}
+          <div className="flex flex-col" style={{ width: "391px" }}>
+            {navLinks.map((link, index) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="flex items-center transition-opacity hover:opacity-80"
+                style={{
+                  gap: "16px",
+                  padding: "15px 0",
+                  borderTop: index > 0 ? "1px solid rgba(255,255,255,0.2)" : "none",
+                }}
+              >
+                {/* Number */}
+                <span 
+                  className="text-[19px]"
+                  style={{ color: "rgba(255, 255, 255, 0.6)" }}
                 >
-                  <social.icon size={18} />
-                </a>
-              ))}
-            </div>
-          </div>
+                  {link.number}
+                </span>
 
-          {/* Shop Links */}
-          <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-white mb-4">
-              Shop
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.shop.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-white/60 hover:text-white transition-colors animated-underline"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company Links */}
-          <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-white mb-4">
-              Company
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-white/60 hover:text-white transition-colors animated-underline"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal Links */}
-          <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-white mb-4">
-              Legal
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.legal.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-white/60 hover:text-white transition-colors animated-underline"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                {/* Label */}
+                <span 
+                  className="text-[43px]"
+                  style={{ color: "rgba(255, 255, 255, 0.6)" }}
+                >
+                  {link.label}
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <motion.div
-          className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
+        <div 
+          className="flex items-center justify-between"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "20px" }}
         >
-          <p className="text-white/60 text-sm">
-            © DrinkYUM {currentYear}. All rights reserved.
-          </p>
-          <p className="text-white/40 text-sm">
+          {/* Copyright */}
+          <span 
+            className="text-[13px]"
+            style={{ color: "rgba(255, 255, 255, 1)" }}
+          >
+            © Drinkyum 2025.
+          </span>
+
+          {/* Credits */}
+          <span 
+            className="text-[13px]"
+            style={{ color: "rgba(255, 255, 255, 0.6)" }}
+          >
             Designed and developed with love by{" "}
-            <a
-              href="https://radicalz.io"
-              target="_blank"
+            <a 
+              href="https://radicalz.io" 
+              target="_blank" 
               rel="noopener noreferrer"
-              className="text-yum-pink hover:underline"
+              className="hover:text-white transition-colors"
             >
               Radicalz.io
             </a>
-          </p>
-          <div className="flex items-center gap-6">
-            <Link
+          </span>
+
+          {/* Legal Links */}
+          <div className="flex items-center" style={{ gap: "24px" }}>
+            <Link 
               href="/terms"
-              className="text-white/60 hover:text-white text-sm underline transition-colors"
+              className="text-[13px] hover:opacity-80 transition-opacity"
+              style={{ color: "rgba(255, 255, 255, 1)" }}
             >
               Terms & Conditions
             </Link>
-            <Link
+            <Link 
               href="/privacy"
-              className="text-white/60 hover:text-white text-sm underline transition-colors"
+              className="text-[13px] hover:opacity-80 transition-opacity"
+              style={{ color: "rgba(255, 255, 255, 1)" }}
             >
               Privacy Policy
             </Link>
           </div>
-        </motion.div>
+        </div>
       </div>
     </footer>
   );
 }
-

@@ -7,6 +7,7 @@ import PocketSize from "@/components/PocketSize";
 import Comparison from "@/components/Comparison";
 import LabTested from "@/components/LabTested";
 import FAQ from "@/components/FAQ";
+import FAQSection from "@/components/FAQSection";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 
@@ -22,6 +23,7 @@ export default function Home() {
       <Comparison />
       <LabTested />
       <FAQ />
+      <FAQSection />
       <Newsletter />
       <Footer />
     </main>
