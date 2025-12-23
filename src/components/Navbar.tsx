@@ -27,7 +27,7 @@ export default function Navbar() {
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
         <div 
-          className="max-w-[1200px] mx-auto flex items-center justify-between px-4 py-3 rounded-xl relative overflow-hidden"
+          className="max-w-[1200px] mx-auto flex items-center justify-between px-4 py-[18px] rounded-xl relative overflow-hidden"
           style={{
             background: "rgba(1, 6, 25, 0.05)",
             backdropFilter: "blur(20px)",

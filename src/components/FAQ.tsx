@@ -2,33 +2,27 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Minus } from "lucide-react";
 
 const faqs = [
   {
-    question: "What is YUM kratom extract?",
+    question: "What is kratom?",
     answer:
-      "YUM is a premium kratom extract beverage that combines high-quality kratom with delicious flavors. Unlike traditional kratom products, YUM masks the bitter taste entirely, giving you a genuinely enjoyable experience every time.",
+      "YUM is a premium kratom extract containing 75% mitragynine—the primary alkaloid responsible for energy, focus, and performance enhancement. It's not an energy drink. It's a precision-engineered botanical extract designed for peak human performance.",
   },
   {
-    question: "How should I take YUM?",
+    question: "How do I use YUM?",
     answer:
-      "Simply shake the bottle and drink! Our 14ml bottles are perfect for a single serving, while our 30ml bottles can be split into two servings or enjoyed all at once for a stronger experience. Start with a smaller amount if you're new to kratom.",
+      "Simply shake the bottle and drink! Start with half a bottle if you're new to kratom. Effects typically begin within 15-30 minutes and last 4-8 hours depending on the serving size.",
   },
   {
-    question: "What flavors are available?",
+    question: "Can I take it every day?",
     answer:
-      "We currently offer two signature flavors: Bubble Gum (a sweet, nostalgic treat) and Tropical Breeze (an exotic fruit blend with hints of citrus and mango). Both are crafted to completely mask any bitter kratom taste.",
+      "While YUM is safe for regular use, we recommend cycling your consumption. Use it when you need peak performance, not as a daily habit. Listen to your body and take breaks as needed.",
   },
   {
-    question: "Is YUM legal?",
+    question: "I'm new to kratom. Where should I start?",
     answer:
-      "Kratom is legal in most US states, but regulations vary. Please check your local laws before purchasing. We do not ship to states where kratom is prohibited.",
-  },
-  {
-    question: "How fast is shipping?",
-    answer:
-      "We offer fast, discreet shipping across the United States. Most orders ship within 24 hours and arrive in 3-5 business days. Expedited shipping options are available at checkout.",
+      "Start with our 14ml bottle or half of a 30ml bottle. Wait 45 minutes to assess effects before taking more. Everyone's tolerance is different, so start low and find your optimal dose.",
   },
 ];
 
@@ -40,52 +34,72 @@ export default function FAQ() {
   };
 
   return (
-    <section className="relative py-24 md:py-32">
-      <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Left - Header */}
+    <section className="relative bg-[#070707] flex justify-center px-4 py-16">
+      <div 
+        className="w-full max-w-[1119px] flex flex-col"
+        style={{ gap: "8px" }}
+      >
+        {/* Main Content */}
+        <div 
+          className="flex flex-col items-center"
+          style={{ padding: "117px 0", gap: "46px" }}
+        >
+          {/* Header */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            className="flex flex-col items-center"
+            style={{ gap: "8px" }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-2 h-2 rounded-full bg-yum-cyan" />
-              <span className="text-sm uppercase tracking-[0.2em] text-white/60">
-                FAQ
-              </span>
-            </div>
+            {/* FAQ Label */}
+            <span 
+              className="text-[11px] font-light"
+              style={{ color: "rgba(225, 37, 144, 1)" }}
+            >
+              FAQ
+            </span>
 
-            <h2 className="text-4xl md:text-5xl font-bold italic text-gradient mb-6">
-              Got Questions?<br />
-              <span className="text-yum-gold">We&apos;ve Got Answers</span>
+            {/* Title */}
+            <h2 
+              className="text-[42px] font-semibold leading-[35px] text-center"
+              style={{ color: "rgba(255, 255, 255, 1)" }}
+            >
+              QUESTIONS? WE&apos;VE GOT ANSWERS.
             </h2>
 
-            <p className="text-white/60 mb-8">
-              Everything you need to know about YUM kratom extract beverages.
-              Can&apos;t find what you&apos;re looking for? Reach out to our support team.
-            </p>
-
-            <a
-              href="mailto:support@drinkyum.com"
-              className="btn-outline inline-flex items-center gap-2"
+            {/* Subtitle */}
+            <p 
+              className="text-[14px] leading-[20px] text-center"
+              style={{
+                background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
             >
-              Contact Support
-            </a>
+              Everything you need to know before your first power-up.
+            </p>
           </motion.div>
 
-          {/* Right - FAQ Items */}
+          {/* FAQ Items */}
           <motion.div
-            className="space-y-4"
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            className="flex flex-col w-full"
+            style={{ maxWidth: "581px", gap: "7px" }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
           >
             {faqs.map((faq, index) => (
               <motion.div
                 key={index}
-                className="rounded-xl overflow-hidden glass"
+                className="overflow-hidden"
+                style={{
+                  borderRadius: "25px",
+                  background: "rgba(7, 7, 7, 0.19)",
+                }}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -93,17 +107,58 @@ export default function FAQ() {
               >
                 <button
                   onClick={() => toggleFAQ(index)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center justify-between text-left transition-colors"
+                  style={{ padding: "24px" }}
                 >
-                  <span className="font-semibold text-white pr-4">
-                    {faq.question}
-                  </span>
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full glass flex items-center justify-center">
-                    {openIndex === index ? (
-                      <Minus size={16} className="text-yum-pink" />
-                    ) : (
-                      <Plus size={16} className="text-white/60" />
-                    )}
+                  {/* Left side - Icon + Question */}
+                  <div className="flex items-center" style={{ gap: "16px" }}>
+                    {/* Plus/Minus Icon */}
+                    <div 
+                      className="relative flex items-center justify-center"
+                      style={{ width: "19px", height: "19px" }}
+                    >
+                      {/* Horizontal line */}
+                      <div 
+                        style={{
+                          position: "absolute",
+                          width: "13px",
+                          height: "2px",
+                          borderRadius: "8px",
+                          background: "rgba(255, 255, 255, 1)",
+                        }}
+                      />
+                      {/* Vertical line (hidden when open) */}
+                      <motion.div 
+                        style={{
+                          position: "absolute",
+                          width: "2px",
+                          height: "13px",
+                          borderRadius: "8px",
+                          background: "rgba(255, 255, 255, 1)",
+                        }}
+                        animate={{ 
+                          opacity: openIndex === index ? 0 : 1,
+                          rotate: openIndex === index ? 90 : 0,
+                        }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    </div>
+
+                    {/* Question text */}
+                    <span 
+                      className="text-[17px] font-semibold"
+                      style={{ color: "rgba(255, 255, 255, 1)" }}
+                    >
+                      {faq.question}
+                    </span>
+                  </div>
+
+                  {/* Star symbol */}
+                  <span 
+                    className="text-[13px]"
+                    style={{ color: "rgba(255, 255, 255, 1)" }}
+                  >
+                    ✦
                   </span>
                 </button>
 
@@ -116,7 +171,13 @@ export default function FAQ() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="overflow-hidden"
                     >
-                      <div className="px-6 pb-5 text-white/60 leading-relaxed">
+                      <div 
+                        className="text-[14px] leading-[19px]"
+                        style={{ 
+                          padding: "0 24px 24px 59px",
+                          color: "rgba(255, 255, 255, 0.6)",
+                        }}
+                      >
                         {faq.answer}
                       </div>
                     </motion.div>
@@ -126,8 +187,63 @@ export default function FAQ() {
             ))}
           </motion.div>
         </div>
+
+        {/* Bottom Section - Contact */}
+        <motion.div
+          className="flex flex-col"
+          style={{ gap: "25px" }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
+          {/* Text */}
+          <div className="flex flex-col" style={{ gap: "16px" }}>
+            <h3 
+              className="text-[42px] font-bold italic leading-[42px]"
+              style={{
+                background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Still have questions?
+            </h3>
+            <p 
+              className="text-[13px] leading-[13px]"
+              style={{
+                background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              We are here to help!
+            </p>
+          </div>
+
+          {/* Contact Button */}
+          <motion.a
+            href="mailto:support@drinkyum.com"
+            className="flex items-center justify-center text-[15px] text-white font-normal"
+            style={{
+              width: "88px",
+              height: "35px",
+              borderRadius: "10px",
+              border: "1px solid #FFF",
+              background: `radial-gradient(30.86% 27.56% at 77.68% 0%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), 
+                           radial-gradient(54.33% 42.36% at 29.91% 100%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), 
+                           rgba(220, 3, 135, 0.40)`,
+              boxShadow: "inset 0 0 4px 0 #FFF",
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Contact Us
+          </motion.a>
+        </motion.div>
       </div>
     </section>
   );
 }
-

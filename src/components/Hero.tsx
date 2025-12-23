@@ -116,13 +116,14 @@ export default function Hero() {
             {/* Headline with buttons - at y=265 from top (accounting for nav) */}
             <motion.div
               className="mt-[100px]"
+              style={{ padding: "0 100px" }}
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               {/* Headline - 530×210, Myriad Pro 700 70px */}
               <h1 
-                className="text-[70px] font-bold italic leading-[1] mb-[17px]"
+                className="text-[58px] font-bold italic leading-[1] mb-[14px]"
                 style={{
                   background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                   WebkitBackgroundClip: "text",
