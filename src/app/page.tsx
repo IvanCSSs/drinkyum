@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Products from "@/components/Products";
 import Testimonials from "@/components/Testimonials";
+import PocketSize from "@/components/PocketSize";
 import FAQ from "@/components/FAQ";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
@@ -15,6 +16,7 @@ export default function Home() {
       <About />
       <Products />
       <Testimonials />
+      <PocketSize />
       <FAQ />
       <Newsletter />
       <Footer />
