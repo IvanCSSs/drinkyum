@@ -2,50 +2,42 @@
 
 import { motion } from "framer-motion";
 
-/*
-  HOW YUM ACTIVATES SUPERHUMAN MODE
-  All dimensions scaled to 83% of Figma values
-*/
-
 const timelineCards = [
   {
     label: "IGNITION",
     time: "T+15",
     color: "rgba(225, 37, 144, 1)",
-    dotColor: "rgba(225, 37, 144, 1)", // pink dot
+    dotColor: "rgba(225, 37, 144, 1)",
     features: [
       "→ Neural pathways light up",
       "→ Sensory enhancement begins",
       "→ The world gets sharper",
     ],
     tagline: "You feel it before you think it",
-    hasNotch: true,
   },
   {
     label: "PEAK STATE",
     time: "T+60",
     color: "rgba(0, 184, 228, 1)",
-    dotColor: "rgba(0, 184, 228, 1)", // cyan dot
+    dotColor: "rgba(0, 184, 228, 1)",
     features: [
       "→ Flow state unlocked",
       "→ Reaction time increases",
       "→ Multi-tasking becomes instinct",
     ],
     tagline: "This is what pro-level feels like",
-    hasNotch: true,
   },
   {
     label: "SUSTAINED",
     time: "T+6-8H",
     color: "rgba(226, 197, 48, 1)",
-    dotColor: "rgba(0, 184, 228, 1)", // cyan dot
+    dotColor: "rgba(0, 184, 228, 1)",
     features: [
       "→ Zero crash",
       "→ Smooth decline",
       "→ Natural re-entry",
     ],
     tagline: "No withdrawal. No regrets.",
-    hasNotch: true,
   },
 ];
 
@@ -55,12 +47,11 @@ export default function Testimonials() {
       id="testimonials" 
       className="relative bg-[#070707] flex justify-center px-4 py-12"
     >
-      {/* Main Container - 1168x329 (1407x396 * 0.83) */}
-      <div className="w-full max-w-[1168px] relative" style={{ minHeight: "329px" }}>
+      <div className="w-full max-w-[1168px] relative">
         
-        {/* Background bar - full width, behind cards, with gradient border */}
+        {/* Background bar - hidden on mobile */}
         <div 
-          className="absolute left-0 right-0"
+          className="hidden lg:block absolute left-0 right-0"
           style={{
             top: "54px",
             height: "264px",
@@ -69,9 +60,9 @@ export default function Testimonials() {
             zIndex: 0,
           }}
         />
-        {/* Gradient border - top with rounded corners, dripping down sides */}
+        {/* Gradient border */}
         <div 
-          className="absolute left-0 right-0 pointer-events-none"
+          className="hidden lg:block absolute left-0 right-0 pointer-events-none"
           style={{
             top: "54px",
             height: "264px",
@@ -85,22 +76,17 @@ export default function Testimonials() {
           }}
         />
 
-        {/* Content Layout - z-10 to appear above background */}
-        <div className="relative flex z-10">
+        {/* Content Layout - stack on mobile */}
+        <div className="relative flex flex-col lg:flex-row z-10">
           {/* Left Section - Title & Description */}
           <motion.div
-            className="flex flex-col justify-center"
-            style={{
-              width: "403px",
-              padding: "87px 37px 57px 37px",
-            }}
+            className="flex flex-col justify-center mb-8 lg:mb-0 px-0 lg:px-[37px] lg:py-[57px] lg:w-[403px]"
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            {/* Title - Myriad Pro 700 Italic 26px (33 * 0.8), split styling */}
-            <h2 className="text-[26px] font-bold italic leading-[26px] mb-4">
+            <h2 className="text-[22px] sm:text-[24px] lg:text-[26px] font-bold italic leading-[1.2] mb-4">
               <span
                 style={{
                   background: "linear-gradient(135deg, #FFFFFF 0%, #999999 100%)",
@@ -116,42 +102,31 @@ export default function Testimonials() {
               </span>
             </h2>
 
-            {/* Description - Lato 400 13px (16 * 0.83), 50% opacity, width 307px */}
             <p 
-              className="text-[13px] leading-[13px]"
+              className="text-[13px] leading-[1.4] max-w-[307px]"
               style={{ 
                 color: "rgba(255, 255, 255, 0.5)",
                 letterSpacing: "-0.13px",
-                maxWidth: "307px",
               }}
             >
-              This isn&apos;t caffeine jitters or sugar rushes. YUM activates a clean, powerful energy state that builds fast, peaks hard, and sustains longer than anything else you&apos;ve tried. Feel the ignition at 15 minutes. Own the peak for hours. Exit smoothly with zero regret.
+              This isn&apos;t caffeine jitters or sugar rushes. YUM activates a clean, powerful energy state that builds fast, peaks hard, and sustains longer than anything else you&apos;ve tried.
             </p>
           </motion.div>
 
-          {/* Right Section - Timeline Cards */}
+          {/* Right Section - Timeline Cards - horizontal scroll on mobile */}
           <div 
-            className="flex"
-            style={{ 
-              gap: "32px",
-              marginLeft: "auto",
-              marginRight: "30px",
-            }}
+            className="flex overflow-x-auto lg:overflow-visible gap-4 lg:gap-8 pb-4 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 lg:ml-auto lg:mr-[30px] scrollbar-hide"
           >
             {timelineCards.map((card, index) => (
               <motion.div
                 key={card.label}
-                className="flex flex-col justify-center relative"
+                className="flex flex-col justify-center relative flex-shrink-0"
                 style={{
-                  width: "234px",
-                  height: "289px",
-                  padding: "56px 20px",
-                  background: card.isHighlighted 
-                    ? "linear-gradient(180deg, rgba(15, 25, 30, 1) 0%, rgba(15, 15, 15, 1) 100%)"
-                    : "rgba(15, 15, 15, 1)",
-                  boxShadow: card.isHighlighted 
-                    ? "inset 0 0 60px rgba(0, 184, 228, 0.15)"
-                    : "none",
+                  width: "200px",
+                  minWidth: "200px",
+                  height: "260px",
+                  padding: "40px 16px",
+                  background: "rgba(15, 15, 15, 1)",
                   zIndex: 10,
                   borderRadius: "16px",
                 }}
@@ -160,10 +135,10 @@ export default function Testimonials() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.15, duration: 0.6 }}
               >
-                {/* SVG border with notch shape - gradient from bottom */}
+                {/* SVG border with notch shape */}
                 <svg 
                   className="absolute inset-0 w-full h-full pointer-events-none"
-                  viewBox="0 0 234 289"
+                  viewBox="0 0 200 260"
                   fill="none"
                   preserveAspectRatio="none"
                 >
@@ -173,9 +148,8 @@ export default function Testimonials() {
                       <stop offset="60%" stopColor="rgba(123,20,78,0)" />
                     </linearGradient>
                   </defs>
-                  {/* Path: rounded rect with notch at bottom center */}
                   <path 
-                    d="M16 0 H218 Q234 0 234 16 V273 Q234 289 218 289 H182 Q172 289 172 282 V277 Q172 272 162 272 H72 Q62 272 62 277 V282 Q62 289 52 289 H16 Q0 289 0 273 V16 Q0 0 16 0 Z"
+                    d="M16 0 H184 Q200 0 200 16 V244 Q200 260 184 260 H156 Q146 260 146 253 V248 Q146 243 136 243 H64 Q54 243 54 248 V253 Q54 260 44 260 H16 Q0 260 0 244 V16 Q0 0 16 0 Z"
                     stroke={`url(#border-gradient-${index})`}
                     strokeWidth="1.5"
                     fill="none"
@@ -183,13 +157,13 @@ export default function Testimonials() {
                 </svg>
                 
                 {/* Label with colored dot */}
-                <div className="flex items-center mb-4" style={{ gap: "5px" }}>
+                <div className="flex items-center mb-3 gap-[5px]">
                   <div 
                     className="w-[4px] h-[4px] rounded-full"
                     style={{ background: card.dotColor }}
                   />
                   <span 
-                    className="text-[17px] font-light leading-[17px] uppercase"
+                    className="text-[14px] lg:text-[17px] font-light leading-[17px] uppercase"
                     style={{
                       background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                       WebkitBackgroundClip: "text",
@@ -201,23 +175,20 @@ export default function Testimonials() {
                   </span>
                 </div>
 
-                {/* Time - Myriad Pro 700 Italic 58px (70 * 0.83) */}
+                {/* Time */}
                 <span 
-                  className="text-[41px] font-bold italic leading-[41px] mb-4"
+                  className="text-[32px] lg:text-[41px] font-bold italic leading-[1] mb-3"
                   style={{ color: card.color }}
                 >
                   {card.time}
                 </span>
 
-                {/* Features - Lato 300 13px */}
-                <div 
-                  className="flex flex-col mb-4"
-                  style={{ gap: "4px" }}
-                >
+                {/* Features */}
+                <div className="flex flex-col gap-1 mb-3">
                   {card.features.map((feature, i) => (
                     <span 
                       key={i}
-                      className="text-[13px] font-light leading-[16px]"
+                      className="text-[12px] lg:text-[13px] font-light leading-[1.3]"
                       style={{
                         background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                         WebkitBackgroundClip: "text",
@@ -230,9 +201,9 @@ export default function Testimonials() {
                   ))}
                 </div>
 
-                {/* Tagline - Lato 300 13px, colored */}
+                {/* Tagline */}
                 <span 
-                  className="text-[13px] font-light leading-[13px] mt-auto"
+                  className="text-[12px] lg:text-[13px] font-light leading-[13px] mt-auto"
                   style={{ color: card.color }}
                 >
                   {card.tagline}
@@ -242,6 +213,16 @@ export default function Testimonials() {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </section>
   );
 }

@@ -30,28 +30,18 @@ export default function FAQ() {
   };
 
   return (
-    <section className="relative bg-[#070707] flex justify-center px-4 py-16">
-      <div 
-        className="w-full flex"
-        style={{ maxWidth: "1053px", gap: "100px" }}
-      >
+    <section className="relative bg-[#070707] flex justify-center px-4 py-12 lg:py-16">
+      <div className="w-full max-w-[1053px] flex flex-col lg:flex-row gap-8 lg:gap-[100px]">
         {/* Left Side */}
-        <div 
-          className="flex flex-col"
-          style={{ width: "421px", gap: "23px" }}
-        >
+        <div className="flex flex-col gap-4 lg:gap-[23px] lg:w-[421px]">
           {/* Label with cyan dot */}
-          <div className="flex items-center" style={{ gap: "6px" }}>
+          <div className="flex items-center gap-[6px]">
             <div 
-              style={{
-                width: "4px",
-                height: "4px",
-                borderRadius: "50%",
-                background: "rgba(0, 184, 228, 1)",
-              }}
+              className="w-1 h-1 rounded-full"
+              style={{ background: "rgba(0, 184, 228, 1)" }}
             />
             <span 
-              className="text-[17px] font-light uppercase"
+              className="text-[14px] lg:text-[17px] font-light uppercase"
               style={{
                 background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                 WebkitBackgroundClip: "text",
@@ -64,9 +54,9 @@ export default function FAQ() {
           </div>
 
           {/* Title and Subtitle */}
-          <div className="flex flex-col" style={{ gap: "16px" }}>
+          <div className="flex flex-col gap-3 lg:gap-4">
             <h2 
-              className="text-[58px] font-bold italic leading-[58px]"
+              className="text-[32px] sm:text-[42px] lg:text-[58px] font-bold italic leading-[1.1]"
               style={{
                 background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                 WebkitBackgroundClip: "text",
@@ -77,13 +67,12 @@ export default function FAQ() {
               THE PROOF IS IN THE BOTTLE
             </h2>
             <p 
-              className="text-[14px] leading-[14px]"
+              className="text-[13px] lg:text-[14px] leading-[1.4] max-w-[334px]"
               style={{
                 background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
-                maxWidth: "334px",
               }}
             >
               15,000+ activated users can&apos;t be wrong. See why YUM is the secret weapon you&apos;ve been missing.
@@ -91,15 +80,11 @@ export default function FAQ() {
           </div>
 
           {/* Navigation Arrows */}
-          <div className="flex" style={{ gap: "15px", marginTop: "auto" }}>
-            {/* Left Arrow */}
+          <div className="flex gap-3 lg:gap-[15px] mt-4 lg:mt-auto">
             <button
               onClick={prevTestimonial}
-              className="flex items-center justify-center transition-opacity hover:opacity-80"
+              className="flex items-center justify-center transition-opacity hover:opacity-80 w-10 h-10 lg:w-[37px] lg:h-[37px] rounded-[10px]"
               style={{
-                width: "37px",
-                height: "37px",
-                borderRadius: "10px",
                 border: "1px solid rgba(153, 153, 153, 1)",
                 background: "transparent",
               }}
@@ -109,14 +94,10 @@ export default function FAQ() {
               </svg>
             </button>
 
-            {/* Right Arrow */}
             <button
               onClick={nextTestimonial}
-              className="flex items-center justify-center transition-opacity hover:opacity-80"
+              className="flex items-center justify-center transition-opacity hover:opacity-80 w-10 h-10 lg:w-[37px] lg:h-[37px] rounded-[10px]"
               style={{
-                width: "37px",
-                height: "37px",
-                borderRadius: "10px",
                 border: "1px solid rgba(153, 153, 153, 1)",
                 background: "transparent",
               }}
@@ -129,18 +110,11 @@ export default function FAQ() {
         </div>
 
         {/* Right Side - Testimonial */}
-        <div 
-          className="flex flex-col"
-          style={{ width: "531px" }}
-        >
+        <div className="flex flex-col lg:w-[531px]">
           {/* Quote Mark */}
           <div 
-            className="text-[80px] font-bold leading-none"
-            style={{ 
-              color: "rgba(225, 37, 144, 1)",
-              height: "47px",
-              overflow: "visible",
-            }}
+            className="text-[50px] lg:text-[80px] font-bold leading-none h-[30px] lg:h-[47px] overflow-visible"
+            style={{ color: "rgba(225, 37, 144, 1)" }}
           >
             &ldquo;
           </div>
@@ -149,8 +123,7 @@ export default function FAQ() {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
-              className="flex flex-col"
-              style={{ gap: "15px", marginTop: "20px" }}
+              className="flex flex-col gap-3 lg:gap-[15px] mt-4 lg:mt-5"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -158,7 +131,7 @@ export default function FAQ() {
             >
               {/* Quote Text */}
               <p 
-                className="text-[30px] leading-[44px]"
+                className="text-[20px] sm:text-[24px] lg:text-[30px] leading-[1.4] lg:leading-[44px]"
                 style={{
                   background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                   WebkitBackgroundClip: "text",
@@ -171,7 +144,7 @@ export default function FAQ() {
 
               {/* Author */}
               <span 
-                className="text-[25px] font-semibold leading-[37px] uppercase"
+                className="text-[18px] lg:text-[25px] font-semibold leading-[1.4] uppercase"
                 style={{ color: "rgba(255, 255, 255, 0.8)" }}
               >
                 - {testimonials[currentIndex].author}

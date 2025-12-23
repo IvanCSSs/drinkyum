@@ -11,29 +11,26 @@ const navLinks = [
 
 export default function Footer() {
   return (
-    <footer className="relative bg-[#070707] flex justify-center px-4 pt-20 pb-8">
-      <div 
-        className="w-full flex flex-col"
-        style={{ maxWidth: "1075px", gap: "90px" }}
-      >
-        {/* Main Content */}
-        <div className="flex justify-between">
+    <footer className="relative bg-[#070707] flex justify-center px-4 pt-12 lg:pt-20 pb-8">
+      <div className="w-full max-w-[1075px] flex flex-col gap-12 lg:gap-[90px]">
+        {/* Main Content - stack on mobile */}
+        <div className="flex flex-col lg:flex-row lg:justify-between gap-10 lg:gap-0">
           {/* Left Section - Logo & Tagline */}
-          <div className="flex flex-col" style={{ gap: "43px", width: "265px" }}>
+          <div className="flex flex-col gap-6 lg:gap-[43px] lg:w-[265px]">
             {/* Logo */}
             <Link href="/">
               <Image
                 src="/images/logo.svg"
                 alt="YUM - DrinkYUM"
-                width={254}
-                height={73}
-                className="h-[73px] w-auto"
+                width={180}
+                height={52}
+                className="h-12 lg:h-[73px] w-auto"
               />
             </Link>
 
             {/* Tagline */}
             <p 
-              className="text-[25px] font-semibold italic leading-[25px]"
+              className="text-[18px] lg:text-[25px] font-semibold italic leading-[1.2]"
               style={{
                 background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                 WebkitBackgroundClip: "text",
@@ -46,21 +43,19 @@ export default function Footer() {
           </div>
 
           {/* Right Section - Navigation */}
-          <div className="flex flex-col" style={{ width: "391px" }}>
+          <div className="flex flex-col lg:w-[391px]">
             {navLinks.map((link, index) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="flex items-center transition-opacity hover:opacity-80"
+                className="flex items-center transition-opacity hover:opacity-80 gap-3 lg:gap-4 py-3 lg:py-[15px]"
                 style={{
-                  gap: "16px",
-                  padding: "15px 0",
                   borderTop: index > 0 ? "1px solid rgba(255,255,255,0.2)" : "none",
                 }}
               >
                 {/* Number */}
                 <span 
-                  className="text-[19px]"
+                  className="text-[14px] lg:text-[19px]"
                   style={{ color: "rgba(255, 255, 255, 0.6)" }}
                 >
                   {link.number}
@@ -68,7 +63,7 @@ export default function Footer() {
 
                 {/* Label */}
                 <span 
-                  className="text-[43px]"
+                  className="text-[28px] sm:text-[36px] lg:text-[43px]"
                   style={{ color: "rgba(255, 255, 255, 0.6)" }}
                 >
                   {link.label}
@@ -78,22 +73,19 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar - stack on mobile */}
         <div 
-          className="flex items-center justify-between"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "20px" }}
+          className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 pt-4 lg:pt-5 text-center sm:text-left"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
         >
           {/* Copyright */}
-          <span 
-            className="text-[13px]"
-            style={{ color: "rgba(255, 255, 255, 1)" }}
-          >
+          <span className="text-[12px] lg:text-[13px] text-white order-3 sm:order-1">
             © Drinkyum 2025.
           </span>
 
           {/* Credits */}
           <span 
-            className="text-[13px]"
+            className="text-[12px] lg:text-[13px] order-2"
             style={{ color: "rgba(255, 255, 255, 0.6)" }}
           >
             Designed and developed with love by{" "}
@@ -108,18 +100,16 @@ export default function Footer() {
           </span>
 
           {/* Legal Links */}
-          <div className="flex items-center" style={{ gap: "24px" }}>
+          <div className="flex items-center gap-4 lg:gap-6 order-1 sm:order-3">
             <Link 
               href="/terms"
-              className="text-[13px] hover:opacity-80 transition-opacity"
-              style={{ color: "rgba(255, 255, 255, 1)" }}
+              className="text-[12px] lg:text-[13px] hover:opacity-80 transition-opacity text-white"
             >
               Terms & Conditions
             </Link>
             <Link 
               href="/privacy"
-              className="text-[13px] hover:opacity-80 transition-opacity"
-              style={{ color: "rgba(255, 255, 255, 1)" }}
+              className="text-[12px] lg:text-[13px] hover:opacity-80 transition-opacity text-white"
             >
               Privacy Policy
             </Link>

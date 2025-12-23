@@ -3,39 +3,9 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-/*
-  FIGMA SPECS (from node 134-822):
-  ================================
-  Hero Frame: 1348 × 949px
-  - Layout: VERTICAL, gap=50, center alignment
-  - Padding: top=50, right=25, bottom=100, left=25
-  - Border: 1px solid rgba(220,3,135,1) 
-  - Border Radius: 30px
-
-  Product: 539×1074 at x=481, y=85
-  - Pink blur ellipse: 885×885 at x=278, y=-115, rgba(220,3,135,0.35), blur=250
-  - Bottle image: 519×1054 at x=491, y=95
-
-  Nav bar: 1298×65 at x=25, y=50
-  - Background: rgba(1,6,25,0.05), blur=20
-  - Border radius: 16px
-
-  Headline: 530×210 at x=60, y=265
-  - Font: Myriad Pro 700 70px
-  - Fill: gradient white to #999
-
-  Buttons: at y=492
-  - Order Now: 106×42, rgba(220,3,135,0.40), radius=12
-  - Subscribe: 170×42, rgba(0,162,200,0.20), radius=12
-
-  15K box: 366×179 at x=932, y=632
-  - Background: rgba(7,7,7,0.35)
-  - Border radius: 39px
-*/
-
 export default function Hero() {
   return (
-    <section className="relative min-h-screen bg-[#070707] flex items-center justify-center px-4 pt-0 pb-8">
+    <section className="relative min-h-screen bg-[#070707] flex items-center justify-center px-4 pt-20 md:pt-0 pb-8">
       {/* Background Image - Full width, behind everything */}
       <div className="absolute inset-0">
         <Image
@@ -57,73 +27,88 @@ export default function Hero() {
         />
       </div>
 
-      {/* Hero Container - 83% of Figma's 951px = 789px */}
+      {/* Hero Container */}
       <div 
-        className="relative w-full max-w-[1348px] h-[789px] rounded-[30px] overflow-hidden"
+        className="relative w-full max-w-[1348px] min-h-[600px] md:h-[789px] rounded-[20px] md:rounded-[30px] overflow-hidden"
         style={{
           border: "1px solid rgba(220, 3, 135, 1)",
         }}
       >
 
-        {/* Pink blur behind product - 885×885, blur=250, positioned center-top */}
+        {/* Pink blur behind product */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 w-[885px] h-[885px] rounded-full pointer-events-none"
+          className="absolute left-1/2 -translate-x-1/2 w-[400px] md:w-[885px] h-[400px] md:h-[885px] rounded-full pointer-events-none"
           style={{
-            top: "-115px",
+            top: "-50px",
             background: "rgba(220, 3, 135, 0.35)",
-            filter: "blur(250px)",
+            filter: "blur(150px)",
           }}
         />
 
-        {/* Product Bottle - 1000px wide, shifted slightly right */}
+        {/* Product Bottle - responsive sizing */}
         <motion.div
           className="absolute left-1/2 z-10"
-          style={{ top: "95px" }}
-          initial={{ opacity: 0, scale: 0.95, x: "-41%", y: "-7%" }}
-          animate={{ opacity: 1, scale: 1, x: "-41%", y: "-7%" }}
+          style={{ top: "60px" }}
+          initial={{ opacity: 0, scale: 0.95, x: "-50%", y: "0" }}
+          animate={{ opacity: 1, scale: 1, x: "-50%", y: "0" }}
           transition={{ duration: 0.8 }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* Mobile bottle */}
           <img
             src="/images/hero-product.png"
             alt="YUM Kratom Extract Bottle"
+            className="block md:hidden drop-shadow-2xl"
+            style={{ 
+              width: "350px", 
+              height: "auto", 
+              maxWidth: "none",
+            }}
+          />
+          {/* Tablet bottle */}
+          <img
+            src="/images/hero-product.png"
+            alt="YUM Kratom Extract Bottle"
+            className="hidden md:block lg:hidden drop-shadow-2xl"
+            style={{ 
+              width: "600px", 
+              height: "auto", 
+              maxWidth: "none",
+            }}
+          />
+          {/* Desktop bottle */}
+          <img
+            src="/images/hero-product.png"
+            alt="YUM Kratom Extract Bottle"
+            className="hidden lg:block drop-shadow-2xl"
             style={{ 
               width: "1150px", 
               height: "auto", 
               maxWidth: "none",
+              transform: "translateX(9%)",
             }}
-            className="drop-shadow-2xl"
           />
         </motion.div>
 
-        {/* Nav Bar - 1298×65 at x=25, y=50 */}
-        {/* Note: Navbar is a separate component, positioned here for reference */}
-
-        {/* Content Container - padding: 50px top, 100px bottom = 799px content area */}
+        {/* Content Container */}
         <div 
-          className="relative z-20 flex flex-col h-full"
-          style={{
-            padding: "50px 25px 100px 25px",
-            gap: "50px",
-          }}
+          className="relative z-20 flex flex-col h-full px-4 py-8 md:px-[25px] md:py-[50px]"
         >
           {/* Spacer for nav bar area */}
-          <div className="h-[65px]" />
+          <div className="h-[40px] md:h-[65px]" />
 
           {/* Main Content Area */}
           <div className="flex-1 flex flex-col justify-between">
             
-            {/* Headline with buttons - at y=265 from top (accounting for nav) */}
+            {/* Headline with buttons */}
             <motion.div
-              className="mt-[100px]"
-              style={{ padding: "0 100px" }}
+              className="mt-[280px] md:mt-[100px] px-0 md:px-[75px] lg:px-[100px]"
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              {/* Headline - 530×210, Myriad Pro 700 70px */}
+              {/* Headline - responsive font size */}
               <h1 
-                className="text-[58px] font-bold italic leading-[1] mb-[14px]"
+                className="text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] font-bold italic leading-[1] mb-[14px]"
                 style={{
                   background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                   WebkitBackgroundClip: "text",
@@ -139,55 +124,51 @@ export default function Hero() {
                 MOMENT
               </h1>
 
-              {/* Buttons - gap=17 */}
-              <div className="flex gap-[17px]">
-                {/* Order Now - 106×42, rgba(220,3,135,0.40), radius=12 */}
+              {/* Buttons - wrap on mobile */}
+              <div className="flex flex-wrap gap-3 md:gap-[17px]">
                 <a 
                   href="/shop" 
-                  className="flex items-center justify-center text-white text-[18px] font-normal transition-all hover:brightness-110"
+                  className="flex items-center justify-center text-white text-[14px] md:text-[18px] font-normal transition-all hover:brightness-110"
                   style={{
                     width: "106px",
-                    height: "42px",
+                    height: "38px",
                     background: "rgba(220, 3, 135, 0.40)",
-                    borderRadius: "12px",
+                    borderRadius: "10px",
                     boxShadow: "inset 0 0 4px rgba(255,255,255,0.3)",
                   }}
                 >
                   Order Now
                 </a>
                 
-                {/* Subscribe and Save - 170×42, rgba(0,162,200,0.20), radius=12 */}
                 <a 
                   href="/subscribe" 
-                  className="flex items-center justify-center text-white text-[18px] font-normal transition-all hover:brightness-110"
+                  className="flex items-center justify-center text-white text-[14px] md:text-[18px] font-normal transition-all hover:brightness-110"
                   style={{
-                    width: "170px",
-                    height: "42px",
+                    width: "160px",
+                    height: "38px",
                     background: "rgba(0, 162, 200, 0.20)",
-                    borderRadius: "12px",
+                    borderRadius: "10px",
                     boxShadow: "inset 0 0 4px rgba(255,255,255,0.3)",
                   }}
                 >
-                  Subscribe and Save
+                  Subscribe & Save
                 </a>
               </div>
             </motion.div>
 
-            {/* Bottom Section - body text and 15K subs */}
+            {/* Bottom Section - stack on mobile */}
             <div 
-              className="flex justify-between items-end mt-auto"
-              style={{ padding: "0 25px" }}
+              className="flex flex-col lg:flex-row justify-between items-start lg:items-end mt-8 lg:mt-auto gap-6 lg:gap-0 px-0 md:px-[25px]"
             >
-              {/* Left - Description with decorative arc (509x255 container) */}
+              {/* Left - Description with decorative arc */}
               <motion.div
-                className="relative w-[509px] h-[255px]"
+                className="relative w-full lg:w-[509px] min-h-[120px] lg:h-[255px]"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
               >
-                {/* Decorative arc container - 255x255, positioned at left */}
-                <div className="absolute left-0 top-0 w-[255px] h-[255px] flex items-center justify-center">
-                  {/* SVG arc with gradient fill and stroke */}
+                {/* Decorative arc container - hidden on mobile */}
+                <div className="hidden lg:flex absolute left-0 top-0 w-[255px] h-[255px] items-center justify-center">
                   <svg width="173" height="173" viewBox="0 0 173 173" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle 
                       cx="86.3854" 
@@ -209,7 +190,6 @@ export default function Hero() {
                       </linearGradient>
                     </defs>
                   </svg>
-                  {/* Inner dark circle - 88x88, centered */}
                   <svg 
                     className="absolute" 
                     width="88" 
@@ -222,9 +202,9 @@ export default function Hero() {
                   </svg>
                 </div>
 
-                {/* Body text - 396×80, 60% opacity gradient white→gray, overlaps arc */}
+                {/* Body text - responsive positioning */}
                 <p 
-                  className="absolute text-[16px] leading-[16px] tracking-[-0.16px] w-[396px]"
+                  className="text-[14px] lg:text-[16px] leading-[1.4] lg:leading-[16px] tracking-[-0.16px] max-w-full lg:max-w-[396px] lg:absolute"
                   style={{ 
                     left: "113px", 
                     top: "88px",
@@ -243,12 +223,13 @@ export default function Hero() {
 
               {/* Right - 15K Stats box */}
               <motion.div
-                className="flex flex-col justify-center items-center"
+                className="flex flex-col justify-center items-center w-full sm:w-auto"
                 style={{
-                  width: "341px",
-                  padding: "47px 1px",
+                  width: "100%",
+                  maxWidth: "341px",
+                  padding: "30px 20px",
                   gap: "10px",
-                  borderRadius: "39px",
+                  borderRadius: "24px",
                   border: "1px solid #00A2C8",
                   background: "rgba(8, 8, 8, 0.35)",
                 }}
@@ -256,11 +237,9 @@ export default function Hero() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8, duration: 0.6 }}
               >
-                {/* 15K active subs - Myriad Pro 600 Italic 40px */}
                 <h3 
-                  className="font-semibold italic"
+                  className="font-semibold italic text-[28px] sm:text-[36px] md:text-[40px]"
                   style={{
-                    fontSize: "40px",
                     lineHeight: "100%",
                     background: "linear-gradient(103.87deg, #FFFFFF 0%, rgba(220, 3, 135, 0.4) 70.8%)",
                     WebkitBackgroundClip: "text",
@@ -271,12 +250,11 @@ export default function Hero() {
                   15K active subs
                 </h3>
                 
-                {/* Subtitle - Lato 400 16px, 70% white */}
                 <p 
+                  className="text-center lg:text-left text-[14px] md:text-[16px]"
                   style={{ 
-                    width: "280px",
-                    fontSize: "16px",
-                    lineHeight: "100%",
+                    maxWidth: "280px",
+                    lineHeight: "120%",
                     letterSpacing: "-0.01em",
                     color: "rgba(255, 255, 255, 0.7)",
                   }}

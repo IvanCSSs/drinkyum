@@ -3,106 +3,28 @@
 import Image from "next/image";
 
 export default function LabTested() {
-  const r = 12; // corner radius
-  const ar = 2; // angle corner radius
-  const cardWidth = 1168;
-  const cardHeight = 311;
-  
-  // Bottom-right notch:
-  const brNotchLeftX = 819; // where horizontal meets diagonal
-  const brNotchTopY = 211; // height of horizontal line
-  const brDiagonalX = 592; // where diagonal meets bottom edge
-
-  // Top-left notch (mirrored):
-  // Horizontal line should be 83% of 45px = 37px above title top
-  const tlDiagonalX = 654; // where diagonal meets top edge (end point)
-  const tlNotchRightX = 554; // where diagonal meets horizontal line (start point)
-  const tlNotchBottomY = 20; // moved up to be above title
-
-  // SVG path with rounded corners
-  const shapePath = `
-    M ${tlDiagonalX + r} 0
-    L ${cardWidth - r} 0
-    Q ${cardWidth} 0 ${cardWidth} ${r}
-    L ${cardWidth} ${brNotchTopY - r}
-    Q ${cardWidth} ${brNotchTopY} ${cardWidth - r} ${brNotchTopY}
-    L ${brNotchLeftX + ar} ${brNotchTopY}
-    Q ${brNotchLeftX} ${brNotchTopY} ${brNotchLeftX - 1} ${brNotchTopY + 1}
-    L ${brDiagonalX + 1} ${cardHeight - 1}
-    Q ${brDiagonalX} ${cardHeight} ${brDiagonalX - r} ${cardHeight}
-    L ${r} ${cardHeight}
-    Q 0 ${cardHeight} 0 ${cardHeight - r}
-    L 0 ${tlNotchBottomY + r}
-    Q 0 ${tlNotchBottomY} ${r} ${tlNotchBottomY}
-    L ${tlNotchRightX - ar} ${tlNotchBottomY}
-    Q ${tlNotchRightX} ${tlNotchBottomY} ${tlNotchRightX + 1} ${tlNotchBottomY - 1}
-    L ${tlDiagonalX - 1} 1
-    Q ${tlDiagonalX} 0 ${tlDiagonalX + r} 0
-    Z
-  `;
-
-  const clipPathUrl = `path('${shapePath.replace(/\s+/g, ' ').trim()}')`;
-
   return (
-    <section className="relative bg-[#070707] flex justify-center px-4 overflow-visible z-10" style={{ height: "481px" }}>
-      <div 
-        className="w-full max-w-[1184px] relative overflow-visible"
-        style={{ minHeight: "481px" }}
-      >
-        {/* Main Card with angled corners */}
+    <section className="relative bg-[#070707] flex justify-center px-4 overflow-visible z-10 py-8 lg:py-0" style={{ minHeight: "400px" }}>
+      <div className="w-full max-w-[1184px] relative overflow-visible">
+        {/* Main Card - simplified for mobile */}
         <div 
-          className="relative"
+          className="relative w-full lg:w-[1168px] rounded-[20px] lg:rounded-none"
           style={{
-            width: "1168px",
-            height: "311px",
+            background: "rgba(15, 15, 15, 0.63)",
+            border: "1px solid rgba(217, 217, 217, 0.3)",
+            minHeight: "280px",
           }}
         >
-          {/* Background with clip-path */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "rgba(15, 15, 15, 0.63)",
-              clipPath: clipPathUrl,
-            }}
-          />
-          
-          {/* SVG border */}
-          <svg 
-            className="absolute inset-0 pointer-events-none" 
-            width="1168" 
-            height="311"
-            viewBox="0 0 1168 311"
-            fill="none"
-          >
-            <defs>
-              <linearGradient id="borderGradientLab" x1="0" y1="0" x2="0" y2="311" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="rgba(217,217,217,1)" />
-                <stop offset="100%" stopColor="rgba(217,217,217,0.15)" />
-              </linearGradient>
-            </defs>
-            <path 
-              d={shapePath}
-              fill="none"
-              stroke="url(#borderGradientLab)"
-              strokeWidth="1"
-            />
-          </svg>
-
           {/* Content inside card */}
-          <div className="relative z-10 flex h-full">
+          <div className="relative z-10 flex flex-col lg:flex-row h-full p-6 lg:p-0">
             {/* Left Content */}
             <div
-              className="flex flex-col justify-end"
-              style={{ 
-                padding: "0 0 37px 60px",
-                width: "394px",
-                gap: "26px",
-              }}
+              className="flex flex-col justify-center lg:justify-end lg:w-[394px] gap-4 lg:gap-[26px] lg:p-[0_0_37px_60px]"
             >
               {/* Title section */}
-              <div className="flex flex-col" style={{ gap: "8px" }}>
+              <div className="flex flex-col gap-2 lg:gap-[8px]">
                 <h2 
-                  className="text-[42px] font-bold italic leading-[42px]"
+                  className="text-[28px] sm:text-[36px] lg:text-[42px] font-bold italic leading-[1.1]"
                   style={{
                     background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                     WebkitBackgroundClip: "text",
@@ -115,7 +37,7 @@ export default function LabTested() {
                   VERIFIED.
                 </h2>
                 <p 
-                  className="text-[13px] leading-[13px]"
+                  className="text-[13px] leading-[1.3]"
                   style={{
                     background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                     WebkitBackgroundClip: "text",
@@ -130,11 +52,8 @@ export default function LabTested() {
               {/* Button */}
               <a
                 href="#"
-                className="flex items-center justify-center text-[15px] text-white font-normal hover:brightness-110 transition-all"
+                className="flex items-center justify-center text-[14px] lg:text-[15px] text-white font-normal hover:brightness-110 transition-all w-full sm:w-[200px] lg:w-[221px] h-[40px] lg:h-[35px] rounded-[10px]"
                 style={{
-                  width: "221px",
-                  height: "35px",
-                  borderRadius: "10px",
                   border: "1px solid #FFF",
                   background: `radial-gradient(30.86% 27.56% at 77.68% 0%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), 
                                radial-gradient(54.33% 42.36% at 29.91% 100%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), 
@@ -146,17 +65,12 @@ export default function LabTested() {
               </a>
             </div>
 
-            {/* Right Content - Description */}
+            {/* Right Content - Description - hidden on small mobile */}
             <div
-              className="flex items-start"
-              style={{
-                padding: "48px 60px 0 0",
-                marginLeft: "auto",
-                width: "349px",
-              }}
+              className="hidden sm:flex items-start mt-6 lg:mt-0 lg:ml-auto lg:p-[48px_60px_0_0] lg:w-[349px]"
             >
               <p 
-                className="text-[14px] leading-[14px] font-light"
+                className="text-[13px] lg:text-[14px] leading-[1.4] font-light"
                 style={{
                   fontFamily: "Lato, sans-serif",
                   fontWeight: 300,
@@ -175,9 +89,9 @@ export default function LabTested() {
           </div>
         </div>
 
-        {/* Lab Tested Image - centered horizontally, overlapping below */}
+        {/* Lab Tested Image - responsive sizing */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 overflow-visible"
+          className="absolute left-1/2 -translate-x-1/2 overflow-visible hidden lg:block"
           style={{
             bottom: "20px",
             width: "402px",
@@ -193,6 +107,20 @@ export default function LabTested() {
             style={{ filter: "drop-shadow(0 15px 50px rgba(225, 37, 144, 0.40))" }}
             sizes="402px"
           />
+        </div>
+
+        {/* Mobile Lab Tested Image */}
+        <div className="flex lg:hidden justify-center mt-6">
+          <div className="relative w-[200px] h-[200px]">
+            <Image
+              src="/images/lab-tested.png"
+              alt="Lab Tested Certified"
+              fill
+              className="object-contain"
+              style={{ filter: "drop-shadow(0 10px 30px rgba(225, 37, 144, 0.40))" }}
+              sizes="200px"
+            />
+          </div>
         </div>
       </div>
     </section>

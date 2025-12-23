@@ -5,10 +5,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 import Image from "next/image";
 
-/*
-  All dimensions scaled to 83% of Figma values
-*/
-
 const products = [
   {
     id: 1,
@@ -35,7 +31,7 @@ export default function Products() {
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
-      const scrollAmount = 302; // (277 + 25) card width + gap
+      const scrollAmount = 280;
       scrollRef.current.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
@@ -48,11 +44,10 @@ export default function Products() {
       id="products" 
       className="relative bg-[#070707] flex justify-center px-4 py-12"
     >
-      {/* Main Container - 1119px (1348 * 0.83) */}
       <div className="w-full max-w-[1119px] relative">
-        {/* Decorative cyan ellipse - 978x262 (scaled), blur 83px */}
+        {/* Decorative cyan ellipse */}
         <div 
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[978px] h-[262px] pointer-events-none"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-full md:w-[978px] h-[150px] md:h-[262px] pointer-events-none"
           style={{
             borderRadius: "978px",
             background: "rgba(0, 184, 228, 0.10)",
@@ -60,25 +55,22 @@ export default function Products() {
           }}
         />
 
-        {/* Content: HORIZONTAL layout, spacing 92px (111 * 0.83) */}
+        {/* Content - stack on mobile, horizontal on desktop */}
         <div 
-          className="relative flex"
-          style={{ gap: "92px", marginTop: "71px" }}
+          className="relative flex flex-col lg:flex-row gap-8 lg:gap-[92px] mt-8 lg:mt-[71px]"
         >
-          {/* Left Section - Title + Nav - 228px (275 * 0.83) */}
+          {/* Left Section - Title + Nav */}
           <motion.div
-            className="flex flex-col flex-shrink-0"
-            style={{ width: "228px", gap: "278px" }}
+            className="flex flex-col lg:flex-shrink-0 gap-6 lg:gap-[278px] lg:w-[228px]"
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            {/* Title Section - gap 16px (19 * 0.83) */}
-            <div className="flex flex-col" style={{ gap: "16px" }}>
-              {/* Top Sellers - 42px (50 * 0.83) */}
+            {/* Title Section */}
+            <div className="flex flex-col gap-3 lg:gap-4">
               <h2 
-                className="text-[42px] font-bold italic leading-[42px]"
+                className="text-[28px] sm:text-[36px] lg:text-[42px] font-bold italic leading-[1.1]"
                 style={{
                   background: "linear-gradient(135deg, #FFFFFF 0%, #999999 100%)",
                   WebkitBackgroundClip: "text",
@@ -89,9 +81,8 @@ export default function Products() {
                 Top Sellers
               </h2>
 
-              {/* Description - 13px (16 * 0.83) */}
               <p 
-                className="text-[13px] leading-[13px]"
+                className="text-[13px] leading-[1.4] max-w-[300px] lg:max-w-none"
                 style={{
                   letterSpacing: "-0.13px",
                   background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
@@ -104,9 +95,8 @@ export default function Products() {
               </p>
             </div>
 
-            {/* Navigation Arrows - gap 12px (15 * 0.83) */}
-            <div className="flex" style={{ gap: "12px" }}>
-              {/* Left Arrow - 37x37 (45 * 0.83), radius 10px */}
+            {/* Navigation Arrows - hidden on mobile, shown on lg */}
+            <div className="hidden lg:flex gap-3">
               <button
                 onClick={() => scroll("left")}
                 className="w-[37px] h-[37px] flex items-center justify-center transition-opacity hover:opacity-80"
@@ -118,7 +108,6 @@ export default function Products() {
                 <ChevronLeft size={17} className="text-white/60" />
               </button>
 
-              {/* Right Arrow - 37x37, radius 10px */}
               <button
                 onClick={() => scroll("right")}
                 className="w-[37px] h-[37px] flex items-center justify-center transition-opacity hover:opacity-80"
@@ -135,19 +124,16 @@ export default function Products() {
           {/* Right Section - Scrollable Product Cards */}
           <div 
             ref={scrollRef}
-            className="flex overflow-x-auto scrollbar-hide"
+            className="flex overflow-x-auto scrollbar-hide gap-4 lg:gap-[25px] pb-4 -mx-4 px-4 lg:mx-0 lg:px-0"
             style={{ 
-              gap: "25px",
               scrollSnapType: "x mandatory",
             }}
           >
             {products.map((product, index) => (
               <motion.div
                 key={product.id}
-                className="flex-shrink-0 relative"
+                className="flex-shrink-0 relative w-[240px] sm:w-[260px] lg:w-[277px] h-[380px] sm:h-[400px] lg:h-[432px]"
                 style={{ 
-                  width: "277px",
-                  height: "432px",
                   scrollSnapAlign: "start",
                 }}
                 initial={{ opacity: 0, y: 30 }}
@@ -155,23 +141,22 @@ export default function Products() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.6 }}
               >
-                {/* Card Background - radius 31.5px (37.958 * 0.83) */}
+                {/* Card Background */}
                 <div 
                   className="absolute inset-0"
                   style={{
-                    borderRadius: "31.5px",
+                    borderRadius: "24px",
                     border: "1.18px solid #292929",
                     background: "linear-gradient(180deg, rgba(15, 15, 15, 0.00) 0%, #0F0F0F 100%)",
                   }}
                 />
 
-                {/* Card Content - padding 9px (11 * 0.83) */}
+                {/* Card Content */}
                 <div 
-                  className="relative flex flex-col items-center"
-                  style={{ padding: "9px" }}
+                  className="relative flex flex-col items-center p-2 lg:p-[9px] h-full"
                 >
-                  {/* Product Image - 259x259 (312 * 0.83) */}
-                  <div className="relative w-[259px] h-[259px] mb-3 overflow-hidden rounded-[17px]">
+                  {/* Product Image */}
+                  <div className="relative w-full aspect-square mb-3 overflow-hidden rounded-[14px] lg:rounded-[17px]">
                     <Image
                       src={product.image}
                       alt={product.name}
@@ -181,19 +166,14 @@ export default function Products() {
                     />
                   </div>
 
-                  {/* Product Info - fixed height 116px (140 * 0.83) */}
+                  {/* Product Info */}
                   <div 
-                    className="w-full flex flex-col justify-between"
-                    style={{ height: "116px", padding: "0 4px" }}
+                    className="w-full flex flex-col justify-between flex-1 px-1"
                   >
-                    {/* Top section: Name + Price */}
-                    <div className="flex flex-col" style={{ gap: "4px" }}>
-                      {/* Product Name - 14px, height 42px */}
+                    <div className="flex flex-col gap-1">
                       <h3 
-                        className="text-[14px] leading-[14px]"
+                        className="text-[13px] lg:text-[14px] leading-[1.2] line-clamp-3"
                         style={{
-                          height: "42px",
-                          overflow: "hidden",
                           background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
@@ -203,18 +183,17 @@ export default function Products() {
                         {product.name}
                       </h3>
 
-                      {/* Price - 14px (same as name), pink, with padding below */}
                       <span 
-                        className="text-[14px] font-bold leading-[14px]"
-                        style={{ color: "rgba(225, 37, 144, 1)", marginBottom: "6px" }}
+                        className="text-[14px] font-bold leading-[14px] mb-2"
+                        style={{ color: "rgba(225, 37, 144, 1)" }}
                       >
                         {product.price}
                       </span>
                     </div>
 
-                    {/* Add to Cart Button - height 35px (42 * 0.83), radius 10px */}
+                    {/* Add to Cart Button */}
                     <button
-                      className="w-full flex items-center justify-center text-[15px] text-white transition-all hover:brightness-110"
+                      className="w-full flex items-center justify-center text-[14px] lg:text-[15px] text-white transition-all hover:brightness-110"
                       style={{
                         height: "35px",
                         flexShrink: 0,
@@ -231,10 +210,34 @@ export default function Products() {
               </motion.div>
             ))}
           </div>
+
+          {/* Mobile Navigation Arrows */}
+          <div className="flex lg:hidden justify-center gap-3 mt-2">
+            <button
+              onClick={() => scroll("left")}
+              className="w-[40px] h-[40px] flex items-center justify-center transition-opacity hover:opacity-80"
+              style={{
+                borderRadius: "10px",
+                border: "1px solid rgba(153, 153, 153, 0.25)",
+              }}
+            >
+              <ChevronLeft size={20} className="text-white/60" />
+            </button>
+
+            <button
+              onClick={() => scroll("right")}
+              className="w-[40px] h-[40px] flex items-center justify-center transition-opacity hover:opacity-80"
+              style={{
+                borderRadius: "10px",
+                border: "1px solid rgba(153, 153, 153, 0.25)",
+              }}
+            >
+              <ChevronRight size={20} className="text-white/60" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Hide scrollbar CSS */}
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;

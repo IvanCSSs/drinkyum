@@ -34,13 +34,9 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="relative bg-transparent flex justify-center px-4 py-16 overflow-visible">
-      {/* Decorative Elements - Left Side */}
-      <div 
-        className="absolute pointer-events-none"
-        style={{ left: "-230px", top: "50px" }}
-      >
-        {/* Cyan ellipse with blur */}
+    <section className="relative bg-transparent flex justify-center px-4 py-12 lg:py-16 overflow-hidden">
+      {/* Decorative Elements - hidden on mobile */}
+      <div className="hidden lg:block absolute pointer-events-none" style={{ left: "-230px", top: "50px" }}>
         <div 
           className="absolute"
           style={{
@@ -54,7 +50,6 @@ export default function FAQSection() {
             opacity: 0.5,
           }}
         />
-        {/* Cyan circle stroke */}
         <div 
           className="absolute"
           style={{
@@ -66,7 +61,6 @@ export default function FAQSection() {
             borderRadius: "175px",
           }}
         />
-        {/* Gold circle stroke */}
         <div 
           className="absolute"
           style={{
@@ -80,12 +74,7 @@ export default function FAQSection() {
         />
       </div>
 
-      {/* Decorative Elements - Right Side */}
-      <div 
-        className="absolute pointer-events-none"
-        style={{ right: "-400px", top: "0" }}
-      >
-        {/* Pink ellipse with blur */}
+      <div className="hidden lg:block absolute pointer-events-none" style={{ right: "-400px", top: "0" }}>
         <div 
           className="absolute"
           style={{
@@ -99,7 +88,6 @@ export default function FAQSection() {
             opacity: 0.4,
           }}
         />
-        {/* Pink circle stroke */}
         <div 
           className="absolute"
           style={{
@@ -113,20 +101,15 @@ export default function FAQSection() {
         />
       </div>
 
-      <div 
-        className="w-full max-w-[1119px] flex flex-col items-center relative z-10"
-        style={{ gap: "50px" }}
-      >
+      <div className="w-full max-w-[1119px] flex flex-col items-center relative z-10 gap-8 lg:gap-[50px]">
         {/* Header */}
         <motion.div
-          className="flex flex-col items-center"
-          style={{ gap: "12px" }}
+          className="flex flex-col items-center gap-3 lg:gap-[12px]"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {/* FAQ Label */}
           <span 
             className="text-[11px] font-light"
             style={{ color: "rgba(225, 37, 144, 1)" }}
@@ -134,20 +117,16 @@ export default function FAQSection() {
             FAQ
           </span>
 
-          {/* Title */}
           <h2 
-            className="text-[42px] font-bold italic leading-[35px] text-center"
-            style={{ 
-              letterSpacing: "-0.33px",
-            }}
+            className="text-[28px] sm:text-[36px] lg:text-[42px] font-bold italic leading-[1.1] text-center"
+            style={{ letterSpacing: "-0.33px" }}
           >
             <span style={{ color: "#F7DC4E" }}>QUESTIONS?</span>{" "}
             <span style={{ color: "#FFFFFF" }}>WE&apos;VE GOT ANSWERS.</span>
           </h2>
 
-          {/* Subtitle */}
           <p 
-            className="text-[14px] leading-[19px] text-center"
+            className="text-[13px] lg:text-[14px] leading-[1.4] text-center max-w-[300px] lg:max-w-none"
             style={{
               background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
               WebkitBackgroundClip: "text",
@@ -161,8 +140,7 @@ export default function FAQSection() {
 
         {/* FAQ Items */}
         <motion.div
-          className="flex flex-col w-full"
-          style={{ maxWidth: "581px", gap: "8px" }}
+          className="flex flex-col w-full max-w-[581px] gap-2"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -171,9 +149,8 @@ export default function FAQSection() {
           {faqs.map((faq, index) => (
             <motion.div
               key={index}
-              className="overflow-hidden"
+              className="overflow-hidden rounded-[16px] lg:rounded-[25px]"
               style={{
-                borderRadius: "25px",
                 background: "rgba(7, 7, 7, 0.19)",
                 border: openIndex === index ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid transparent",
               }}
@@ -184,52 +161,21 @@ export default function FAQSection() {
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full flex items-center justify-between text-left transition-colors"
-                style={{ padding: "20px 24px" }}
+                className="w-full flex items-center justify-between text-left transition-colors p-4 lg:p-[20px_24px]"
               >
-                {/* Left side - Star + Question */}
-                <div className="flex items-center" style={{ gap: "16px" }}>
-                  {/* Star symbol */}
-                  <span 
-                    className="text-[13px]"
-                    style={{ color: "rgba(255, 255, 255, 1)" }}
-                  >
-                    ✦
-                  </span>
-
-                  {/* Question text */}
-                  <span 
-                    className="text-[17px] font-semibold"
-                    style={{ color: "rgba(255, 255, 255, 1)" }}
-                  >
+                <div className="flex items-center gap-3 lg:gap-4">
+                  <span className="text-[12px] lg:text-[13px] text-white">✦</span>
+                  <span className="text-[14px] lg:text-[17px] font-semibold text-white">
                     {faq.question}
                   </span>
                 </div>
 
-                {/* Plus/Minus Icon */}
-                <div 
-                  className="relative flex items-center justify-center"
-                  style={{ width: "16px", height: "16px" }}
-                >
-                  {/* Horizontal line */}
+                <div className="relative flex items-center justify-center w-4 h-4 flex-shrink-0">
                   <div 
-                    style={{
-                      position: "absolute",
-                      width: "13px",
-                      height: "2px",
-                      borderRadius: "10px",
-                      background: "rgba(255, 255, 255, 1)",
-                    }}
+                    className="absolute w-[13px] h-[2px] rounded-[10px] bg-white"
                   />
-                  {/* Vertical line (hidden when open) */}
                   <motion.div 
-                    style={{
-                      position: "absolute",
-                      width: "2px",
-                      height: "13px",
-                      borderRadius: "10px",
-                      background: "rgba(255, 255, 255, 1)",
-                    }}
+                    className="absolute w-[2px] h-[13px] rounded-[10px] bg-white"
                     animate={{ 
                       opacity: openIndex === index ? 0 : 1,
                       rotate: openIndex === index ? 90 : 0,
@@ -249,11 +195,8 @@ export default function FAQSection() {
                     className="overflow-hidden"
                   >
                     <div 
-                      className="text-[14px] leading-[21px] font-light"
-                      style={{ 
-                        padding: "0 24px 20px 53px",
-                        color: "rgba(255, 255, 255, 0.6)",
-                      }}
+                      className="text-[13px] lg:text-[14px] leading-[1.5] font-light px-4 pb-4 lg:px-6 lg:pb-5 pl-[44px] lg:pl-[53px]"
+                      style={{ color: "rgba(255, 255, 255, 0.6)" }}
                     >
                       {faq.answer}
                     </div>
@@ -266,17 +209,15 @@ export default function FAQSection() {
 
         {/* Bottom Section - Contact */}
         <motion.div
-          className="flex flex-col items-center text-center"
-          style={{ gap: "20px" }}
+          className="flex flex-col items-center text-center gap-4 lg:gap-5"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          {/* Text */}
-          <div className="flex flex-col items-center" style={{ gap: "8px" }}>
+          <div className="flex flex-col items-center gap-2">
             <h3 
-              className="text-[42px] font-bold italic leading-[42px]"
+              className="text-[28px] sm:text-[36px] lg:text-[42px] font-bold italic leading-[1.1]"
               style={{
                 background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                 WebkitBackgroundClip: "text",
@@ -299,14 +240,10 @@ export default function FAQSection() {
             </p>
           </div>
 
-          {/* Contact Button */}
           <motion.a
             href="mailto:support@drinkyum.com"
-            className="flex items-center justify-center text-[15px] text-white font-normal"
+            className="flex items-center justify-center text-[14px] lg:text-[15px] text-white font-normal w-[120px] h-[38px] lg:h-[35px] rounded-[10px]"
             style={{
-              width: "110px",
-              height: "35px",
-              borderRadius: "10px",
               border: "1px solid #FFF",
               background: `radial-gradient(30.86% 27.56% at 77.68% 0%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), 
                            radial-gradient(54.33% 42.36% at 29.91% 100%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), 
@@ -323,4 +260,3 @@ export default function FAQSection() {
     </section>
   );
 }
-

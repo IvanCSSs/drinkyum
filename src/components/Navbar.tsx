@@ -21,7 +21,7 @@ export default function Navbar() {
     <>
       {/* Desktop & Mobile Header */}
       <motion.header
-        className="fixed top-[75px] left-0 right-0 z-50 px-4 md:px-8"
+        className="fixed top-4 md:top-[75px] left-0 right-0 z-50 px-4 md:px-8"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
