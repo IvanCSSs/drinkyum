@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { 
   ChevronLeft, 
   Minus, 
@@ -18,7 +17,7 @@ import {
   Clock,
   ChevronDown
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -165,9 +164,12 @@ type WindowWithCart = typeof window & {
   onCartUpdate?: (callback: (items: CartItem[]) => void) => void;
 };
 
-export default function ProductPage() {
-  const params = useParams();
-  const handle = params.handle as string;
+export default function ProductPage({ 
+  params 
+}: { 
+  params: Promise<{ handle: string }> 
+}) {
+  const { handle } = use(params);
   const product = productsData[handle] || defaultProduct;
   
   const [selectedImage, setSelectedImage] = useState(0);
@@ -577,20 +579,26 @@ export default function ProductPage() {
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="pb-5 text-white/60 leading-relaxed">
-                        {section.specs ? (
-                          <div className="grid grid-cols-2 gap-3">
-                            {section.specs.map((spec, idx) => (
-                              <div key={idx} className="flex justify-between">
-                                <span className="text-white/40">{spec.label}</span>
-                                <span className="text-white">{spec.value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          section.content
-                        )}
-                      </div>
+<div className="pb-5 text-white/60 leading-relaxed">
+                                        {section.specs ? (
+                                          <div className="space-y-2">
+                                            {section.specs.map((spec, idx) => (
+                                              <div 
+                                                key={idx} 
+                                                className="flex justify-between items-center py-2.5 px-3 rounded-lg"
+                                                style={{ 
+                                                  background: idx % 2 === 0 ? "rgba(255,255,255,0.03)" : "transparent"
+                                                }}
+                                              >
+                                                <span className="text-white/50 text-sm">{spec.label}</span>
+                                                <span className="text-white font-medium text-sm text-right">{spec.value}</span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        ) : (
+                                          section.content
+                                        )}
+                                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -674,20 +682,20 @@ export default function ProductPage() {
                 {product.relatedProducts.map((related) => (
                   <Link key={related.id} href={`/products/${related.handle}`}>
                     <div 
-                      className="group rounded-xl overflow-hidden transition-all hover:scale-[1.02]"
+                      className="group h-full rounded-xl overflow-hidden transition-all hover:scale-[1.02] flex flex-col"
                       style={{ background: "rgba(15,15,15,0.5)", border: "1px solid rgba(255,255,255,0.08)" }}
                     >
-                      <div className="relative aspect-square">
+                      <div className="relative aspect-square overflow-hidden">
                         <Image
                           src={related.image}
                           alt={related.name}
                           fill
-                          className="object-contain p-4 transition-transform group-hover:scale-110"
+                          className="object-cover transition-transform group-hover:scale-110"
                         />
                       </div>
-                      <div className="p-4">
-                        <h3 className="text-white text-sm font-medium line-clamp-2 mb-2">{related.name}</h3>
-                        <span className="text-yum-pink font-bold">{related.price}</span>
+                      <div className="p-4 flex flex-col flex-1">
+                        <h3 className="text-white text-sm font-medium line-clamp-2 h-10 mb-2">{related.name}</h3>
+                        <span className="text-yum-pink font-bold mt-auto">{related.price}</span>
                       </div>
                     </div>
                   </Link>

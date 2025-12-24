@@ -3,9 +3,8 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { ChevronLeft, Minus, Plus } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -102,9 +101,12 @@ type WindowWithCart = typeof window & {
   onCartUpdate?: (callback: (items: CartItem[]) => void) => void;
 };
 
-export default function CollectionPage() {
-  const params = useParams();
-  const handle = params.handle as string;
+export default function CollectionPage({ 
+  params 
+}: { 
+  params: Promise<{ handle: string }> 
+}) {
+  const { handle } = use(params);
   const collection = collectionsData[handle];
   
   const [cartQuantities, setCartQuantities] = useState<Record<number, number>>({});
@@ -347,4 +349,6 @@ export default function CollectionPage() {
     </main>
   );
 }
+
+
 
