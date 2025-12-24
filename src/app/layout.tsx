@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
 import AgeVerification from "@/components/AgeVerification";
+import { ConsoleFilter } from "@/components/ConsoleFilter";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={lato.variable}>
       <body className="antialiased">
+        <ConsoleFilter />
         <AgeVerification />
         {children}
       </body>

@@ -168,6 +168,20 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
+      {/* Mobile/Tablet: Center Logo */}
+      <div className="lg:hidden fixed top-10 left-1/2 -translate-x-1/2 z-40">
+        <Link href="/">
+          <Image
+            src="/images/logo.svg"
+            alt="YUM - DrinkYUM"
+            width={120}
+            height={60}
+            className="h-[60px] w-auto"
+            priority
+          />
+        </Link>
+      </div>
+
       {/* Mobile/Tablet: Cart - always visible when has items, otherwise follows auto-hide */}
       <AnimatePresence>
         {(buttonsVisible || hasItems) && (
