@@ -215,13 +215,16 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* Desktop Header - Full capsule bar */}
-      <motion.header
-        className="hidden lg:block fixed top-[75px] left-0 right-0 z-50 px-8"
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
+      {/* Desktop Header - Full capsule bar with auto-hide */}
+      <AnimatePresence>
+        {buttonsVisible && (
+          <motion.header
+            className="hidden lg:block fixed top-[75px] left-0 right-0 z-50 px-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+          >
         <div 
           className="max-w-[1200px] mx-auto flex items-center justify-between px-4 py-[18px] rounded-xl relative overflow-hidden"
           style={{
@@ -306,6 +309,8 @@ export default function Navbar() {
           </div>
         </div>
       </motion.header>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
