@@ -150,6 +150,15 @@ export default function CheckoutPage() {
   const [selectedShipping, setSelectedShipping] = useState<"standard" | "express">("standard");
   const [sameAsBilling, setSameAsBilling] = useState(true);
   
+  // Billing address (only used if different from shipping)
+  const [billingFirstName, setBillingFirstName] = useState("");
+  const [billingLastName, setBillingLastName] = useState("");
+  const [billingAddress, setBillingAddress] = useState("");
+  const [billingApartment, setBillingApartment] = useState("");
+  const [billingCity, setBillingCity] = useState("");
+  const [billingState, setBillingState] = useState("");
+  const [billingZipCode, setBillingZipCode] = useState("");
+  
   // Marketing opt-ins (pre-checked for better conversion, user can uncheck)
   const [emailMarketing, setEmailMarketing] = useState(true);
   const [smsMarketing, setSmsMarketing] = useState(false);
@@ -588,6 +597,82 @@ export default function CheckoutPage() {
     setTimeout(() => saveCheckoutSession(), 0);
   }, [saveCheckoutSession]);
 
+  // Customer info structure for saving/loading
+  interface SavedCustomerInfo {
+    email: string;
+    phone: string;
+    firstName: string;
+    lastName: string;
+    address: string;
+    apartment: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    emailMarketing: boolean;
+    smsMarketing: boolean;
+  }
+  
+  // Save customer info for next time
+  // TODO: Replace with backend API call to Medusa customer endpoint
+  const saveCustomerInfo = async (info: SavedCustomerInfo): Promise<void> => {
+    console.log("[Customer Info] Saving for next time:", info);
+    
+    // Placeholder: In production, this would be an API call like:
+    // await fetch('/api/customer/save-info', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(info)
+    // });
+    
+    // Or with Medusa:
+    // await medusa.customers.update(customerId, {
+    //   metadata: { saved_checkout_info: info }
+    // });
+    
+    // For now, just log it
+    console.log("[Customer Info] Ready to save to backend:", JSON.stringify(info, null, 2));
+  };
+  
+  // Load saved customer info
+  // TODO: Replace with backend API call to fetch saved customer data
+  const loadCustomerInfo = async (): Promise<SavedCustomerInfo | null> => {
+    console.log("[Customer Info] Loading saved info...");
+    
+    // Placeholder: In production, this would be an API call like:
+    // const response = await fetch('/api/customer/get-info');
+    // return response.json();
+    
+    // Or with Medusa:
+    // const customer = await medusa.customers.retrieve();
+    // return customer.metadata?.saved_checkout_info;
+    
+    // For now, return null (no saved info)
+    return null;
+  };
+  
+  // Load saved customer info on mount (if logged in)
+  useEffect(() => {
+    const loadSavedInfo = async () => {
+      const savedInfo = await loadCustomerInfo();
+      if (savedInfo) {
+        console.log("[Customer Info] Found saved info, pre-filling form");
+        setEmail(savedInfo.email || "");
+        setPhone(savedInfo.phone || "");
+        setFirstName(savedInfo.firstName || "");
+        setLastName(savedInfo.lastName || "");
+        setAddress(savedInfo.address || "");
+        setApartment(savedInfo.apartment || "");
+        setCity(savedInfo.city || "");
+        setState(savedInfo.state || "");
+        setZipCode(savedInfo.zipCode || "");
+        setEmailMarketing(savedInfo.emailMarketing ?? true);
+        setSmsMarketing(savedInfo.smsMarketing ?? false);
+      }
+    };
+    
+    loadSavedInfo();
+  }, []);
+
   // Handle final submission
   const handleSubmit = useCallback(async () => {
     if (!checkoutId) return;
@@ -633,6 +718,23 @@ export default function CheckoutPage() {
       
       // Clear checkout session from localStorage
       localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+      
+      // Save customer info if they opted in
+      if (saveInfo) {
+        await saveCustomerInfo({
+          email,
+          phone,
+          firstName,
+          lastName,
+          address,
+          apartment,
+          city,
+          state,
+          zipCode,
+          emailMarketing,
+          smsMarketing,
+        });
+      }
       
       // Show success (in production, redirect to order confirmation page)
       alert(`Order submitted! Order ID: ${result.orderId}\n\n(This is a demo - no actual payment processed)`);
@@ -1105,21 +1207,43 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-3 mb-4">
                       <Lock size={20} className="text-green-400" />
                       <h2 className="text-lg font-semibold text-white">Payment</h2>
-                      <span className="text-xs text-white/40 ml-auto">Secured by SSL</span>
+                      <div className="ml-auto flex items-center gap-2">
+                        <span className="text-xs text-white/40">Powered by</span>
+                        <span className="text-xs font-semibold text-white/70">Authorize.net</span>
+                      </div>
                     </div>
                     
+                    {/* Security notice */}
+                    <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                      <Shield size={16} className="text-green-400 flex-shrink-0" />
+                      <p className="text-xs text-green-300/80">
+                        Your card details are encrypted and securely tokenized. We never store your full card number.
+                      </p>
+                    </div>
+                    
+                    {/* Accept.js hosted fields container */}
+                    {/* TODO: Replace with actual Authorize.net Accept.js hosted fields */}
+                    {/* See: https://developer.authorize.net/api/reference/features/acceptjs.html */}
                     <div className="space-y-4">
                       <div>
                         <label className="text-white/60 text-sm mb-1.5 block">Card Number <span className="text-yum-pink">*</span></label>
                         <div className="relative">
+                          {/* In production, this would be an Accept.js hosted field */}
                           <input
                             type="text"
+                            id="cardNumber"
+                            data-authorize="cardNumber"
                             value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value)}
+                            onChange={(e) => {
+                              // Format card number with spaces
+                              const value = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+                              setCardNumber(value);
+                            }}
                             placeholder="1234 5678 9012 3456"
                             maxLength={19}
                             required
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                            autoComplete="cc-number"
+                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors font-mono tracking-wider"
                           />
                           <CreditCard size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30" />
                         </div>
@@ -1128,10 +1252,12 @@ export default function CheckoutPage() {
                         <label className="text-white/60 text-sm mb-1.5 block">Name on Card <span className="text-yum-pink">*</span></label>
                         <input
                           type="text"
+                          id="cardName"
                           value={cardName}
                           onChange={(e) => setCardName(e.target.value)}
                           placeholder="John Doe"
                           required
+                          autoComplete="cc-name"
                           className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
                         />
                       </div>
@@ -1140,26 +1266,50 @@ export default function CheckoutPage() {
                           <label className="text-white/60 text-sm mb-1.5 block">Expiry Date <span className="text-yum-pink">*</span></label>
                           <input
                             type="text"
+                            id="cardExpiry"
+                            data-authorize="expDate"
                             value={cardExpiry}
-                            onChange={(e) => setCardExpiry(e.target.value)}
+                            onChange={(e) => {
+                              // Auto-format MM/YY
+                              let value = e.target.value.replace(/\D/g, '');
+                              if (value.length >= 2) {
+                                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+                              }
+                              setCardExpiry(value);
+                            }}
                             placeholder="MM/YY"
                             maxLength={5}
                             required
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                            autoComplete="cc-exp"
+                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors font-mono"
                           />
                         </div>
                         <div>
-                          <label className="text-white/60 text-sm mb-1.5 block">CVC <span className="text-yum-pink">*</span></label>
+                          <label className="text-white/60 text-sm mb-1.5 block">CVV <span className="text-yum-pink">*</span></label>
                           <input
                             type="text"
+                            id="cardCvc"
+                            data-authorize="cvv"
                             value={cardCvc}
-                            onChange={(e) => setCardCvc(e.target.value)}
+                            onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ''))}
                             placeholder="123"
                             maxLength={4}
                             required
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                            autoComplete="cc-csc"
+                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors font-mono"
                           />
                         </div>
+                      </div>
+                    </div>
+                    
+                    {/* Accepted cards */}
+                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-3">
+                      <span className="text-xs text-white/40">We accept:</span>
+                      <div className="flex gap-2">
+                        <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Visa</div>
+                        <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Mastercard</div>
+                        <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Amex</div>
+                        <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Discover</div>
                       </div>
                     </div>
                   </div>
@@ -1179,6 +1329,101 @@ export default function CheckoutPage() {
                       />
                       <span className="text-white/80">Same as shipping address</span>
                     </label>
+                    
+                    {/* Billing address form - shown when not same as shipping */}
+                    {!sameAsBilling && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="mt-4 pt-4 border-t border-white/10 space-y-4"
+                      >
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-white/60 text-sm mb-1.5 block">First Name <span className="text-yum-pink">*</span></label>
+                            <input
+                              type="text"
+                              value={billingFirstName}
+                              onChange={(e) => setBillingFirstName(e.target.value)}
+                              placeholder="First name"
+                              required
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-1.5 block">Last Name <span className="text-yum-pink">*</span></label>
+                            <input
+                              type="text"
+                              value={billingLastName}
+                              onChange={(e) => setBillingLastName(e.target.value)}
+                              placeholder="Last name"
+                              required
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="text-white/60 text-sm mb-1.5 block">Address <span className="text-yum-pink">*</span></label>
+                          <input
+                            type="text"
+                            value={billingAddress}
+                            onChange={(e) => setBillingAddress(e.target.value)}
+                            placeholder="Street address"
+                            required
+                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-white/60 text-sm mb-1.5 block">Apartment, suite, etc. <span className="text-white/40">(optional)</span></label>
+                          <input
+                            type="text"
+                            value={billingApartment}
+                            onChange={(e) => setBillingApartment(e.target.value)}
+                            placeholder="Apt, suite, unit, etc."
+                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label className="text-white/60 text-sm mb-1.5 block">City <span className="text-yum-pink">*</span></label>
+                            <input
+                              type="text"
+                              value={billingCity}
+                              onChange={(e) => setBillingCity(e.target.value)}
+                              placeholder="City"
+                              required
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-1.5 block">State <span className="text-yum-pink">*</span></label>
+                            <input
+                              type="text"
+                              value={billingState}
+                              onChange={(e) => setBillingState(e.target.value)}
+                              placeholder="State"
+                              required
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-1.5 block">ZIP <span className="text-yum-pink">*</span></label>
+                            <input
+                              type="text"
+                              value={billingZipCode}
+                              onChange={(e) => setBillingZipCode(e.target.value)}
+                              placeholder="ZIP"
+                              required
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
 
                   {/* Order Summary */}
