@@ -5,7 +5,7 @@ import Image from "next/image";
 
 const navLinks = [
   { number: "01", label: "Home", href: "/" },
-  { number: "02", label: "Shop", href: "/shop" },
+  { number: "02", label: "Shop", href: "/collections" },
   { number: "03", label: "About us", href: "/about" },
 ];
 
@@ -100,15 +100,21 @@ export default function Footer() {
           </span>
 
           {/* Legal Links */}
-          <div className="flex items-center gap-4 lg:gap-6 order-1 sm:order-3">
+          <div className="flex items-center gap-3 lg:gap-6 order-1 sm:order-3 flex-wrap justify-center sm:justify-end">
             <Link 
-              href="/terms"
+              href="/shipping-returns"
               className="text-[12px] lg:text-[13px] hover:opacity-80 transition-opacity text-white"
             >
-              Terms & Conditions
+              Shipping & Returns
             </Link>
             <Link 
-              href="/privacy"
+              href="/terms-of-service"
+              className="text-[12px] lg:text-[13px] hover:opacity-80 transition-opacity text-white"
+            >
+              Terms of Service
+            </Link>
+            <Link 
+              href="/privacy-policy"
               className="text-[12px] lg:text-[13px] hover:opacity-80 transition-opacity text-white"
             >
               Privacy Policy
