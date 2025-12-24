@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
 import { useRef, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const products = [
   {
@@ -214,32 +215,34 @@ export default function Products() {
                   className="relative flex flex-col items-center p-2 lg:p-[9px] h-full"
                 >
                   {/* Product Image */}
-                  <div className="relative w-full aspect-square mb-3 overflow-hidden rounded-[14px] lg:rounded-[17px]">
+                  <Link href={`/products/${product.id}`} className="relative w-full aspect-square mb-3 overflow-hidden rounded-[14px] lg:rounded-[17px] block">
                     <Image
                       src={product.image}
                       alt={product.name}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-300 hover:scale-110"
                       style={{ transform: "scale(1.1)" }}
                     />
-                  </div>
+                  </Link>
 
                   {/* Product Info */}
                   <div 
                     className="w-full flex flex-col justify-between flex-1 px-1"
                   >
                     <div className="flex flex-col gap-1">
-                      <h3 
-                        className="text-[13px] lg:text-[14px] leading-[1.2] line-clamp-3"
-                        style={{
-                          background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          backgroundClip: "text",
-                        }}
-                      >
-                        {product.name}
-                      </h3>
+                      <Link href={`/products/${product.id}`}>
+                        <h3 
+                          className="text-[13px] lg:text-[14px] leading-[1.2] line-clamp-3 hover:opacity-80 transition-opacity"
+                          style={{
+                            background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            backgroundClip: "text",
+                          }}
+                        >
+                          {product.name}
+                        </h3>
+                      </Link>
 
                       <span 
                         className="text-[14px] font-bold leading-[14px] mb-2"

@@ -313,7 +313,7 @@ export default function ProductPage() {
                       src={img}
                       alt={`${product.title} ${idx + 1}`}
                       fill
-                      className="object-contain p-2"
+                      className="object-cover"
                     />
                   </button>
                 ))}

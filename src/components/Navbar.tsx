@@ -152,7 +152,7 @@ export default function Navbar() {
             transition={{ duration: 0.15 }}
           >
             <button
-              className="w-12 h-12 rounded-xl text-white flex items-center justify-center transition-all hover:bg-white/10"
+              className="w-16 h-16 rounded-2xl text-white flex items-center justify-center transition-all hover:bg-white/10"
               style={{
                 background: "rgba(255, 255, 255, 0.08)",
                 backdropFilter: "blur(20px)",
@@ -162,7 +162,7 @@ export default function Navbar() {
               }}
               onClick={() => setIsOpen(true)}
             >
-              <Menu size={24} />
+              <Menu size={32} />
             </button>
           </motion.div>
         )}
@@ -180,7 +180,7 @@ export default function Navbar() {
           >
             <button 
               onClick={() => setCartOpen(true)}
-              className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+              className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${
                 hasItems 
                   ? "text-yum-pink hover:bg-yum-pink/10" 
                   : "text-white hover:bg-white/10"
@@ -193,12 +193,12 @@ export default function Navbar() {
                 boxShadow: hasItems ? "0 4px 24px rgba(225, 37, 143, 0.2)" : "0 4px 24px rgba(0, 0, 0, 0.3)",
               }}
             >
-              <ShoppingBag size={22} />
+              <ShoppingBag size={28} />
               
               {/* Cart badge */}
               {hasItems && (
                 <motion.span
-                  className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold text-white px-1"
+                  className="absolute -top-2 -right-2 min-w-[24px] h-6 flex items-center justify-center rounded-full text-sm font-bold text-white px-1.5"
                   style={{
                     background: "linear-gradient(135deg, #E1258F 0%, #DC0387 100%)",
                     boxShadow: "0 0 12px rgba(225, 37, 143, 0.6)",

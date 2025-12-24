@@ -12,7 +12,7 @@ export default function Hero() {
           <img
             src="/images/logo.svg"
             alt="YUM - DrinkYUM"
-            className="h-[30px] w-auto"
+            className="h-[60px] w-auto"
           />
         </a>
       </div>
