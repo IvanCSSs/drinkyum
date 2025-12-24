@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
+import AgeVerification from "@/components/AgeVerification";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={lato.variable}>
       <body className="antialiased">
+        <AgeVerification />
         {children}
       </body>
     </html>

@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef } from "react";
+import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 
 const products = [
@@ -26,8 +26,21 @@ const products = [
   },
 ];
 
+interface CartItem {
+  id: number;
+  quantity: number;
+}
+
+type WindowWithCart = typeof window & {
+  addToCart?: (product: { id: number; name: string; price: string; image: string }) => void;
+  updateCartQuantity?: (id: number, quantity: number) => void;
+  getCartItems?: () => CartItem[];
+  onCartUpdate?: (callback: (items: CartItem[]) => void) => void;
+};
+
 export default function Products() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [cartQuantities, setCartQuantities] = useState<Record<number, number>>({});
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -38,6 +51,51 @@ export default function Products() {
       });
     }
   };
+
+  // Sync with global cart state
+  useEffect(() => {
+    const win = window as WindowWithCart;
+    
+    // Get initial cart state
+    if (win.getCartItems) {
+      const items = win.getCartItems();
+      const quantities: Record<number, number> = {};
+      items.forEach((item) => {
+        quantities[item.id] = item.quantity;
+      });
+      setCartQuantities(quantities);
+    }
+
+    // Subscribe to cart updates
+    if (win.onCartUpdate) {
+      win.onCartUpdate((items) => {
+        const quantities: Record<number, number> = {};
+        items.forEach((item) => {
+          quantities[item.id] = item.quantity;
+        });
+        setCartQuantities(quantities);
+      });
+    }
+  }, []);
+
+  const handleAddToCart = useCallback((product: typeof products[0]) => {
+    const win = window as WindowWithCart;
+    if (win.addToCart) {
+      win.addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+      });
+    }
+  }, []);
+
+  const handleUpdateQuantity = useCallback((productId: number, newQuantity: number) => {
+    const win = window as WindowWithCart;
+    if (win.updateCartQuantity) {
+      win.updateCartQuantity(productId, newQuantity);
+    }
+  }, []);
 
   return (
     <section 
@@ -191,20 +249,50 @@ export default function Products() {
                       </span>
                     </div>
 
-                    {/* Add to Cart Button */}
-                    <button
-                      className="w-full flex items-center justify-center text-[14px] lg:text-[15px] text-white transition-all hover:brightness-110"
-                      style={{
-                        height: "35px",
-                        flexShrink: 0,
-                        borderRadius: "10px",
-                        border: "1px solid #FFF",
-                        background: "radial-gradient(30.86% 27.56% at 77.68% 0%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), radial-gradient(54.33% 42.36% at 29.91% 100%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), rgba(220, 3, 135, 0.40)",
-                        boxShadow: "0 0 3px 0 #FFF inset",
-                      }}
-                    >
-                      Add to Cart
-                    </button>
+                    {/* Add to Cart / Quantity Controls */}
+                    {cartQuantities[product.id] > 0 ? (
+                      <div
+                        className="w-full flex items-center justify-between text-white"
+                        style={{
+                          height: "35px",
+                          flexShrink: 0,
+                          borderRadius: "10px",
+                          border: "1px solid #E1258F",
+                          background: "rgba(225, 37, 143, 0.2)",
+                        }}
+                      >
+                        <button
+                          onClick={() => handleUpdateQuantity(product.id, cartQuantities[product.id] - 1)}
+                          className="h-full px-4 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-all rounded-l-[9px]"
+                        >
+                          <Minus size={16} />
+                        </button>
+                        <span className="text-[15px] font-semibold">
+                          {cartQuantities[product.id]}
+                        </span>
+                        <button
+                          onClick={() => handleUpdateQuantity(product.id, cartQuantities[product.id] + 1)}
+                          className="h-full px-4 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-all rounded-r-[9px]"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleAddToCart(product)}
+                        className="w-full flex items-center justify-center text-[14px] lg:text-[15px] text-white transition-all hover:brightness-110 active:scale-95"
+                        style={{
+                          height: "35px",
+                          flexShrink: 0,
+                          borderRadius: "10px",
+                          border: "1px solid #FFF",
+                          background: "radial-gradient(30.86% 27.56% at 77.68% 0%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), radial-gradient(54.33% 42.36% at 29.91% 100%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%), rgba(220, 3, 135, 0.40)",
+                          boxShadow: "0 0 3px 0 #FFF inset",
+                        }}
+                      >
+                        Add to Cart
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>

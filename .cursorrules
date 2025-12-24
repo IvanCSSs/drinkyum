@@ -1,0 +1,27 @@
+# DrinkYUM - Kratom Extract Business
+
+## Project Overview
+Frontend website for a kratom extract business.
+
+## Tech Stack
+- Next.js
+- React 19
+- TypeScript
+- Tailwind CSS
+- Framer Motion (animations)
+- Lucide React (icons)
+
+## Current Focus
+Frontend development
+
+## Components
+- Hero section
+- Products showcase
+- About section
+- FAQ sections
+- Testimonials
+- Newsletter signup
+- Lab Tested badge/section
+- Pocket Size feature highlight
+- Comparison section
+- Footer with navigation

@@ -6,6 +6,17 @@ import Image from "next/image";
 export default function Hero() {
   return (
     <section className="relative min-h-screen bg-[#070707] flex items-center justify-center px-4 pt-20 md:pt-0 pb-8">
+      {/* Mobile/Tablet: Logo at top of page (scrolls with content) */}
+      <div className="lg:hidden absolute top-10 left-1/2 -translate-x-1/2 z-40">
+        <a href="/">
+          <img
+            src="/images/logo.svg"
+            alt="YUM - DrinkYUM"
+            className="h-[30px] w-auto"
+          />
+        </a>
+      </div>
+
       {/* Background Image - Full width, behind everything */}
       <div className="absolute inset-0">
         <Image
