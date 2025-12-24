@@ -16,10 +16,12 @@ export function ConsoleFilter() {
       if (typeof message !== "string") return false;
       
       // Suppress params/searchParams Promise enumeration warnings from dev tools
+      // Suppress Google Maps duplicate script warning (common in SPAs)
       return (
         message.includes("params are being enumerated") ||
         message.includes("searchParams") && message.includes("Promise") ||
-        message.includes("must be unwrapped with `React.use()`")
+        message.includes("must be unwrapped with `React.use()`") ||
+        message.includes("Google Maps JavaScript API multiple times")
       );
     };
 

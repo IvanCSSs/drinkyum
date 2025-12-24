@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown, Search, User, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import CartDrawer, { CartItem } from "./CartDrawer";
 
 const navLinks = [
@@ -47,11 +48,15 @@ export default function Navbar() {
   const [buttonsVisible, setButtonsVisible] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasMounted = useRef(false);
+  const pathname = usePathname();
   
   // Cart state - initialize from localStorage
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const hasItems = cartCount > 0;
+  
+  // On checkout page, cart button follows same auto-hide as hamburger
+  const isCheckoutPage = pathname === "/checkout";
 
   // Load cart from localStorage on mount (client-side only)
   useEffect(() => {
@@ -231,9 +236,9 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* Mobile/Tablet: Cart - always visible when has items, otherwise follows auto-hide */}
+      {/* Mobile/Tablet: Cart - always visible when has items (except on checkout), otherwise follows auto-hide */}
       <AnimatePresence>
-        {(buttonsVisible || hasItems) && (
+        {(buttonsVisible || (hasItems && !isCheckoutPage)) && (
           <motion.div
             className="lg:hidden fixed top-10 right-[5%] z-50"
             initial={{ opacity: 0 }}

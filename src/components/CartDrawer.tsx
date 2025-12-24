@@ -208,15 +208,17 @@ export default function CartDrawer({
                 </div>
 
                 {/* Checkout Button */}
-                <button
-                  className="w-full py-4 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+                <Link
+                  href="/checkout"
+                  onClick={onClose}
+                  className="w-full py-4 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98] block text-center"
                   style={{
                     background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
                     boxShadow: "0 4px 20px rgba(225, 37, 143, 0.4)",
                   }}
                 >
                   Checkout
-                </button>
+                </Link>
 
                 {/* View Full Cart */}
                 <Link
