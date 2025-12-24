@@ -21,10 +21,9 @@ interface AddressAutocompleteProps {
   required?: boolean;
 }
 
-// Declare google types
+// Extend Window interface for Google Places callback
 declare global {
   interface Window {
-    google?: typeof google;
     initGooglePlaces?: () => void;
   }
 }
