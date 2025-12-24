@@ -281,7 +281,7 @@ export default function ProductPage() {
                       src={product.images[selectedImage]}
                       alt={product.title}
                       fill
-                      className="object-contain p-8"
+                      className="object-cover"
                       priority
                     />
                   </motion.div>
@@ -399,15 +399,17 @@ export default function ProductPage() {
                 </button>
 
                 {/* Subscribe & Save */}
-                <button
-                  onClick={() => setIsSubscribe(true)}
-                  className={`w-full p-4 rounded-xl text-left transition-all ${
+                <div
+                  className={`w-full p-4 rounded-xl text-left transition-all cursor-pointer ${
                     isSubscribe 
                       ? "ring-2 ring-yum-pink bg-yum-pink/10" 
                       : "ring-1 ring-white/15 hover:ring-white/30"
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2">
+                  <div 
+                    className="flex items-center justify-between mb-2"
+                    onClick={() => setIsSubscribe(true)}
+                  >
                     <div className="flex items-center gap-3">
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                         isSubscribe ? "border-yum-pink" : "border-white/30"
@@ -429,7 +431,7 @@ export default function ProductPage() {
                         {["15", "30", "45", "60"].map((days) => (
                           <button
                             key={days}
-                            onClick={(e) => { e.stopPropagation(); setSubscribeFrequency(days); }}
+                            onClick={() => setSubscribeFrequency(days)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                               subscribeFrequency === days
                                 ? "bg-yum-pink text-white"
@@ -446,7 +448,7 @@ export default function ProductPage() {
                       </div>
                     </motion.div>
                   )}
-                </button>
+                </div>
               </div>
 
               {/* Quantity & Add to Cart */}
