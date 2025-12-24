@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useCallback, use } from "react";
 import Navbar from "@/components/Navbar";
+import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 
 // Placeholder product data - will be replaced with Medusa data
@@ -234,7 +235,8 @@ export default function ProductPage({
   };
 
   return (
-    <main className="min-h-screen bg-yum-dark">
+    <main className="min-h-screen bg-yum-dark relative">
+      <MobileLogo />
       <Navbar />
       
       <section className="relative pt-28 lg:pt-36 pb-16 px-4">

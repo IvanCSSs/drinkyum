@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import MobileLogo from "@/components/MobileLogo";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Products from "@/components/Products";
@@ -13,7 +14,8 @@ import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-yum-dark">
+    <main className="min-h-screen bg-yum-dark relative">
+      <MobileLogo />
       <Navbar />
       <Hero />
       <About />

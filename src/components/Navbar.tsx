@@ -22,16 +22,62 @@ export interface AddToCartProduct {
   image: string;
 }
 
+const CART_STORAGE_KEY = "yum-cart";
+
+// Load initial cart from localStorage (runs once, outside component)
+function getInitialCart(): CartItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const saved = localStorage.getItem(CART_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load cart from localStorage:", e);
+  }
+  return [];
+}
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [buttonsVisible, setButtonsVisible] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasMounted = useRef(false);
   
-  // Cart state - will be connected to Medusa later
+  // Cart state - initialize from localStorage
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const hasItems = cartCount > 0;
+
+  // Load cart from localStorage on mount (client-side only)
+  useEffect(() => {
+    if (hasMounted.current) return;
+    hasMounted.current = true;
+    
+    const saved = getInitialCart();
+    if (saved.length > 0) {
+      setCartItems(saved);
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes (skip first render)
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    } catch (e) {
+      console.error("Failed to save cart to localStorage:", e);
+    }
+  }, [cartItems]);
 
   // Add to cart function
   const addToCart = useCallback((product: AddToCartProduct) => {
@@ -119,7 +165,9 @@ export default function Navbar() {
       addToCart?: typeof addToCart;
       updateCartQuantity?: (id: number, quantity: number) => void;
       getCartItems?: () => { id: number; quantity: number }[];
+      getFullCartItems?: () => CartItem[];
       onCartUpdate?: (callback: (items: { id: number; quantity: number }[]) => void) => void;
+      onFullCartUpdate?: (callback: (items: CartItem[]) => void) => void;
     };
     
     win.addToCart = addToCart;
@@ -131,11 +179,26 @@ export default function Navbar() {
     win.getCartItems = () => {
       return cartItems.map((item) => ({ id: item.id, quantity: item.quantity }));
     };
+
+    win.getFullCartItems = () => {
+      return cartItems;
+    };
     
     win.onCartUpdate = (callback) => {
       cartUpdateCallbackRef.current = callback;
       // Immediately call with current state
       callback(cartItems.map((item) => ({ id: item.id, quantity: item.quantity })));
+    };
+
+    // Also notify full cart subscribers
+    if ((win as typeof win & { _fullCartCallback?: (items: CartItem[]) => void })._fullCartCallback) {
+      (win as typeof win & { _fullCartCallback: (items: CartItem[]) => void })._fullCartCallback(cartItems);
+    }
+
+    win.onFullCartUpdate = (callback) => {
+      (win as typeof win & { _fullCartCallback: (items: CartItem[]) => void })._fullCartCallback = callback;
+      // Immediately call with current state
+      callback(cartItems);
     };
   }, [addToCart, updateQuantity, cartItems]);
 
@@ -167,20 +230,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Mobile/Tablet: Center Logo */}
-      <div className="lg:hidden fixed top-10 left-1/2 -translate-x-1/2 z-40">
-        <Link href="/">
-          <Image
-            src="/images/logo.svg"
-            alt="YUM - DrinkYUM"
-            width={120}
-            height={60}
-            className="h-[60px] w-auto"
-            priority
-          />
-        </Link>
-      </div>
 
       {/* Mobile/Tablet: Cart - always visible when has items, otherwise follows auto-hide */}
       <AnimatePresence>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, Minus, Plus } from "lucide-react";
 import { useState, useEffect, useCallback, use } from "react";
 import Navbar from "@/components/Navbar";
+import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 
 // Placeholder collections data - will be replaced with Medusa data
@@ -152,7 +153,8 @@ export default function CollectionPage({
   // 404 state
   if (!collection) {
     return (
-      <main className="min-h-screen bg-yum-dark">
+      <main className="min-h-screen bg-yum-dark relative">
+        <MobileLogo />
         <Navbar />
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
           <h1 className="text-4xl font-bold text-white mb-4">Collection Not Found</h1>
@@ -171,7 +173,8 @@ export default function CollectionPage({
   }
 
   return (
-    <main className="min-h-screen bg-yum-dark">
+    <main className="min-h-screen bg-yum-dark relative">
+      <MobileLogo />
       <Navbar />
       
       {/* Hero Section */}

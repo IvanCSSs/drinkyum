@@ -4,6 +4,7 @@ import { motion, useMotionValue, useSpring, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import { useRef, MouseEvent } from "react";
 
@@ -218,7 +219,8 @@ function CollectionCard({ collection, index }: { collection: CollectionType; ind
 
 export default function CollectionsPage() {
   return (
-    <main className="min-h-screen bg-yum-dark">
+    <main className="min-h-screen bg-yum-dark relative">
+      <MobileLogo />
       <Navbar />
       
       {/* Hero Section */}

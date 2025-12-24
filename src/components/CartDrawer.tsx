@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export interface CartItem {
   id: number;
@@ -217,14 +218,23 @@ export default function CartDrawer({
                   Checkout
                 </button>
 
-                {/* Continue Shopping */}
-                <button
+                {/* View Full Cart */}
+                <Link
+                  href="/cart"
                   onClick={onClose}
-                  className="w-full mt-3 py-3 rounded-xl font-medium text-white/60 hover:text-white transition-colors"
+                  className="w-full mt-3 py-3 rounded-xl font-medium text-white/60 hover:text-white transition-colors text-center block"
                   style={{
                     background: "rgba(255, 255, 255, 0.05)",
                     border: "1px solid rgba(255, 255, 255, 0.1)",
                   }}
+                >
+                  View Full Cart
+                </Link>
+
+                {/* Continue Shopping */}
+                <button
+                  onClick={onClose}
+                  className="w-full mt-2 py-2 text-sm font-medium text-white/40 hover:text-white/70 transition-colors"
                 >
                   Continue Shopping
                 </button>
