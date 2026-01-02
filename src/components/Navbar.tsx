@@ -10,10 +10,11 @@ import CartDrawer, { CartItem } from "./CartDrawer";
 
 const navLinks = [
   { label: "Home", href: "/", hasDropdown: false },
-  { label: "Shop", href: "/collections", hasDropdown: true },
-  { label: "About Us", href: "/about", hasDropdown: false },
-  { label: "The Secret", href: "/secret", hasDropdown: true },
-  { label: "A Better Experience", href: "/experience", hasDropdown: false },
+  { label: "Shop", href: "/collections", hasDropdown: false },
+  { label: "About", href: "/about", hasDropdown: false },
+  { label: "Lab Results", href: "/lab-results", hasDropdown: false },
+  { label: "FAQ", href: "/faq", hasDropdown: false },
+  { label: "Contact", href: "/contact", hasDropdown: false },
 ];
 
 export interface AddToCartProduct {
