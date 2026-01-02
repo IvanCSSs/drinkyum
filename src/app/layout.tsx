@@ -3,6 +3,7 @@ import { Lato } from "next/font/google";
 import "./globals.css";
 import AgeVerification from "@/components/AgeVerification";
 import { ConsoleFilter } from "@/components/ConsoleFilter";
+import { Providers } from "@/contexts/Providers";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -25,8 +26,10 @@ export default function RootLayout({
     <html lang="en" className={lato.variable}>
       <body className="antialiased">
         <ConsoleFilter />
-        <AgeVerification />
-        {children}
+        <Providers>
+          <AgeVerification />
+          {children}
+        </Providers>
       </body>
     </html>
   );

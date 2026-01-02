@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown, Search, User, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import CartDrawer, { CartItem } from "./CartDrawer";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import CartDrawer from "./CartDrawer";
 
 const navLinks = [
   { label: "Home", href: "/", hasDropdown: false },
@@ -17,120 +19,41 @@ const navLinks = [
   { label: "Contact", href: "/contact", hasDropdown: false },
 ];
 
-export interface AddToCartProduct {
-  id: number;
-  name: string;
-  price: string;
-  image: string;
-}
-
-const CART_STORAGE_KEY = "yum-cart";
-
-// Load initial cart from localStorage (runs once, outside component)
-function getInitialCart(): CartItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const saved = localStorage.getItem(CART_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
-    }
-  } catch (e) {
-    console.error("Failed to load cart from localStorage:", e);
-  }
-  return [];
-}
-
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [buttonsVisible, setButtonsVisible] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasMounted = useRef(false);
   const pathname = usePathname();
-  
-  // Cart state - initialize from localStorage
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const hasItems = cartCount > 0;
-  
+
+  // Use contexts for cart and auth
+  const { items, itemCount, updateQuantity, removeItem } = useCart();
+  const { isAuthenticated } = useAuth();
+
+  const hasItems = itemCount > 0;
+
   // On checkout page, cart button follows same auto-hide as hamburger
   const isCheckoutPage = pathname === "/checkout";
 
-  // Load cart from localStorage on mount (client-side only)
-  useEffect(() => {
-    if (hasMounted.current) return;
-    hasMounted.current = true;
-    
-    const saved = getInitialCart();
-    if (saved.length > 0) {
-      setCartItems(saved);
-    }
-  }, []);
-
-  // Save cart to localStorage whenever it changes (skip first render)
-  const isFirstRender = useRef(true);
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    
-    try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-    } catch (e) {
-      console.error("Failed to save cart to localStorage:", e);
-    }
-  }, [cartItems]);
-
-  // Add to cart function
-  const addToCart = useCallback((product: AddToCartProduct) => {
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      // Parse price number from string like "$70.00"
-      const priceNum = parseFloat(product.price.replace(/[^0-9.]/g, ""));
-      return [...prev, { ...product, priceNum, quantity: 1 }];
-    });
-    // Auto-open cart drawer
-    setCartOpen(true);
-  }, []);
-
-  // Update quantity
-  const updateQuantity = useCallback((id: number, quantity: number) => {
-    if (quantity <= 0) {
-      setCartItems((prev) => prev.filter((item) => item.id !== id));
-    } else {
-      setCartItems((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, quantity } : item
-        )
-      );
-    }
-  }, []);
-
-  // Remove item
-  const removeItem = useCallback((id: number) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-  }, []);
+  // Convert cart items to the format CartDrawer expects
+  const cartDrawerItems = items.map(item => ({
+    id: item.id,
+    name: item.title,
+    price: `$${(item.unit_price / 100).toFixed(2)}`,
+    priceNum: item.unit_price / 100,
+    image: item.thumbnail || "/images/product-1.png",
+    quantity: item.quantity,
+  }));
 
   useEffect(() => {
     const showButtons = () => {
       setButtonsVisible(true);
-      
+
       // Clear existing timeout
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      
+
       // Hide after 2.8s of inactivity
       timeoutRef.current = setTimeout(() => {
         setButtonsVisible(false);
@@ -156,57 +79,18 @@ export default function Navbar() {
     };
   }, []);
 
-  // Expose cart functions globally (temporary - will be replaced with Medusa context)
-  const cartUpdateCallbackRef = useRef<((items: CartItem[]) => void) | null>(null);
-
-  // Notify subscribers when cart changes
-  useEffect(() => {
-    if (cartUpdateCallbackRef.current) {
-      cartUpdateCallbackRef.current(cartItems);
+  const handleUpdateQuantity = (id: string | number, quantity: number) => {
+    const stringId = String(id);
+    if (quantity <= 0) {
+      removeItem(stringId);
+    } else {
+      updateQuantity(stringId, quantity);
     }
-  }, [cartItems]);
+  };
 
-  useEffect(() => {
-    const win = window as typeof window & { 
-      addToCart?: typeof addToCart;
-      updateCartQuantity?: (id: number, quantity: number) => void;
-      getCartItems?: () => { id: number; quantity: number }[];
-      getFullCartItems?: () => CartItem[];
-      onCartUpdate?: (callback: (items: { id: number; quantity: number }[]) => void) => void;
-      onFullCartUpdate?: (callback: (items: CartItem[]) => void) => void;
-    };
-    
-    win.addToCart = addToCart;
-    
-    win.updateCartQuantity = (id: number, quantity: number) => {
-      updateQuantity(id, quantity);
-    };
-    
-    win.getCartItems = () => {
-      return cartItems.map((item) => ({ id: item.id, quantity: item.quantity }));
-    };
-
-    win.getFullCartItems = () => {
-      return cartItems;
-    };
-    
-    win.onCartUpdate = (callback) => {
-      cartUpdateCallbackRef.current = callback;
-      // Immediately call with current state
-      callback(cartItems.map((item) => ({ id: item.id, quantity: item.quantity })));
-    };
-
-    // Also notify full cart subscribers
-    if ((win as typeof win & { _fullCartCallback?: (items: CartItem[]) => void })._fullCartCallback) {
-      (win as typeof win & { _fullCartCallback: (items: CartItem[]) => void })._fullCartCallback(cartItems);
-    }
-
-    win.onFullCartUpdate = (callback) => {
-      (win as typeof win & { _fullCartCallback: (items: CartItem[]) => void })._fullCartCallback = callback;
-      // Immediately call with current state
-      callback(cartItems);
-    };
-  }, [addToCart, updateQuantity, cartItems]);
+  const handleRemoveItem = (id: string | number) => {
+    removeItem(String(id));
+  };
 
   return (
     <>
@@ -247,11 +131,11 @@ export default function Navbar() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            <button 
+            <button
               onClick={() => setCartOpen(true)}
               className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${
-                hasItems 
-                  ? "text-yum-pink hover:bg-yum-pink/10" 
+                hasItems
+                  ? "text-yum-pink hover:bg-yum-pink/10"
                   : "text-white hover:bg-white/10"
               }`}
               style={{
@@ -263,7 +147,7 @@ export default function Navbar() {
               }}
             >
               <ShoppingBag size={28} />
-              
+
               {/* Cart badge */}
               {hasItems && (
                 <motion.span
@@ -276,7 +160,7 @@ export default function Navbar() {
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
                 >
-                  {cartCount}
+                  {itemCount}
                 </motion.span>
               )}
             </button>
@@ -294,90 +178,93 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
           >
-        <div 
-          className="max-w-[1200px] mx-auto flex items-center justify-between px-4 py-[18px] rounded-xl relative overflow-hidden"
-          style={{
-            background: "rgba(1, 6, 25, 0.05)",
-            backdropFilter: "blur(20px)",
-          }}
-        >
-          {/* Border gradient overlay */}
-          <div 
-            className="absolute inset-0 rounded-xl pointer-events-none"
-            style={{
-              padding: "1px",
-              background: "radial-gradient(ellipse at top center, rgba(225, 37, 143, 0.8) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.05) 100%)",
-              mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-              maskComposite: "xor",
-              WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-              WebkitMaskComposite: "xor",
-            }}
-          />
-          
-          {/* Logo */}
-          <Link href="/" className="flex-shrink-0 relative z-10">
-            <Image
-              src="/images/logo.svg"
-              alt="YUM - DrinkYUM"
-              width={100}
-              height={28}
-              className="h-7 w-auto"
-              priority
-            />
-          </Link>
-
-          {/* Nav - Center */}
-          <nav className="flex items-center gap-6 relative z-10">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="group flex items-center gap-1 text-white hover:text-white/80 transition-colors"
-              >
-                <span className="text-[15px] font-normal tracking-[-0.01em]">
-                  {link.label}
-                </span>
-                {link.hasDropdown && (
-                  <ChevronDown 
-                    size={14} 
-                    className="opacity-60 group-hover:opacity-100 transition-opacity"
-                  />
-                )}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-3 relative z-10">
-            <button className="p-1.5 text-white hover:text-white/80 transition-colors">
-              <Search size={18} />
-            </button>
-            
-            <button className="p-1.5 text-white hover:text-white/80 transition-colors">
-              <User size={18} />
-            </button>
-            
-            <button 
-              onClick={() => setCartOpen(true)}
-              className={`p-1.5 transition-colors relative ${
-                hasItems ? "text-yum-pink" : "text-white hover:text-white/80"
-              }`}
+            <div
+              className="max-w-[1200px] mx-auto flex items-center justify-between px-4 py-[18px] rounded-xl relative overflow-hidden"
+              style={{
+                background: "rgba(1, 6, 25, 0.05)",
+                backdropFilter: "blur(20px)",
+              }}
             >
-              <ShoppingBag size={18} />
-              {hasItems && (
-                <span 
-                  className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1"
-                  style={{
-                    background: "linear-gradient(135deg, #E1258F 0%, #DC0387 100%)",
-                  }}
+              {/* Border gradient overlay */}
+              <div
+                className="absolute inset-0 rounded-xl pointer-events-none"
+                style={{
+                  padding: "1px",
+                  background: "radial-gradient(ellipse at top center, rgba(225, 37, 143, 0.8) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.05) 100%)",
+                  mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                  maskComposite: "xor",
+                  WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                  WebkitMaskComposite: "xor",
+                }}
+              />
+
+              {/* Logo */}
+              <Link href="/" className="flex-shrink-0 relative z-10">
+                <Image
+                  src="/images/logo.svg"
+                  alt="YUM - DrinkYUM"
+                  width={100}
+                  height={28}
+                  className="h-7 w-auto"
+                  priority
+                />
+              </Link>
+
+              {/* Nav - Center */}
+              <nav className="flex items-center gap-6 relative z-10">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className="group flex items-center gap-1 text-white hover:text-white/80 transition-colors"
+                  >
+                    <span className="text-[15px] font-normal tracking-[-0.01em]">
+                      {link.label}
+                    </span>
+                    {link.hasDropdown && (
+                      <ChevronDown
+                        size={14}
+                        className="opacity-60 group-hover:opacity-100 transition-opacity"
+                      />
+                    )}
+                  </Link>
+                ))}
+              </nav>
+
+              {/* Right Actions */}
+              <div className="flex items-center gap-3 relative z-10">
+                <button className="p-1.5 text-white hover:text-white/80 transition-colors">
+                  <Search size={18} />
+                </button>
+
+                <Link
+                  href={isAuthenticated ? "/account" : "/login"}
+                  className="p-1.5 text-white hover:text-white/80 transition-colors"
                 >
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </motion.header>
+                  <User size={18} />
+                </Link>
+
+                <button
+                  onClick={() => setCartOpen(true)}
+                  className={`p-1.5 transition-colors relative ${
+                    hasItems ? "text-yum-pink" : "text-white hover:text-white/80"
+                  }`}
+                >
+                  <ShoppingBag size={18} />
+                  {hasItems && (
+                    <span
+                      className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1"
+                      style={{
+                        background: "linear-gradient(135deg, #E1258F 0%, #DC0387 100%)",
+                      }}
+                    >
+                      {itemCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.header>
         )}
       </AnimatePresence>
 
@@ -442,22 +329,26 @@ export default function Navbar() {
                   <Search size={24} />
                   <span className="text-xs uppercase tracking-wider">Search</span>
                 </button>
-                <button className="flex flex-col items-center gap-2 text-white/60 hover:text-white transition-colors">
+                <Link
+                  href={isAuthenticated ? "/account" : "/login"}
+                  onClick={() => setIsOpen(false)}
+                  className="flex flex-col items-center gap-2 text-white/60 hover:text-white transition-colors"
+                >
                   <User size={24} />
                   <span className="text-xs uppercase tracking-wider">Account</span>
-                </button>
-                <button 
+                </Link>
+                <button
                   onClick={() => { setIsOpen(false); setCartOpen(true); }}
                   className="flex flex-col items-center gap-2 text-white/60 hover:text-white transition-colors relative"
                 >
                   <ShoppingBag size={24} />
                   <span className="text-xs uppercase tracking-wider">Cart</span>
                   {hasItems && (
-                    <span 
+                    <span
                       className="absolute top-0 right-2 min-w-[16px] h-4 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1"
                       style={{ background: "#E1258F" }}
                     >
-                      {cartCount}
+                      {itemCount}
                     </span>
                   )}
                 </button>
@@ -471,9 +362,9 @@ export default function Navbar() {
       <CartDrawer
         isOpen={cartOpen}
         onClose={() => setCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={updateQuantity}
-        onRemoveItem={removeItem}
+        items={cartDrawerItems}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
       />
     </>
   );

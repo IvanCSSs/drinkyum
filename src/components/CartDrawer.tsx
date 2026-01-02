@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export interface CartItem {
-  id: number;
+  id: string | number;
   name: string;
   price: string;
   priceNum: number;
@@ -18,16 +18,16 @@ interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   items: CartItem[];
-  onUpdateQuantity: (id: number, quantity: number) => void;
-  onRemoveItem: (id: number) => void;
+  onUpdateQuantity: (id: string | number, quantity: number) => void;
+  onRemoveItem: (id: string | number) => void;
 }
 
-export default function CartDrawer({ 
-  isOpen, 
-  onClose, 
-  items, 
-  onUpdateQuantity, 
-  onRemoveItem 
+export default function CartDrawer({
+  isOpen,
+  onClose,
+  items,
+  onUpdateQuantity,
+  onRemoveItem
 }: CartDrawerProps) {
   const subtotal = items.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -59,12 +59,12 @@ export default function CartDrawer({
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
           >
             {/* Header */}
-            <div 
+            <div
               className="flex items-center justify-between px-6 py-5 border-b border-white/10"
             >
               <div className="flex items-center gap-3">
                 <ShoppingBag size={22} className="text-yum-pink" />
-                <h2 
+                <h2
                   className="text-xl font-bold"
                   style={{
                     background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
@@ -76,7 +76,7 @@ export default function CartDrawer({
                   Your Cart
                 </h2>
                 {itemCount > 0 && (
-                  <span 
+                  <span
                     className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
                     style={{ background: "rgba(225, 37, 143, 0.4)" }}
                   >
@@ -95,12 +95,12 @@ export default function CartDrawer({
             {/* Cart Items */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {items.length === 0 ? (
-                <motion.div 
+                <motion.div
                   className="flex flex-col items-center justify-center h-full text-center"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <div 
+                  <div
                     className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
                     style={{ background: "rgba(255, 255, 255, 0.05)" }}
                   >
@@ -148,7 +148,7 @@ export default function CartDrawer({
 
                           {/* Quantity Controls */}
                           <div className="flex items-center justify-between mt-2">
-                            <div 
+                            <div
                               className="flex items-center gap-1 rounded-lg overflow-hidden"
                               style={{ border: "1px solid rgba(255, 255, 255, 0.15)" }}
                             >
@@ -186,7 +186,7 @@ export default function CartDrawer({
 
             {/* Footer */}
             {items.length > 0 && (
-              <motion.div 
+              <motion.div
                 className="px-6 py-5 border-t border-white/10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -194,7 +194,7 @@ export default function CartDrawer({
                 {/* Subtotal */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-white/60">Subtotal</span>
-                  <span 
+                  <span
                     className="text-xl font-bold"
                     style={{
                       background: "linear-gradient(180deg, #FFFFFF 0%, #CCCCCC 100%)",
@@ -248,6 +248,3 @@ export default function CartDrawer({
     </AnimatePresence>
   );
 }
-
-
-
