@@ -90,12 +90,12 @@ export default function ProductPage({
   }, [handle]);
 
   // Get cart quantity for current product
-  const variant = product?.variants[0];
+  const variant = product?.variants?.[0];
   const cartItem = items.find(i => i.variant_id === variant?.id);
   const cartQuantity = cartItem?.quantity || 0;
 
   // Calculate prices
-  const basePrice = variant?.prices[0]?.amount || 0;
+  const basePrice = variant?.prices?.[0]?.amount || 0;
   const subscribeDiscount = 0.20;
   const subscribePrice = basePrice * (1 - subscribeDiscount);
 
