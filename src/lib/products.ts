@@ -208,9 +208,11 @@ export function formatPrice(amount: number, currencyCode: string = 'usd'): strin
  * Get the cheapest variant price for a product
  */
 export function getProductPrice(product: Product, currencyCode: string = 'usd'): string | null {
+  if (!product.variants || product.variants.length === 0) return null
+
   const prices = product.variants
-    .flatMap(v => v.prices)
-    .filter(p => p.currency_code === currencyCode)
+    .flatMap(v => v.prices || [])
+    .filter(p => p && p.currency_code === currencyCode)
     .map(p => p.amount)
 
   if (prices.length === 0) return null

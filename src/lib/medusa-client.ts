@@ -7,6 +7,7 @@
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
 const TENANT_SLUG = process.env.NEXT_PUBLIC_TENANT_SLUG || 'drinkyum'
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ''
 
 export interface ApiResponse<T> {
   data?: T
@@ -61,12 +62,16 @@ class MedusaClient {
   }
 
   /**
-   * Build request headers with tenant ID and optional auth token
+   * Build request headers with tenant ID, publishable key, and optional auth token
    */
   private getHeaders(): HeadersInit {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'X-Tenant-ID': TENANT_SLUG,
+    }
+    // Add publishable API key for store routes (required by Medusa)
+    if (PUBLISHABLE_KEY) {
+      headers['x-publishable-api-key'] = PUBLISHABLE_KEY
     }
     if (this.authToken) {
       headers['Authorization'] = `Bearer ${this.authToken}`
