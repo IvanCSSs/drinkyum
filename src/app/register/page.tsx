@@ -88,7 +88,8 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
       });
-      router.push("/account");
+      // Redirect to verify-email page - user must verify before logging in
+      router.push("/verify-email");
     } catch {
       // Error is handled by AuthContext
     } finally {

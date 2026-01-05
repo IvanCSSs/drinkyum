@@ -66,7 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       console.error("Login failed:", err);
-      setError("Invalid email or password");
+      // Show actual error message from API
+      const message = err instanceof Error ? err.message : "Invalid email or password";
+      setError(message);
       throw err;
     } finally {
       setIsLoading(false);
@@ -77,20 +79,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setError(null);
       setIsLoading(true);
-      const response = await apiRegister(data);
-      if (response.customer) {
-        setCustomer(response.customer);
-      } else {
-        await refreshCustomer();
-      }
+      await apiRegister(data);
+      // Don't set customer - they need to verify email first
+      // Frontend will redirect to /verify-email page
     } catch (err) {
       console.error("Registration failed:", err);
-      setError("Registration failed. Please try again.");
+      // Show actual error message from API
+      const message = err instanceof Error ? err.message : "Registration failed. Please try again.";
+      setError(message);
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [refreshCustomer]);
+  }, []);
 
   const logout = useCallback(async () => {
     try {
