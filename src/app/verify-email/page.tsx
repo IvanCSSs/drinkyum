@@ -14,6 +14,7 @@ import MobileLogo from "@/components/MobileLogo";
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const emailFromUrl = searchParams.get("email");
   const { isAuthenticated, customer } = useAuth();
 
   const [status, setStatus] = useState<"loading" | "success" | "error" | "no-token">(
@@ -22,7 +23,7 @@ function VerifyEmailContent() {
   const [resendStatus, setResendStatus] = useState<
     "idle" | "sending" | "sent" | "error" | "rate-limited"
   >("idle");
-  const [resendEmail, setResendEmail] = useState("");
+  const [resendEmail, setResendEmail] = useState(emailFromUrl || "");
   const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
 
   useEffect(() => {

@@ -46,8 +46,15 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push(returnUrl);
-    } catch {
-      // Error is handled by AuthContext
+    } catch (err: unknown) {
+      // Check if it's an email verification error and redirect
+      const error = err as Error;
+      if (error.message?.toLowerCase().includes("verify your email")) {
+        // Redirect to verify-email page with email pre-filled via query param
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
+      // Other errors are handled by AuthContext
     } finally {
       setIsSubmitting(false);
     }
