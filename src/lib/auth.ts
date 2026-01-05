@@ -128,9 +128,10 @@ export async function verifyEmail(token: string): Promise<void> {
 
 /**
  * Request new verification email
+ * @param email - Email address to send verification to
  */
-export async function resendVerificationEmail(): Promise<void> {
-  await medusa.post('/store/auth/verify-email/resend')
+export async function resendVerificationEmail(email: string): Promise<void> {
+  await medusa.post('/store/auth/resend-verification', { email })
 }
 
 /**

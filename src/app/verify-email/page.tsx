@@ -14,14 +14,16 @@ import MobileLogo from "@/components/MobileLogo";
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, customer } = useAuth();
 
   const [status, setStatus] = useState<"loading" | "success" | "error" | "no-token">(
     token ? "loading" : "no-token"
   );
   const [resendStatus, setResendStatus] = useState<
-    "idle" | "sending" | "sent" | "error"
+    "idle" | "sending" | "sent" | "error" | "rate-limited"
   >("idle");
+  const [resendEmail, setResendEmail] = useState("");
+  const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
 
   useEffect(() => {
     if (!token) {
@@ -42,12 +44,26 @@ function VerifyEmailContent() {
   }, [token]);
 
   const handleResend = async () => {
+    const emailToUse = isAuthenticated && customer?.email ? customer.email : resendEmail;
+    if (!emailToUse) return;
+
     setResendStatus("sending");
     try {
-      await resendVerificationEmail();
+      await resendVerificationEmail(emailToUse);
       setResendStatus("sent");
-    } catch {
-      setResendStatus("error");
+    } catch (err: unknown) {
+      // Check for rate limit error
+      const error = err as Error & { retry_after?: number };
+      if (error.message?.includes("wait") || error.message?.includes("Please wait")) {
+        setResendStatus("rate-limited");
+        // Extract seconds from error message if available
+        const match = error.message.match(/(\d+)\s*second/);
+        if (match) {
+          setRateLimitSeconds(parseInt(match[1], 10));
+        }
+      } else {
+        setResendStatus("error");
+      }
     }
   };
 
@@ -117,43 +133,65 @@ function VerifyEmailContent() {
             This verification link has expired or is invalid. Please request a
             new verification email.
           </p>
-          {isAuthenticated && (
-            <button
-              onClick={handleResend}
-              disabled={resendStatus === "sending" || resendStatus === "sent"}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
-              style={{
-                background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
-              }}
-            >
-              {resendStatus === "sending" ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Sending...
-                </>
-              ) : resendStatus === "sent" ? (
-                <>
-                  <CheckCircle size={18} />
-                  Email Sent!
-                </>
-              ) : (
-                <>
-                  <Mail size={18} />
-                  Resend Verification Email
-                </>
-              )}
-            </button>
-          )}
+
+          {/* Email input for unauthenticated users */}
           {!isAuthenticated && (
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all hover:scale-[1.02]"
-              style={{
-                background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
-              }}
-            >
-              Sign In to Resend
-            </Link>
+            <div className="mb-4">
+              <input
+                type="email"
+                value={resendEmail}
+                onChange={(e) => setResendEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors mb-3"
+              />
+            </div>
+          )}
+
+          <button
+            onClick={handleResend}
+            disabled={
+              resendStatus === "sending" ||
+              resendStatus === "sent" ||
+              resendStatus === "rate-limited" ||
+              (!isAuthenticated && !resendEmail)
+            }
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
+            style={{
+              background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
+            }}
+          >
+            {resendStatus === "sending" ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Sending...
+              </>
+            ) : resendStatus === "sent" ? (
+              <>
+                <CheckCircle size={18} />
+                Email Sent!
+              </>
+            ) : resendStatus === "rate-limited" ? (
+              <>
+                <XCircle size={18} />
+                Wait {rateLimitSeconds}s
+              </>
+            ) : (
+              <>
+                <Mail size={18} />
+                Resend Verification Email
+              </>
+            )}
+          </button>
+
+          {resendStatus === "error" && (
+            <p className="text-red-400 text-sm mt-3">
+              Failed to send email. Please try again.
+            </p>
+          )}
+          {resendStatus === "sent" && (
+            <p className="text-green-400 text-sm mt-3">
+              If an account exists with this email, you&apos;ll receive a verification link shortly.
+            </p>
           )}
         </motion.div>
       )}
@@ -174,42 +212,74 @@ function VerifyEmailContent() {
             Please check your email inbox for a verification link. Click the
             link to verify your email address.
           </p>
-          {isAuthenticated && (
-            <>
-              <p className="text-white/40 text-sm mb-4">
-                Didn&apos;t receive the email?
-              </p>
-              <button
-                onClick={handleResend}
-                disabled={resendStatus === "sending" || resendStatus === "sent"}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
-                style={{
-                  background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
-                }}
-              >
-                {resendStatus === "sending" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Sending...
-                  </>
-                ) : resendStatus === "sent" ? (
-                  <>
-                    <CheckCircle size={18} />
-                    Email Sent!
-                  </>
-                ) : (
-                  <>
-                    <Mail size={18} />
-                    Resend Verification Email
-                  </>
-                )}
-              </button>
-              {resendStatus === "error" && (
-                <p className="text-red-400 text-sm mt-3">
-                  Failed to send email. Please try again.
-                </p>
-              )}
-            </>
+
+          <p className="text-white/40 text-sm mb-4">
+            Didn&apos;t receive the email?
+          </p>
+
+          {/* Email input for unauthenticated users */}
+          {!isAuthenticated && (
+            <div className="mb-4">
+              <input
+                type="email"
+                value={resendEmail}
+                onChange={(e) => setResendEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors mb-3"
+              />
+            </div>
+          )}
+
+          <button
+            onClick={handleResend}
+            disabled={
+              resendStatus === "sending" ||
+              resendStatus === "sent" ||
+              resendStatus === "rate-limited" ||
+              (!isAuthenticated && !resendEmail)
+            }
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
+            style={{
+              background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
+            }}
+          >
+            {resendStatus === "sending" ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Sending...
+              </>
+            ) : resendStatus === "sent" ? (
+              <>
+                <CheckCircle size={18} />
+                Email Sent!
+              </>
+            ) : resendStatus === "rate-limited" ? (
+              <>
+                <XCircle size={18} />
+                Wait {rateLimitSeconds}s
+              </>
+            ) : (
+              <>
+                <Mail size={18} />
+                Resend Verification Email
+              </>
+            )}
+          </button>
+
+          {resendStatus === "error" && (
+            <p className="text-red-400 text-sm mt-3">
+              Failed to send email. Please try again.
+            </p>
+          )}
+          {resendStatus === "rate-limited" && (
+            <p className="text-yellow-400 text-sm mt-3">
+              Please wait before requesting another email.
+            </p>
+          )}
+          {resendStatus === "sent" && (
+            <p className="text-green-400 text-sm mt-3">
+              If an account exists with this email, you&apos;ll receive a verification link shortly.
+            </p>
           )}
         </motion.div>
       )}
