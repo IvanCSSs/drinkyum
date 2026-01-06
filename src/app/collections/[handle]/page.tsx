@@ -138,6 +138,8 @@ export default function CollectionPage({
   const fallback = fallbackCollections[handle];
   const accentColor = fallback?.accentColor || "#E1258F";
   const longDescription = fallback?.description || collection?.metadata?.description as string || "";
+  // Get featured image from collection metadata
+  const featuredImage = collection?.metadata?.featured_image as string | undefined;
 
   // Loading state
   if (isLoading) {
@@ -236,6 +238,31 @@ export default function CollectionPage({
               {longDescription}
             </p>
           </motion.div>
+
+          {/* Featured Hero Image */}
+          {featuredImage && (
+            <motion.div
+              className="relative w-full h-48 sm:h-64 lg:h-80 rounded-2xl overflow-hidden mb-10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <Image
+                src={featuredImage}
+                alt={`${collection?.title} featured image`}
+                fill
+                className="object-cover"
+                priority
+              />
+              {/* Gradient overlay */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(180deg, transparent 50%, ${accentColor}20 100%)`,
+                }}
+              />
+            </motion.div>
+          )}
 
           {/* Products count */}
           <motion.div

@@ -96,6 +96,8 @@ function CollectionCard({ collection, index }: CollectionCardProps) {
   };
 
   const style = collectionStyles[collection.handle] || { accentColor: "#E1258F", image: "/images/product-1.png" };
+  // Use metadata.featured_image if available, otherwise fall back to style.image
+  const featuredImage = (collection.metadata?.featured_image as string) || style.image;
   const description = (collection.metadata?.description as string) || "Explore our curated selection";
   const productCount = (collection.metadata?.product_count as number) || 0;
 
@@ -131,7 +133,7 @@ function CollectionCard({ collection, index }: CollectionCardProps) {
           {/* Image Container */}
           <div className="relative h-48 lg:h-56 overflow-hidden">
             <Image
-              src={style.image}
+              src={featuredImage}
               alt={collection.title}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"
