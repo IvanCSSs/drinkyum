@@ -166,7 +166,8 @@ export async function getCollections(params?: {
   count: number
 }> {
   const query = buildQuery(params)
-  return medusa.get(`/store/collections${query}`)
+  const separator = query ? '&' : '?'
+  return medusa.get(`/store/collections${query}${separator}fields=*metadata`)
 }
 
 /**
@@ -174,7 +175,7 @@ export async function getCollections(params?: {
  */
 export async function getCollectionByHandle(handle: string): Promise<Collection | null> {
   const response = await medusa.get<{ collections: Collection[] }>(
-    `/store/collections?handle=${encodeURIComponent(handle)}`
+    `/store/collections?handle=${encodeURIComponent(handle)}&fields=*metadata`
   )
   return response.collections?.[0] || null
 }
