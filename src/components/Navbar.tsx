@@ -21,13 +21,12 @@ const navLinks = [
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
   const [buttonsVisible, setButtonsVisible] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pathname = usePathname();
 
   // Use contexts for cart and auth
-  const { items, itemCount, updateQuantity, removeItem } = useCart();
+  const { items, itemCount, updateQuantity, removeItem, isDrawerOpen, openDrawer, closeDrawer } = useCart();
   const { isAuthenticated } = useAuth();
 
   const hasItems = itemCount > 0;
@@ -133,7 +132,7 @@ export default function Navbar() {
             transition={{ duration: 0.15 }}
           >
             <button
-              onClick={() => setCartOpen(true)}
+              onClick={openDrawer}
               className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${
                 hasItems
                   ? "text-yum-pink hover:bg-yum-pink/10"
@@ -246,7 +245,7 @@ export default function Navbar() {
                 </Link>
 
                 <button
-                  onClick={() => setCartOpen(true)}
+                  onClick={openDrawer}
                   className={`p-1.5 transition-colors relative ${
                     hasItems ? "text-yum-pink" : "text-white hover:text-white/80"
                   }`}
@@ -339,7 +338,7 @@ export default function Navbar() {
                   <span className="text-xs uppercase tracking-wider">Account</span>
                 </Link>
                 <button
-                  onClick={() => { setIsOpen(false); setCartOpen(true); }}
+                  onClick={() => { setIsOpen(false); openDrawer(); }}
                   className="flex flex-col items-center gap-2 text-white/60 hover:text-white transition-colors relative"
                 >
                   <ShoppingBag size={24} />
@@ -361,8 +360,8 @@ export default function Navbar() {
 
       {/* Cart Drawer */}
       <CartDrawer
-        isOpen={cartOpen}
-        onClose={() => setCartOpen(false)}
+        isOpen={isDrawerOpen}
+        onClose={closeDrawer}
         items={cartDrawerItems}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}

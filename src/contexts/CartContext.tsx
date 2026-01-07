@@ -20,6 +20,9 @@ interface CartContextType {
   subtotal: number;
   isLoading: boolean;
   error: string | null;
+  isDrawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
   addToCart: (variantId: string, quantity?: number, metadata?: Record<string, unknown>) => Promise<void>;
   addSubscription: (variantId: string, quantity: number, subscriptionOptionId: string) => Promise<void>;
   updateQuantity: (lineItemId: string, quantity: number) => Promise<void>;
@@ -34,6 +37,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const openDrawer = useCallback(() => setIsDrawerOpen(true), []);
+  const closeDrawer = useCallback(() => setIsDrawerOpen(false), []);
 
   // Load cart on mount
   const refreshCart = useCallback(async () => {
@@ -64,6 +71,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const updatedCart = await apiAddToCart(variantId, quantity, metadata);
       setCart(updatedCart);
 
+      // Open cart drawer after adding item
+      setIsDrawerOpen(true);
+
       // Track analytics
       const addedItem = updatedCart.items.find(i => i.variant_id === variantId);
       if (addedItem) {
@@ -91,6 +101,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setError(null);
       const updatedCart = await apiAddSubscriptionToCart(variantId, quantity, subscriptionOptionId);
       setCart(updatedCart);
+
+      // Open cart drawer after adding item
+      setIsDrawerOpen(true);
 
       // Track analytics
       const addedItem = updatedCart.items.find(i => i.variant_id === variantId);
@@ -159,6 +172,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         subtotal,
         isLoading,
         error,
+        isDrawerOpen,
+        openDrawer,
+        closeDrawer,
         addToCart,
         addSubscription,
         updateQuantity,
