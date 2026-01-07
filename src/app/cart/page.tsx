@@ -60,7 +60,7 @@ export default function CartPage() {
     }
   };
 
-  // Convert subtotal from cents to dollars
+  // Subtotal from cart - Medusa returns prices in cents (100 = $1.00)
   const subtotalDollars = subtotal / 100;
   const discount = promoApplied ? subtotalDollars * 0.2 : 0;
   const shippingCost = subtotalDollars >= FREE_SHIPPING_THRESHOLD ? 0 : (selectedShipping === "express" ? 12.99 : STANDARD_SHIPPING);

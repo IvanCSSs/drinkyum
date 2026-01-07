@@ -29,6 +29,7 @@ import {
   formatPrice,
   type Product,
   type SubscriptionOption,
+  type ProductSection,
 } from "@/lib/products";
 
 // Default benefits for all products
@@ -55,7 +56,7 @@ export default function ProductPage({
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isSubscribe, setIsSubscribe] = useState(false);
-  const [selectedSubscriptionOption, setSelectedSubscriptionOption] = useState<string | null>(null);
+  const [selectedSubscriptionKey, setSelectedSubscriptionKey] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>("benefits");
   const [justAdded, setJustAdded] = useState(false);
 
@@ -73,7 +74,7 @@ export default function ProductPage({
           const options = await getSubscriptionOptions(prod.id);
           setSubscriptionOptions(options);
           if (options.length > 0) {
-            setSelectedSubscriptionOption(options[0].id);
+            setSelectedSubscriptionKey(`${options[0].interval}-${options[0].interval_count}`);
           }
         } else {
           setError("Product not found");
@@ -96,15 +97,20 @@ export default function ProductPage({
 
   // Calculate prices
   const basePrice = variant?.prices?.[0]?.amount || 0;
-  const subscribeDiscount = 0.20;
-  const subscribePrice = basePrice * (1 - subscribeDiscount);
+
+  // Find selected subscription option and calculate dynamic discount
+  const selectedOption = subscriptionOptions.find(
+    opt => `${opt.interval}-${opt.interval_count}` === selectedSubscriptionKey
+  );
+  const subscribeDiscountPercent = selectedOption?.discount_percent ?? 0;
+  const subscribePrice = basePrice * (1 - subscribeDiscountPercent / 100);
 
   const handleAddToCart = async () => {
     if (!variant) return;
 
     try {
-      if (isSubscribe && selectedSubscriptionOption) {
-        await addSubscription(variant.id, quantity, selectedSubscriptionOption);
+      if (isSubscribe && selectedSubscriptionKey) {
+        await addSubscription(variant.id, quantity, selectedSubscriptionKey);
       } else {
         for (let i = 0; i < quantity; i++) {
           await addToCart(variant.id, 1);
@@ -177,11 +183,65 @@ export default function ProductPage({
     ? product.images.map(img => img.url)
     : [product.thumbnail || "/images/product-1.png"];
 
-  // Product metadata (specs, ingredients, etc.)
+  // Product metadata and dynamic sections
   const metadata = product.metadata || {};
-  const specs = (metadata.specs as { label: string; value: string }[]) || [];
-  const ingredients = (metadata.ingredients as string[]) || [];
-  const usage = (metadata.usage as string) || "";
+
+  // Build sections from new format or legacy fields
+  const buildSections = (): ProductSection[] => {
+    // Check for new sections format first
+    if (metadata.sections && Array.isArray(metadata.sections)) {
+      return metadata.sections as ProductSection[];
+    }
+
+    // Fall back to legacy format for backwards compatibility
+    const legacySections: ProductSection[] = [];
+    let order = 1;
+
+    // Always include description as first section
+    if (product.description) {
+      legacySections.push({
+        id: "description",
+        title: "Full Description",
+        type: "text",
+        content: product.description,
+        order: order++,
+      });
+    }
+
+    if (metadata.specs && Array.isArray(metadata.specs)) {
+      legacySections.push({
+        id: "specs",
+        title: "Specifications",
+        type: "table",
+        content: metadata.specs as { label: string; value: string }[],
+        order: order++,
+      });
+    }
+
+    if (metadata.ingredients && Array.isArray(metadata.ingredients)) {
+      legacySections.push({
+        id: "ingredients",
+        title: "Ingredients",
+        type: "list",
+        content: metadata.ingredients as string[],
+        order: order++,
+      });
+    }
+
+    if (metadata.usage) {
+      legacySections.push({
+        id: "usage",
+        title: "How to Use",
+        type: "text",
+        content: metadata.usage as string,
+        order: order++,
+      });
+    }
+
+    return legacySections;
+  };
+
+  const sections = buildSections().sort((a, b) => a.order - b.order);
 
   return (
     <main className="min-h-screen bg-yum-dark relative">
@@ -300,13 +360,13 @@ export default function ProductPage({
                 <span className="text-3xl font-bold text-white">
                   {isSubscribe ? formatPrice(subscribePrice) : getProductPrice(product) || formatPrice(basePrice)}
                 </span>
-                {isSubscribe && (
+                {isSubscribe && subscribeDiscountPercent > 0 && (
                   <>
                     <span className="text-lg text-white/40 line-through">
                       {formatPrice(basePrice)}
                     </span>
                     <span className="px-2 py-1 rounded-full text-xs font-bold text-white bg-yum-pink">
-                      20% OFF
+                      {subscribeDiscountPercent}% OFF
                     </span>
                   </>
                 )}
@@ -360,7 +420,7 @@ export default function ProductPage({
                         }`}>
                           {isSubscribe && <div className="w-2.5 h-2.5 rounded-full bg-yum-pink" />}
                         </div>
-                        <span className="text-white font-medium">Subscribe & Save 20%</span>
+                        <span className="text-white font-medium">Subscribe & Save{subscribeDiscountPercent > 0 ? ` ${subscribeDiscountPercent}%` : ''}</span>
                       </div>
                       <span className="text-white font-bold">{formatPrice(subscribePrice)}</span>
                     </div>
@@ -372,19 +432,22 @@ export default function ProductPage({
                       >
                         <p className="text-white/50 text-sm mb-3">Delivery frequency:</p>
                         <div className="flex flex-wrap gap-2">
-                          {subscriptionOptions.map((option) => (
-                            <button
-                              key={option.id}
-                              onClick={() => setSelectedSubscriptionOption(option.id)}
-                              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                                selectedSubscriptionOption === option.id
-                                  ? "bg-yum-pink text-white"
-                                  : "bg-white/10 text-white/60 hover:bg-white/20"
-                              }`}
-                            >
-                              {option.label || option.frequency}
-                            </button>
-                          ))}
+                          {subscriptionOptions.map((option) => {
+                            const optionKey = `${option.interval}-${option.interval_count}`;
+                            return (
+                              <button
+                                key={optionKey}
+                                onClick={() => setSelectedSubscriptionKey(optionKey)}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                  selectedSubscriptionKey === optionKey
+                                    ? "bg-yum-pink text-white"
+                                    : "bg-white/10 text-white/60 hover:bg-white/20"
+                                }`}
+                              >
+                                {option.label} ({option.discount_percent}% off)
+                              </button>
+                            );
+                          })}
                         </div>
                         <div className="flex items-center gap-2 mt-3 text-white/50 text-xs">
                           <Check size={14} className="text-green-400" />
@@ -490,65 +553,78 @@ export default function ProductPage({
             </motion.div>
           </div>
 
-          {/* Product Details Accordion */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-16 max-w-3xl"
-          >
-            {[
-              { id: "description", title: "Full Description", content: product.description },
-              { id: "specs", title: "Specifications", content: null, specs },
-              { id: "ingredients", title: "Ingredients", content: ingredients.join(", ") || "Not specified" },
-              { id: "usage", title: "How to Use", content: usage || "Shake well before use. Start with a small amount and adjust as needed." },
-            ].map((section) => (
-              <div key={section.id} className="border-b border-white/10">
-                <button
-                  onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
-                  className="w-full py-5 flex items-center justify-between text-left"
-                >
-                  <span className="text-white font-medium">{section.title}</span>
-                  <ChevronDown
-                    size={20}
-                    className={`text-white/60 transition-transform ${expandedSection === section.id ? "rotate-180" : ""}`}
-                  />
-                </button>
-                <AnimatePresence>
-                  {expandedSection === section.id && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pb-5 text-white/60 leading-relaxed">
-                        {section.specs && section.specs.length > 0 ? (
-                          <div className="space-y-2">
-                            {section.specs.map((spec, idx) => (
-                              <div
-                                key={idx}
-                                className="flex justify-between items-center py-2.5 px-3 rounded-lg"
-                                style={{
-                                  background: idx % 2 === 0 ? "rgba(255,255,255,0.03)" : "transparent"
-                                }}
-                              >
-                                <span className="text-white/50 text-sm">{spec.label}</span>
-                                <span className="text-white font-medium text-sm text-right">{spec.value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          section.content
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </motion.div>
+          {/* Product Details Accordion - Dynamic Sections */}
+          {sections.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-16 max-w-3xl"
+            >
+              {sections.map((section) => (
+                <div key={section.id} className="border-b border-white/10">
+                  <button
+                    onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
+                    className="w-full py-5 flex items-center justify-between text-left"
+                  >
+                    <span className="text-white font-medium">{section.title}</span>
+                    <ChevronDown
+                      size={20}
+                      className={`text-white/60 transition-transform ${expandedSection === section.id ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  <AnimatePresence>
+                    {expandedSection === section.id && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pb-5 text-white/60 leading-relaxed">
+                          {/* Text content */}
+                          {section.type === "text" && (
+                            <p>{section.content as string}</p>
+                          )}
+
+                          {/* List content */}
+                          {section.type === "list" && (
+                            <ul className="space-y-1">
+                              {(section.content as string[]).map((item, idx) => (
+                                <li key={idx} className="flex items-center gap-2">
+                                  <span className="text-yum-pink">•</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+
+                          {/* Table content */}
+                          {section.type === "table" && (
+                            <div className="space-y-2">
+                              {(section.content as { label: string; value: string }[]).map((row, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex justify-between items-center py-2.5 px-3 rounded-lg"
+                                  style={{
+                                    background: idx % 2 === 0 ? "rgba(255,255,255,0.03)" : "transparent"
+                                  }}
+                                >
+                                  <span className="text-white/50 text-sm">{row.label}</span>
+                                  <span className="text-white font-medium text-sm text-right">{row.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </section>
 

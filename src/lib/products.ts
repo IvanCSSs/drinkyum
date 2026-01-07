@@ -65,11 +65,20 @@ export interface Collection {
 }
 
 export interface SubscriptionOption {
-  id: string
-  frequency: 'weekly' | 'biweekly' | 'monthly' | 'bimonthly' | 'quarterly' | 'yearly'
-  discount_percent: number
+  interval: 'week' | 'month' | 'year'
   interval_count: number
-  label?: string
+  label: string
+  discount_percent: number
+}
+
+export type ProductSectionType = 'text' | 'list' | 'table'
+
+export interface ProductSection {
+  id: string
+  title: string
+  type: ProductSectionType
+  content: string | string[] | { label: string; value: string }[]
+  order: number
 }
 
 export interface ProductListParams {
@@ -127,7 +136,7 @@ export async function getProduct(productId: string): Promise<{ product: Product 
  */
 export async function getProductByHandle(handle: string): Promise<Product | null> {
   const response = await medusa.get<{ products: Product[] }>(
-    `/store/products?handle=${encodeURIComponent(handle)}`
+    `/store/products?handle=${encodeURIComponent(handle)}&fields=*variants.prices,*metadata`
   )
   return response.products?.[0] || null
 }
@@ -195,13 +204,13 @@ export async function getProductsByCollection(
 
 /**
  * Format price for display
+ * Medusa stores prices in cents (smallest currency unit), so 100 = $1.00
  */
 export function formatPrice(amount: number, currencyCode: string = 'usd'): string {
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currencyCode.toUpperCase(),
   })
-  // Medusa stores prices in cents
   return formatter.format(amount / 100)
 }
 

@@ -55,6 +55,7 @@ function VerifyEmailContent() {
     } catch (err: unknown) {
       // Check for rate limit error
       const error = err as Error & { retry_after?: number };
+      console.error("[verify-email] Resend failed:", error.message);
       if (error.message?.includes("wait") || error.message?.includes("Please wait")) {
         setResendStatus("rate-limited");
         // Extract seconds from error message if available

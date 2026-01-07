@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LogIn, Eye, EyeOff } from "lucide-react";
@@ -10,7 +10,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileLogo from "@/components/MobileLogo";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isAuthenticated, isLoading: authLoading, error: authError, clearError } = useAuth();
@@ -224,5 +224,19 @@ export default function LoginPage() {
 
       <Footer />
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-yum-dark flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-yum-pink/30 border-t-yum-pink rounded-full animate-spin" />
+        </main>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

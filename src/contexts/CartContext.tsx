@@ -68,7 +68,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const addedItem = updatedCart.items.find(i => i.variant_id === variantId);
       if (addedItem) {
         trackAddToCart({
-          productId: addedItem.variant.product.id,
+          productId: addedItem.variant?.product?.id || variantId,
           variantId: addedItem.variant_id,
           title: addedItem.title,
           quantity,
@@ -96,7 +96,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const addedItem = updatedCart.items.find(i => i.variant_id === variantId);
       if (addedItem) {
         trackAddToCart({
-          productId: addedItem.variant.product.id,
+          productId: addedItem.variant?.product?.id || variantId,
           variantId: addedItem.variant_id,
           title: addedItem.title,
           quantity,
