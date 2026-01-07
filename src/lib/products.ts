@@ -204,14 +204,14 @@ export async function getProductsByCollection(
 
 /**
  * Format price for display
- * Medusa stores prices in cents (smallest currency unit), so 100 = $1.00
+ * Prices are stored as dollars (1 = $1.00)
  */
 export function formatPrice(amount: number, currencyCode: string = 'usd'): string {
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currencyCode.toUpperCase(),
   })
-  return formatter.format(amount / 100)
+  return formatter.format(amount)
 }
 
 /**

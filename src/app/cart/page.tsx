@@ -60,8 +60,15 @@ export default function CartPage() {
     }
   };
 
-  // Subtotal from cart - Medusa returns prices in cents (100 = $1.00)
-  const subtotalDollars = subtotal / 100;
+  // Debug: log raw values from cart API
+  console.log('[CART DEBUG] Raw cart data:', { items, subtotal });
+  if (items.length > 0) {
+    console.log('[CART DEBUG] First item unit_price:', items[0].unit_price);
+    console.log('[CART DEBUG] First item full:', JSON.stringify(items[0], null, 2));
+  }
+
+  // Subtotal from cart - prices come as dollars (1 = $1.00)
+  const subtotalDollars = subtotal;
   const discount = promoApplied ? subtotalDollars * 0.2 : 0;
   const shippingCost = subtotalDollars >= FREE_SHIPPING_THRESHOLD ? 0 : (selectedShipping === "express" ? 12.99 : STANDARD_SHIPPING);
   const total = subtotalDollars - discount + shippingCost;
@@ -210,7 +217,7 @@ export default function CartPage() {
                         </p>
                       )}
                       <p className="text-yum-pink font-bold text-base sm:text-lg mb-4">
-                        ${(item.unit_price / 100).toFixed(2)}
+                        ${item.unit_price.toFixed(2)}
                       </p>
 
                       {/* Quantity Controls */}
