@@ -18,6 +18,7 @@ import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { useCart } from "@/contexts/CartContext";
+import { getShippingRates, type ShippingRate } from "@/lib/checkout";
 
 interface CartItem {
   id: string | number;
@@ -156,6 +157,11 @@ export default function CheckoutPage() {
   const [saveInfo, setSaveInfo] = useState(true);
   const [selectedShipping, setSelectedShipping] = useState<"standard" | "express">("standard");
   const [sameAsBilling, setSameAsBilling] = useState(true);
+
+  // Dynamic shipping rates from EasyPost
+  const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
+  const [selectedRate, setSelectedRate] = useState<ShippingRate | null>(null);
+  const [loadingRates, setLoadingRates] = useState(false);
   
   // Billing address (only used if different from shipping)
   const [billingFirstName, setBillingFirstName] = useState("");
@@ -541,9 +547,52 @@ export default function CheckoutPage() {
     }
   }, [cartLoading, cartItems]);
 
+  // Fetch shipping rates when address is complete
+  const fetchShippingRates = useCallback(async () => {
+    if (!address || !city || !state || !zipCode) return;
+
+    setLoadingRates(true);
+    try {
+      const response = await getShippingRates({
+        ship_to: {
+          street1: address,
+          street2: apartment || undefined,
+          city,
+          state,
+          zip: zipCode,
+          country: "US"
+        },
+        order_subtotal: cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0)
+      });
+
+      setShippingRates(response.rates || []);
+
+      // Auto-select cheapest rate if none selected
+      if (response.rates?.length > 0 && !selectedRate) {
+        const cheapest = response.rates.reduce((min, rate) => rate.rate < min.rate ? rate : min, response.rates[0]);
+        setSelectedRate(cheapest);
+      }
+    } catch (err) {
+      console.error("Failed to fetch shipping rates:", err);
+      // Keep empty rates - UI will show fallback
+    } finally {
+      setLoadingRates(false);
+    }
+  }, [address, apartment, city, state, zipCode, cartItems, selectedRate]);
+
+  // Fetch rates when moving to step 2 (shipping) with complete address
+  useEffect(() => {
+    if (currentStep === 2 && address && city && state && zipCode && shippingRates.length === 0) {
+      fetchShippingRates();
+    }
+  }, [currentStep, address, city, state, zipCode, shippingRates.length, fetchShippingRates]);
+
   // Calculations
   const subtotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
-  const shippingCost = subtotal >= 50 ? 0 : (selectedShipping === "express" ? 12.99 : 5.99);
+  // Use selected rate price, or fallback to hardcoded if no rates available
+  const shippingCost = selectedRate
+    ? selectedRate.rate
+    : (subtotal >= 50 ? 0 : (selectedShipping === "express" ? 12.99 : 5.99));
   const tax = subtotal * 0.08; // 8% tax estimate
   const total = subtotal + shippingCost + tax;
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -1095,48 +1144,88 @@ export default function CheckoutPage() {
               {/* Step 2: Shipping Method */}
               {currentStep === 2 && (
                 <div className="space-y-6">
-                  <div 
+                  <div
                     className="p-6 rounded-2xl"
                     style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
                   >
                     <h2 className="text-lg font-semibold text-white mb-4">Shipping Method</h2>
                     <div className="space-y-3">
-                      <button
-                        onClick={() => handleShippingMethodChange("standard")}
-                        className={`w-full p-4 rounded-xl text-left flex items-center justify-between transition-all ${
-                          selectedShipping === "standard" ? "ring-2 ring-yum-pink bg-yum-pink/10" : "bg-white/5 hover:bg-white/10"
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Truck size={24} className={selectedShipping === "standard" ? "text-yum-pink" : "text-white/40"} />
-                          <div>
-                            <p className="text-white font-medium">Standard Shipping</p>
-                            <p className="text-white/50 text-sm">5-7 business days</p>
-                          </div>
+                      {loadingRates ? (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="w-8 h-8 border-2 border-yum-pink border-t-transparent rounded-full animate-spin" />
+                          <span className="ml-3 text-white/60">Fetching shipping rates...</span>
                         </div>
-                        <div className="text-right">
-                          <p className="text-white font-bold">
-                            {subtotal >= 50 ? <span className="text-green-400">Free</span> : "$5.99"}
-                          </p>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => handleShippingMethodChange("express")}
-                        className={`w-full p-4 rounded-xl text-left flex items-center justify-between transition-all ${
-                          selectedShipping === "express" ? "ring-2 ring-yum-pink bg-yum-pink/10" : "bg-white/5 hover:bg-white/10"
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Truck size={24} className={selectedShipping === "express" ? "text-yum-pink" : "text-white/40"} />
-                          <div>
-                            <p className="text-white font-medium">Express Shipping</p>
-                            <p className="text-white/50 text-sm">2-3 business days</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-white font-bold">$12.99</p>
-                        </div>
-                      </button>
+                      ) : shippingRates.length > 0 ? (
+                        // Dynamic rates from EasyPost
+                        shippingRates.map((rate) => (
+                          <button
+                            key={rate.id}
+                            onClick={() => setSelectedRate(rate)}
+                            className={`w-full p-4 rounded-xl text-left flex items-center justify-between transition-all ${
+                              selectedRate?.id === rate.id ? "ring-2 ring-yum-pink bg-yum-pink/10" : "bg-white/5 hover:bg-white/10"
+                            }`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <Truck size={24} className={selectedRate?.id === rate.id ? "text-yum-pink" : "text-white/40"} />
+                              <div>
+                                <p className="text-white font-medium">{rate.carrier} {rate.service}</p>
+                                <p className="text-white/50 text-sm">
+                                  {rate.est_delivery_days
+                                    ? `${rate.est_delivery_days} business day${rate.est_delivery_days > 1 ? 's' : ''}`
+                                    : rate.delivery_date
+                                      ? `Est. ${new Date(rate.delivery_date).toLocaleDateString()}`
+                                      : 'Estimated delivery varies'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-white font-bold">
+                                {rate.rate === 0 ? <span className="text-green-400">Free</span> : `$${rate.rate.toFixed(2)}`}
+                              </p>
+                            </div>
+                          </button>
+                        ))
+                      ) : (
+                        // Fallback to hardcoded options if no rates
+                        <>
+                          <button
+                            onClick={() => handleShippingMethodChange("standard")}
+                            className={`w-full p-4 rounded-xl text-left flex items-center justify-between transition-all ${
+                              selectedShipping === "standard" ? "ring-2 ring-yum-pink bg-yum-pink/10" : "bg-white/5 hover:bg-white/10"
+                            }`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <Truck size={24} className={selectedShipping === "standard" ? "text-yum-pink" : "text-white/40"} />
+                              <div>
+                                <p className="text-white font-medium">Standard Shipping</p>
+                                <p className="text-white/50 text-sm">5-7 business days</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-white font-bold">
+                                {subtotal >= 50 ? <span className="text-green-400">Free</span> : "$5.99"}
+                              </p>
+                            </div>
+                          </button>
+                          <button
+                            onClick={() => handleShippingMethodChange("express")}
+                            className={`w-full p-4 rounded-xl text-left flex items-center justify-between transition-all ${
+                              selectedShipping === "express" ? "ring-2 ring-yum-pink bg-yum-pink/10" : "bg-white/5 hover:bg-white/10"
+                            }`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <Truck size={24} className={selectedShipping === "express" ? "text-yum-pink" : "text-white/40"} />
+                              <div>
+                                <p className="text-white font-medium">Express Shipping</p>
+                                <p className="text-white/50 text-sm">2-3 business days</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-white font-bold">$12.99</p>
+                            </div>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
 
