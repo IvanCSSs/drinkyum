@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { 
+import {
   ChevronLeft,
   Lock,
   Shield,
@@ -12,14 +12,15 @@ import {
   Check,
   ChevronDown
 } from "lucide-react";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { useCart } from "@/contexts/CartContext";
 
 interface CartItem {
-  id: number;
+  id: string | number;
   name: string;
   price: string;
   priceNum: number;
@@ -48,12 +49,6 @@ interface CheckoutSession {
   cartItems: CartItem[];
 }
 
-type WindowWithCart = typeof window & {
-  getFullCartItems?: () => CartItem[];
-  onFullCartUpdate?: (callback: (items: CartItem[]) => void) => void;
-};
-
-const CART_STORAGE_KEY = "yum-cart";
 const CHECKOUT_STORAGE_KEY = "yum-checkout-session";
 
 // Generate a simple checkout ID (in production, this comes from Medusa)
@@ -131,7 +126,19 @@ async function completeCheckout(sessionId: string): Promise<{ orderId: string }>
 // =============================================================================
 
 export default function CheckoutPage() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // Get real cart data from CartContext
+  const { items: contextItems, isLoading: cartLoading } = useCart();
+
+  // Transform CartContext items to checkout format
+  const cartItems = useMemo(() => contextItems.map(item => ({
+    id: item.id,
+    name: item.title,
+    price: `$${item.unit_price.toFixed(2)}`,
+    priceNum: item.unit_price,
+    image: item.thumbnail || "/images/product-1.png",
+    quantity: item.quantity,
+  })), [contextItems]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -482,36 +489,9 @@ export default function CheckoutPage() {
     }
   }, [checkoutId, saveCheckoutSession]);
 
-  // Initialize checkout session and load cart
+  // Initialize checkout session (cart data now comes from CartContext)
   useEffect(() => {
     const initCheckout = async () => {
-      const win = window as WindowWithCart;
-      let initialItems: CartItem[] = [];
-      
-      // Try to get cart from global state first
-      if (win.getFullCartItems) {
-        initialItems = win.getFullCartItems();
-      }
-      
-      // Fallback: read cart from localStorage
-      if (initialItems.length === 0) {
-        try {
-          const saved = localStorage.getItem(CART_STORAGE_KEY);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              initialItems = parsed;
-            }
-          }
-        } catch (e) {
-          console.error("Failed to load cart:", e);
-        }
-      }
-      
-      if (initialItems.length > 0) {
-        setCartItems(initialItems);
-      }
-
       // Try to recover existing checkout session
       let existingSession: CheckoutSession | null = null;
       try {
@@ -523,13 +503,13 @@ export default function CheckoutPage() {
         console.error("Failed to load checkout session:", e);
       }
 
-      // If we have a valid existing session with same cart, restore it
-      if (existingSession && existingSession.cartItems.length > 0) {
+      // If we have a valid existing session, restore form fields
+      if (existingSession && existingSession.id) {
         console.log("[Checkout] Recovering session:", existingSession.id);
-        
+
         setCheckoutId(existingSession.id);
         setCurrentStep(existingSession.step || 1);
-        
+
         // Restore form fields
         if (existingSession.email) setEmail(existingSession.email);
         if (existingSession.phone) setPhone(existingSession.phone);
@@ -547,23 +527,19 @@ export default function CheckoutPage() {
         }
       } else {
         // Create new checkout session
-        const newSession = await createCheckoutSession(initialItems);
+        const newSession = await createCheckoutSession(cartItems);
         setCheckoutId(newSession.id);
         console.log("[Checkout] Created new session:", newSession.id);
       }
 
       setIsInitialized(true);
-      
-      // Subscribe to cart updates from Navbar
-      if (win.onFullCartUpdate) {
-        win.onFullCartUpdate((items) => {
-          setCartItems(items);
-        });
-      }
     };
 
-    initCheckout();
-  }, []);
+    // Only init once cart is loaded
+    if (!cartLoading) {
+      initCheckout();
+    }
+  }, [cartLoading, cartItems]);
 
   // Calculations
   const subtotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
