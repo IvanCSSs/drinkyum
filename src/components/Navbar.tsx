@@ -36,11 +36,12 @@ export default function Navbar() {
   const isCheckoutPage = pathname === "/checkout";
 
   // Convert cart items to the format CartDrawer expects
+  // Prices come as dollars (1 = $1.00)
   const cartDrawerItems = items.map(item => ({
     id: item.id,
     name: item.title,
-    price: `$${(item.unit_price / 100).toFixed(2)}`,
-    priceNum: item.unit_price / 100,
+    price: `$${item.unit_price.toFixed(2)}`,
+    priceNum: item.unit_price,
     image: item.thumbnail || "/images/product-1.png",
     quantity: item.quantity,
   }));

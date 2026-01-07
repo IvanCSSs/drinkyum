@@ -60,13 +60,6 @@ export default function CartPage() {
     }
   };
 
-  // Debug: log raw values from cart API
-  console.log('[CART DEBUG] Raw cart data:', { items, subtotal });
-  if (items.length > 0) {
-    console.log('[CART DEBUG] First item unit_price:', items[0].unit_price);
-    console.log('[CART DEBUG] First item full:', JSON.stringify(items[0], null, 2));
-  }
-
   // Subtotal from cart - prices come as dollars (1 = $1.00)
   const subtotalDollars = subtotal;
   const discount = promoApplied ? subtotalDollars * 0.2 : 0;

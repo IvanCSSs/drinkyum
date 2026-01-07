@@ -240,14 +240,14 @@ export function formatOrderDate(dateString: string): string {
 
 /**
  * Format currency amount
+ * Prices come as dollars (1 = $1.00)
  */
 export function formatOrderAmount(amount: number, currencyCode: string = 'usd'): string {
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currencyCode.toUpperCase(),
   })
-  // Medusa stores prices in cents
-  return formatter.format(amount / 100)
+  return formatter.format(amount)
 }
 
 /**
