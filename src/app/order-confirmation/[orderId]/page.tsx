@@ -9,7 +9,61 @@ import { Check, Package, Truck, Mail, ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
-import { getOrder, type Order } from "@/lib/checkout";
+
+// Order type matching the WooCommerce API response
+interface Order {
+  id: string;
+  display_id: number;
+  status: string;
+  email: string;
+  currency_code: string;
+  items: Array<{
+    id: string;
+    title: string;
+    thumbnail?: string;
+    quantity: number;
+    unit_price: number;
+    subtotal: number;
+    total: number;
+  }>;
+  subtotal: number;
+  discount_total: number;
+  shipping_total: number;
+  tax_total: number;
+  total: number;
+  shipping_address?: {
+    first_name: string;
+    last_name: string;
+    address_1: string;
+    address_2?: string;
+    city: string;
+    province: string;
+    postal_code: string;
+    country_code: string;
+    phone?: string;
+  };
+  billing_address?: {
+    first_name: string;
+    last_name: string;
+    address_1: string;
+    address_2?: string;
+    city: string;
+    province: string;
+    postal_code: string;
+    country_code: string;
+    phone?: string;
+  };
+  created_at: string;
+}
+
+// Fetch order from our WooCommerce API proxy
+async function getOrder(orderId: string): Promise<{ order: Order }> {
+  const response = await fetch(`/api/orders/${orderId}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch order');
+  }
+  return response.json();
+}
 
 export default function OrderConfirmationPage() {
   const params = useParams();
