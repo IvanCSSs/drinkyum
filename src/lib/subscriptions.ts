@@ -80,15 +80,26 @@ export interface SubscriptionOrder {
 
 /**
  * Get all subscriptions for the current customer
+ * Uses local API proxy to fetch from WooCommerce with proper auth
  */
-export async function getMySubscriptions(): Promise<{
+export async function getMySubscriptions(email?: string): Promise<{
   subscriptions: Subscription[]
   count: number
 }> {
-  const subscriptions = await woocommerce.get<Subscription[]>('/subscriptions/me')
+  // Use local API proxy which handles WC authentication
+  const url = email ? `/api/subscriptions?email=${encodeURIComponent(email)}` : '/api/subscriptions'
+
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch subscriptions')
+  }
+
+  const data = await response.json()
+
   return {
-    subscriptions,
-    count: subscriptions.length
+    subscriptions: data.subscriptions || [],
+    count: data.count || 0,
   }
 }
 

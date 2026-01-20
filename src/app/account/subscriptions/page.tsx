@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { RefreshCw, ChevronRight, Calendar, Package } from "lucide-react";
 import { AccountLayout } from "@/components/account";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   getMySubscriptions,
   formatFrequency,
@@ -14,13 +15,18 @@ import {
 import { formatOrderAmount } from "@/lib/orders";
 
 export default function SubscriptionsPage() {
+  const { customer, isLoading: authLoading } = useAuth();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadSubscriptions() {
+      // Wait for auth to load to get customer email
+      if (authLoading) return;
+
       try {
-        const { subscriptions: fetched } = await getMySubscriptions();
+        // Pass customer email to fetch their subscriptions
+        const { subscriptions: fetched } = await getMySubscriptions(customer?.email);
         setSubscriptions(fetched);
       } catch (error) {
         console.error("Failed to load subscriptions:", error);
@@ -29,7 +35,7 @@ export default function SubscriptionsPage() {
       }
     }
     loadSubscriptions();
-  }, []);
+  }, [customer?.email, authLoading]);
 
   const getStatusBadgeClasses = (status: Subscription["status"]) => {
     const baseClasses = "px-2.5 py-1 rounded-full text-xs font-medium";
@@ -65,7 +71,7 @@ export default function SubscriptionsPage() {
       title="Subscriptions"
       description="Manage your Subscribe & Save orders"
     >
-      {isLoading ? (
+      {isLoading || authLoading ? (
         <div className="space-y-4">
           {[1, 2].map((i) => (
             <div
