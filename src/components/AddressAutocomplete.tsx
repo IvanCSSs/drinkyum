@@ -21,30 +21,15 @@ interface AddressAutocompleteProps {
   required?: boolean;
 }
 
-// Extend Window interface for Google Places callback
-declare global {
-  interface Window {
-    initGooglePlaces?: () => void;
-  }
-}
-
 // Track if script is loading/loaded
 let isScriptLoading = false;
 let isScriptLoaded = false;
 const callbacks: (() => void)[] = [];
 
 function loadGooglePlacesScript(apiKey: string): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     // Check if already loaded
     if (window.google?.maps?.places) {
-      isScriptLoaded = true;
-      resolve();
-      return;
-    }
-
-    // Check if script already exists
-    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-    if (existingScript && window.google?.maps?.places) {
       isScriptLoaded = true;
       resolve();
       return;
@@ -60,6 +45,8 @@ function loadGooglePlacesScript(apiKey: string): Promise<void> {
       return;
     }
 
+    // Check if script already exists
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
     if (existingScript) {
       // Script exists but not loaded yet - wait for it
       const checkLoaded = setInterval(() => {
@@ -74,19 +61,30 @@ function loadGooglePlacesScript(apiKey: string): Promise<void> {
 
     isScriptLoading = true;
 
-    // Define callback
-    window.initGooglePlaces = () => {
-      isScriptLoaded = true;
-      isScriptLoading = false;
-      resolve();
-      callbacks.forEach((cb) => cb());
-      callbacks.length = 0;
+    // Load the script using the new async loading pattern
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
+    script.async = true;
+
+    script.onload = () => {
+      // Wait for google.maps to be available
+      const checkGoogle = setInterval(() => {
+        if (window.google?.maps?.places) {
+          clearInterval(checkGoogle);
+          isScriptLoaded = true;
+          isScriptLoading = false;
+          resolve();
+          callbacks.forEach((cb) => cb());
+          callbacks.length = 0;
+        }
+      }, 50);
     };
 
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlaces`;
-    script.async = true;
-    script.defer = true;
+    script.onerror = () => {
+      isScriptLoading = false;
+      reject(new Error("Failed to load Google Maps script"));
+    };
+
     document.head.appendChild(script);
   });
 }
@@ -126,6 +124,42 @@ function parseAddressComponents(place: google.maps.places.PlaceResult): AddressC
   return components;
 }
 
+// Parse address from the new Place object format
+function parseNewPlaceAddress(place: google.maps.places.Place): AddressComponents {
+  const components: AddressComponents = {
+    streetNumber: "",
+    street: "",
+    city: "",
+    state: "",
+    stateCode: "",
+    zipCode: "",
+    country: "",
+  };
+
+  if (!place.addressComponents) return components;
+
+  for (const component of place.addressComponents) {
+    const types = component.types;
+
+    if (types.includes("street_number")) {
+      components.streetNumber = component.longText || "";
+    } else if (types.includes("route")) {
+      components.street = component.longText || "";
+    } else if (types.includes("locality")) {
+      components.city = component.longText || "";
+    } else if (types.includes("administrative_area_level_1")) {
+      components.state = component.longText || "";
+      components.stateCode = component.shortText || "";
+    } else if (types.includes("postal_code")) {
+      components.zipCode = component.longText || "";
+    } else if (types.includes("country")) {
+      components.country = component.longText || "";
+    }
+  }
+
+  return components;
+}
+
 export default function AddressAutocomplete({
   value,
   onChange,
@@ -134,53 +168,100 @@ export default function AddressAutocomplete({
   className = "",
   required = false,
 }: AddressAutocompleteProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  // Session token for cheaper billing (bundles all keystrokes + selection into one request)
-  const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
+  const autocompleteElementRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [useNewApi, setUseNewApi] = useState(true);
 
-  const initAutocomplete = useCallback(() => {
-    if (!inputRef.current || !window.google?.maps?.places) return;
+  const handlePlaceSelect = useCallback((components: AddressComponents) => {
+    // Build the street address
+    const streetAddress = components.streetNumber
+      ? `${components.streetNumber} ${components.street}`
+      : components.street;
 
-    // Prevent re-initialization
-    if (autocompleteRef.current) return;
+    onChange(streetAddress);
+    onAddressSelect(components);
+  }, [onChange, onAddressSelect]);
+
+  // Initialize with the new PlaceAutocompleteElement API
+  const initNewAutocomplete = useCallback(() => {
+    if (!containerRef.current || !window.google?.maps?.places) return;
+    if (autocompleteElementRef.current) return;
 
     try {
-      // Create session token for cheaper billing
-      sessionTokenRef.current = new window.google.maps.places.AutocompleteSessionToken();
+      // Check if PlaceAutocompleteElement is available
+      if (!window.google.maps.places.PlaceAutocompleteElement) {
+        console.warn("PlaceAutocompleteElement not available, falling back to legacy API");
+        setUseNewApi(false);
+        return;
+      }
 
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
+      // Create the PlaceAutocompleteElement
+      const autocomplete = new window.google.maps.places.PlaceAutocompleteElement({
+        componentRestrictions: { country: "us" },
+        types: ["address"],
+      });
+
+      // Style the element to match our design
+      autocomplete.style.cssText = `
+        width: 100%;
+        --gmpx-color-surface: #1a1a1a;
+        --gmpx-color-on-surface: #ffffff;
+        --gmpx-color-on-surface-variant: rgba(255, 255, 255, 0.6);
+        --gmpx-color-primary: #E1258F;
+        --gmpx-font-family-base: inherit;
+        --gmpx-font-size-base: 14px;
+      `;
+
+      // Listen for place selection
+      autocomplete.addEventListener("gmp-placeselect", async (event: Event) => {
+        const placeEvent = event as CustomEvent<{ place: google.maps.places.Place }>;
+        const place = placeEvent.detail.place;
+
+        // Fetch full place details
+        await place.fetchFields({ fields: ["addressComponents", "formattedAddress"] });
+
+        const components = parseNewPlaceAddress(place);
+        handlePlaceSelect(components);
+      });
+
+      // Add to container
+      containerRef.current.appendChild(autocomplete);
+      autocompleteElementRef.current = autocomplete;
+      setIsLoaded(true);
+    } catch (err) {
+      console.error("Failed to initialize new autocomplete:", err);
+      setUseNewApi(false);
+    }
+  }, [handlePlaceSelect]);
+
+  // Fallback to legacy Autocomplete API
+  const initLegacyAutocomplete = useCallback(() => {
+    if (!inputRef.current || !window.google?.maps?.places) return;
+
+    try {
+      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
         componentRestrictions: { country: "us" },
         fields: ["address_components", "formatted_address"],
         types: ["address"],
       });
 
-      autocompleteRef.current.addListener("place_changed", () => {
-        const place = autocompleteRef.current?.getPlace();
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
         if (!place) return;
 
         const components = parseAddressComponents(place);
-        
-        // Build the street address
-        const streetAddress = components.streetNumber
-          ? `${components.streetNumber} ${components.street}`
-          : components.street;
-
-        onChange(streetAddress);
-        onAddressSelect(components);
-
-        // Create new session token for next search (resets billing session)
-        sessionTokenRef.current = new window.google.maps.places.AutocompleteSessionToken();
+        handlePlaceSelect(components);
       });
 
       setIsLoaded(true);
     } catch (err) {
-      console.error("Failed to initialize autocomplete:", err);
+      console.error("Failed to initialize legacy autocomplete:", err);
       setError("Address autocomplete unavailable");
     }
-  }, [onChange, onAddressSelect]);
+  }, [handlePlaceSelect]);
 
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
@@ -192,45 +273,47 @@ export default function AddressAutocomplete({
 
     loadGooglePlacesScript(apiKey)
       .then(() => {
-        initAutocomplete();
+        if (useNewApi) {
+          initNewAutocomplete();
+        } else {
+          initLegacyAutocomplete();
+        }
       })
       .catch((err) => {
         console.error("Failed to load Google Places:", err);
         setError("Failed to load address service");
       });
-  }, [initAutocomplete]);
+  }, [initNewAutocomplete, initLegacyAutocomplete, useNewApi]);
+
+  // If new API init failed, try legacy
+  useEffect(() => {
+    if (!useNewApi && isScriptLoaded) {
+      initLegacyAutocomplete();
+    }
+  }, [useNewApi, initLegacyAutocomplete]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      if (autocompleteElementRef.current) {
+        autocompleteElementRef.current.remove();
       }
     };
   }, []);
 
-  // Allow standard keyboard shortcuts (Cmd+A, Cmd+C, Cmd+V, etc.) that Google Autocomplete can block
+  // Handle keyboard shortcuts for legacy input
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const input = e.currentTarget;
-    
-    // Handle Cmd/Ctrl shortcuts manually since Google Autocomplete can interfere
+
     if (e.metaKey || e.ctrlKey) {
       switch (e.key.toLowerCase()) {
         case 'a':
-          // Select all
           e.preventDefault();
           input.select();
           break;
         case 'c':
-          // Copy - let browser handle it but stop propagation
-          e.stopPropagation();
-          break;
         case 'v':
-          // Paste - let browser handle it but stop propagation
-          e.stopPropagation();
-          break;
         case 'x':
-          // Cut - let browser handle it but stop propagation
           e.stopPropagation();
           break;
         default:
@@ -239,6 +322,68 @@ export default function AddressAutocomplete({
     }
   };
 
+  // Render the new API element container
+  if (useNewApi) {
+    return (
+      <div className="relative">
+        <div
+          ref={containerRef}
+          className={`address-autocomplete-container ${className}`}
+          style={{
+            // Container styles to make the element look integrated
+            minHeight: '42px',
+          }}
+        />
+        {error && (
+          <p className="text-red-400 text-xs mt-1">{error}</p>
+        )}
+        <style jsx global>{`
+          .address-autocomplete-container gmp-place-autocomplete {
+            width: 100%;
+            display: block;
+          }
+          .address-autocomplete-container gmp-place-autocomplete::part(input) {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            padding: 10px 12px;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+          }
+          .address-autocomplete-container gmp-place-autocomplete::part(input):focus {
+            border-color: rgba(225, 37, 143, 0.5);
+          }
+          .address-autocomplete-container gmp-place-autocomplete::part(input)::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+          }
+          .address-autocomplete-container gmp-place-autocomplete::part(predictions) {
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-top: 4px;
+          }
+          .address-autocomplete-container gmp-place-autocomplete::part(prediction-item) {
+            color: white;
+            padding: 10px 12px;
+          }
+          .address-autocomplete-container gmp-place-autocomplete::part(prediction-item):hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+          .address-autocomplete-container gmp-place-autocomplete::part(prediction-item-main-text) {
+            color: white;
+          }
+          .address-autocomplete-container gmp-place-autocomplete::part(prediction-item-secondary-text) {
+            color: rgba(255, 255, 255, 0.6);
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Fallback to legacy input-based autocomplete
   return (
     <div className="relative">
       <input
@@ -266,4 +411,3 @@ export default function AddressAutocomplete({
     </div>
   );
 }
-
