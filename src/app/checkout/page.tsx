@@ -28,6 +28,7 @@ import {
   getPaymentConfig,
   type Address
 } from "@/lib/wc-checkout";
+import { trackCheckoutStep } from "@/lib/analytics";
 
 // Payment configuration from WordPress REST API
 interface PaymentConfig {
@@ -735,7 +736,15 @@ export default function CheckoutPage() {
     // Save to backend immediately (enables recovery emails)
     await saveEmailToCart(email);
     saveCheckoutSession();
-  }, [email, saveCheckoutSession]);
+
+    // Track email entered event for customer tracking/abandoned cart
+    const cartTotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
+    trackCheckoutStep('email_entered', {
+      email,
+      cart_total: cartTotal,
+      item_count: cartItems.length,
+    });
+  }, [email, saveCheckoutSession, cartItems]);
 
   // PHONE - Secondary contact for SMS recovery
   const handlePhoneBlur = useCallback(async () => {
@@ -815,6 +824,13 @@ export default function CheckoutPage() {
         const newSession = await createCheckoutSession(cartItems);
         setCheckoutId(newSession.id);
         console.log("[Checkout] Created new session:", newSession.id);
+
+        // Track checkout started event
+        trackCheckoutStep('started', {
+          checkout_id: newSession.id,
+          cart_total: newSession.cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0),
+          item_count: newSession.cartItems.length,
+        });
       }
 
       setIsInitialized(true);
@@ -1174,6 +1190,16 @@ export default function CheckoutPage() {
         if (result.type === "order") {
           const order = result.data as { id: string; display_id: number };
           console.log("[Checkout] Order created successfully:", order.id);
+
+          // Track checkout completed event
+          trackCheckoutStep('completed', {
+            order_id: order.id,
+            order_display_id: order.display_id,
+            total: total,
+            item_count: cartItems.length,
+            payment_method: 'authorizenet',
+          });
+
           window.location.href = `/order-confirmation/${order.id}`;
           return;
         } else {
@@ -1286,6 +1312,16 @@ export default function CheckoutPage() {
         if (result.type === "order") {
           const order = result.data as { id: string; display_id: number };
           console.log("[Checkout] Order created successfully:", order.id);
+
+          // Track checkout completed event
+          trackCheckoutStep('completed', {
+            order_id: order.id,
+            order_display_id: order.display_id,
+            total: total,
+            item_count: cartItems.length,
+            payment_method: 'stripe',
+          });
+
           window.location.href = `/order-confirmation/${order.id}`;
           return;
         } else {
@@ -1346,6 +1382,16 @@ export default function CheckoutPage() {
         if (result.type === "order") {
           const order = result.data as { id: string; display_id: number };
           console.log("[Checkout] Order created successfully:", order.id);
+
+          // Track checkout completed event
+          trackCheckoutStep('completed', {
+            order_id: order.id,
+            order_display_id: order.display_id,
+            total: total,
+            item_count: cartItems.length,
+            payment_method: provider,
+          });
+
           window.location.href = `/order-confirmation/${order.id}`;
           return;
         } else {
