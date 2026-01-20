@@ -26,7 +26,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   // Use contexts for cart and auth
-  const { items, itemCount, updateQuantity, removeItem, isDrawerOpen, openDrawer, closeDrawer } = useCart();
+  const { items, itemCount, updateQuantity, removeItem, isDrawerOpen, openDrawer, closeDrawer, coupons, discountTotal, applyCoupon, removeCoupon } = useCart();
   const { isAuthenticated } = useAuth();
 
   const hasItems = itemCount > 0;
@@ -43,6 +43,18 @@ export default function Navbar() {
     priceNum: item.unit_price,
     image: item.thumbnail || "/images/product-1.png",
     quantity: item.quantity,
+    // Subscription info
+    isSubscription: item.is_subscription,
+    subscriptionInterval: item.subscription_interval,
+    subscriptionIntervalCount: item.subscription_interval_count,
+    subscriptionDiscount: item.subscription_discount,
+  }));
+
+  // Convert coupons to the format CartDrawer expects
+  const cartDrawerCoupons = coupons.map(coupon => ({
+    code: coupon.code,
+    discount: coupon.discount,
+    label: coupon.label,
   }));
 
   useEffect(() => {
@@ -363,8 +375,12 @@ export default function Navbar() {
         isOpen={isDrawerOpen}
         onClose={closeDrawer}
         items={cartDrawerItems}
+        coupons={cartDrawerCoupons}
+        discountTotal={discountTotal}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
+        onApplyCoupon={applyCoupon}
+        onRemoveCoupon={removeCoupon}
       />
     </>
   );

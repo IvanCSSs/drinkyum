@@ -306,3 +306,91 @@ export async function removeDiscountCode(code: string): Promise<Cart> {
 
   return response.cart
 }
+
+// ============================================
+// Multi-Provider Payment Processing
+// ============================================
+
+export type PaymentProvider = 'stripe' | 'authorize_net' | 'paypal' | 'manual'
+
+export interface PaymentConfig {
+  configured: boolean
+  provider?: PaymentProvider
+  enabledProviders?: PaymentProvider[]
+  sandbox?: boolean
+  // Authorize.net specific
+  apiLoginId?: string
+  clientKey?: string
+  // Stripe specific
+  publishableKey?: string
+}
+
+export interface PaymentResult {
+  success: boolean
+  transactionId?: string
+  authCode?: string
+  message?: string
+  error?: string
+  errorCode?: string
+  provider?: PaymentProvider
+  // Stripe specific - for 3D Secure / additional actions
+  requiresAction?: boolean
+  clientSecret?: string
+  paymentIntentId?: string
+}
+
+/**
+ * Get payment gateway configuration for frontend
+ * Returns provider-specific public keys (never secret keys)
+ */
+export async function getPaymentConfig(): Promise<PaymentConfig> {
+  return medusa.get('/store/checkout/payment')
+}
+
+/**
+ * Process payment - routes to appropriate provider based on params
+ */
+export async function processPayment(params: {
+  // Provider to use (optional, defaults to tenant's default)
+  provider?: PaymentProvider
+  // Authorize.net: opaque data from Accept.js
+  opaqueData?: {
+    dataDescriptor: string
+    dataValue: string
+  }
+  // Stripe: payment intent or payment method ID
+  paymentIntentId?: string
+  paymentMethodId?: string
+  // Common params
+  amount: number
+  cartId?: string
+  billing?: {
+    firstName: string
+    lastName: string
+    address?: string
+    city?: string
+    state?: string
+    zip?: string
+    country?: string
+    email?: string
+  }
+  description?: string
+}): Promise<PaymentResult> {
+  return medusa.post('/store/checkout/payment', params)
+}
+
+/**
+ * Create a Stripe PaymentIntent for client-side confirmation
+ * Used when Stripe is the payment provider
+ */
+export async function createStripePaymentIntent(params: {
+  amount: number
+  currency?: string
+  description?: string
+}): Promise<PaymentResult> {
+  return medusa.post('/store/checkout/payment', {
+    provider: 'stripe',
+    amount: params.amount,
+    description: params.description,
+  })
+}

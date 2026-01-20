@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, Trash2, Tag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -12,25 +13,71 @@ export interface CartItem {
   priceNum: number;
   image: string;
   quantity: number;
+  // Subscription info (optional)
+  isSubscription?: boolean;
+  subscriptionInterval?: string;
+  subscriptionIntervalCount?: number;
+  subscriptionDiscount?: number;
+}
+
+export interface CartCouponDisplay {
+  code: string;
+  discount: number;
+  label: string;
 }
 
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   items: CartItem[];
+  coupons?: CartCouponDisplay[];
+  discountTotal?: number;
   onUpdateQuantity: (id: string | number, quantity: number) => void;
   onRemoveItem: (id: string | number) => void;
+  onApplyCoupon?: (code: string) => Promise<void>;
+  onRemoveCoupon?: (code: string) => Promise<void>;
 }
 
 export default function CartDrawer({
   isOpen,
   onClose,
   items,
+  coupons = [],
+  discountTotal = 0,
   onUpdateQuantity,
-  onRemoveItem
+  onRemoveItem,
+  onApplyCoupon,
+  onRemoveCoupon,
 }: CartDrawerProps) {
+  const [couponCode, setCouponCode] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
   const subtotal = items.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const total = subtotal - discountTotal;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || !onApplyCoupon) return;
+
+    setIsApplyingCoupon(true);
+    setCouponError("");
+
+    try {
+      await onApplyCoupon(couponCode.trim());
+      setCouponCode("");
+    } catch {
+      setCouponError("Invalid or expired code");
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = async (code: string) => {
+    if (onRemoveCoupon) {
+      await onRemoveCoupon(code);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -144,6 +191,22 @@ export default function CartDrawer({
                             <p className="text-yum-pink font-bold text-sm mt-1">
                               {item.price}
                             </p>
+                            {/* Subscription Badge */}
+                            {item.isSubscription && (
+                              <div className="mt-1 flex items-center gap-1">
+                                <span className="text-xs px-1.5 py-0.5 rounded bg-yum-pink/20 text-yum-pink font-medium">
+                                  Subscribe & Save
+                                  {item.subscriptionDiscount ? ` ${item.subscriptionDiscount}%` : ''}
+                                </span>
+                                {item.subscriptionInterval && (
+                                  <span className="text-xs text-white/50">
+                                    {item.subscriptionIntervalCount && item.subscriptionIntervalCount > 1
+                                      ? `Every ${item.subscriptionIntervalCount} ${item.subscriptionInterval}s`
+                                      : `Every ${item.subscriptionInterval}`}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
 
                           {/* Quantity Controls */}
@@ -191,9 +254,80 @@ export default function CartDrawer({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
+                {/* Coupon Input */}
+                {onApplyCoupon && (
+                  <div className="mb-4">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+                        <input
+                          type="text"
+                          placeholder="Coupon code"
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value);
+                            setCouponError("");
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleApplyCoupon();
+                          }}
+                          disabled={isApplyingCoupon}
+                          className="w-full h-9 pl-9 pr-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yum-pink/50 text-sm disabled:opacity-50"
+                        />
+                      </div>
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={isApplyingCoupon || !couponCode.trim()}
+                        className="px-3 h-9 rounded-lg font-medium text-xs transition-all disabled:opacity-50 bg-white/10 text-white hover:bg-white/15"
+                      >
+                        {isApplyingCoupon ? "..." : "Apply"}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-red-400 text-xs mt-1">{couponError}</p>
+                    )}
+                    {/* Applied Coupons */}
+                    {coupons.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {coupons.map((coupon) => (
+                          <div
+                            key={coupon.code}
+                            className="flex items-center justify-between p-1.5 rounded-lg bg-green-500/10 border border-green-500/20"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <Tag size={12} className="text-green-400" />
+                              <span className="text-green-400 text-xs font-medium">{coupon.label}</span>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveCoupon(coupon.code)}
+                              className="text-green-400/70 hover:text-green-400 transition-colors p-0.5"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Subtotal */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between text-sm mb-1">
                   <span className="text-white/60">Subtotal</span>
+                  <span className="text-white">${subtotal.toFixed(2)}</span>
+                </div>
+
+                {/* Discount */}
+                {discountTotal > 0 && (
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-green-400">Discount</span>
+                    <span className="text-green-400">-${discountTotal.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {/* Total */}
+                <div className="flex items-center justify-between mb-4 pt-2 border-t border-white/10">
+                  <span className="text-white/60">Total</span>
                   <span
                     className="text-xl font-bold"
                     style={{
@@ -203,7 +337,7 @@ export default function CartDrawer({
                       backgroundClip: "text",
                     }}
                   >
-                    ${subtotal.toFixed(2)}
+                    ${total.toFixed(2)}
                   </span>
                 </div>
 

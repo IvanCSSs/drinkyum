@@ -7,17 +7,29 @@ import {
   addSubscriptionToCart as apiAddSubscriptionToCart,
   updateCartItem as apiUpdateCartItem,
   removeCartItem as apiRemoveCartItem,
+  applyCoupon as apiApplyCoupon,
+  removeCoupon as apiRemoveCoupon,
+  updateCart as apiUpdateCart,
+  selectShippingRate as apiSelectShippingRate,
   clearStoredCartId,
   type Cart,
   type CartItem,
-} from "@/lib/cart";
+  type CartCoupon,
+  type ShippingRate,
+  type Address,
+} from "@/lib/wc-cart";
 import { trackAddToCart, trackRemoveFromCart, trackCartUpdate } from "@/lib/analytics";
 
 interface CartContextType {
   cart: Cart | null;
   items: CartItem[];
+  coupons: CartCoupon[];
   itemCount: number;
   subtotal: number;
+  discountTotal: number;
+  shippingTotal: number;
+  availableShippingRates: ShippingRate[];
+  hasCalculatedShipping: boolean;
   isLoading: boolean;
   error: string | null;
   isDrawerOpen: boolean;
@@ -27,6 +39,10 @@ interface CartContextType {
   addSubscription: (variantId: string, quantity: number, subscriptionOptionId: string) => Promise<void>;
   updateQuantity: (lineItemId: string, quantity: number) => Promise<void>;
   removeItem: (lineItemId: string) => Promise<void>;
+  applyCoupon: (code: string) => Promise<void>;
+  removeCoupon: (code: string) => Promise<void>;
+  updateShippingAddress: (address: Address) => Promise<void>;
+  selectShippingRate: (rateId: string) => Promise<void>;
   clearCart: () => void;
   refreshCart: () => Promise<void>;
 }
@@ -99,7 +115,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   ) => {
     try {
       setError(null);
-      const updatedCart = await apiAddSubscriptionToCart(variantId, quantity, subscriptionOptionId);
+      // Parse subscription key format: "period-interval" (e.g., "month-1", "week-2")
+      const [period, intervalStr] = subscriptionOptionId.split('-');
+      const interval = parseInt(intervalStr, 10) || 1;
+      const updatedCart = await apiAddSubscriptionToCart(variantId, quantity, period, interval);
       setCart(updatedCart);
 
       // Open cart drawer after adding item
@@ -154,22 +173,94 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const applyCoupon = useCallback(async (code: string) => {
+    try {
+      setError(null);
+      const updatedCart = await apiApplyCoupon(code);
+      setCart(updatedCart);
+    } catch (err) {
+      console.error("Failed to apply coupon:", err);
+      setError("Invalid or expired coupon code");
+      throw err;
+    }
+  }, []);
+
+  const removeCoupon = useCallback(async (code: string) => {
+    try {
+      setError(null);
+      const updatedCart = await apiRemoveCoupon(code);
+      setCart(updatedCart);
+    } catch (err) {
+      console.error("Failed to remove coupon:", err);
+      setError("Failed to remove coupon");
+      throw err;
+    }
+  }, []);
+
+  const updateShippingAddress = useCallback(async (address: Address) => {
+    try {
+      setError(null);
+      const updatedCart = await apiUpdateCart({ shipping_address: address });
+      setCart(updatedCart);
+    } catch (err) {
+      console.error("Failed to update shipping address:", err);
+      setError("Failed to update shipping address");
+      throw err;
+    }
+  }, []);
+
+  const selectShippingRate = useCallback(async (rateId: string) => {
+    try {
+      setError(null);
+      const updatedCart = await apiSelectShippingRate(rateId);
+      setCart(updatedCart);
+    } catch (err) {
+      console.error("Failed to select shipping rate:", err);
+      setError("Failed to select shipping rate");
+      throw err;
+    }
+  }, []);
+
   const clearCart = useCallback(() => {
     clearStoredCartId();
     setCart(null);
   }, []);
 
   const items = cart?.items || [];
+  const coupons = cart?.coupons || [];
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cart?.subtotal || 0;
+  const discountTotal = cart?.discount_total || 0;
+  const shippingTotal = cart?.shipping_total || 0;
+  const availableShippingRates = cart?.available_shipping_rates || [];
+  const hasCalculatedShipping = cart?.has_calculated_shipping || false;
+
+  // Auto-select free shipping when available (e.g., from a free shipping coupon)
+  useEffect(() => {
+    if (!hasCalculatedShipping || availableShippingRates.length === 0) return;
+
+    // Check if there's a free shipping rate that isn't currently selected
+    const freeRate = availableShippingRates.find(rate => rate.price === 0);
+    const selectedRate = availableShippingRates.find(rate => rate.selected);
+
+    // If there's a free rate and it's not already selected, auto-select it
+    if (freeRate && selectedRate && selectedRate.id !== freeRate.id) {
+      apiSelectShippingRate(freeRate.id).then(setCart).catch(console.error);
+    }
+  }, [hasCalculatedShipping, availableShippingRates]);
 
   return (
     <CartContext.Provider
       value={{
         cart,
         items,
+        coupons,
         itemCount,
         subtotal,
+        discountTotal,
+        shippingTotal,
+        availableShippingRates,
+        hasCalculatedShipping,
         isLoading,
         error,
         isDrawerOpen,
@@ -179,6 +270,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         addSubscription,
         updateQuantity,
         removeItem,
+        applyCoupon,
+        removeCoupon,
+        updateShippingAddress,
+        selectShippingRate,
         clearCart,
         refreshCart,
       }}

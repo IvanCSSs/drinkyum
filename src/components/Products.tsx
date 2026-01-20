@@ -6,7 +6,7 @@ import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
-import { getProducts, getProductPrice, type Product } from "@/lib/products";
+import { getProductPrice, type Product } from "@/lib/wc-products";
 
 // Fallback products when API is not available
 const fallbackProducts = [
@@ -42,12 +42,15 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load products from API
+  // Load products via API route (credentials stay server-side)
   useEffect(() => {
     async function loadProducts() {
       try {
         setIsLoading(true);
-        const data = await getProducts({ limit: 6 });
+        const res = await fetch('/api/products?limit=6');
+        if (!res.ok) throw new Error('Failed to fetch');
+
+        const data = await res.json();
         if (data.products && data.products.length > 0) {
           setProducts(data.products);
         } else {

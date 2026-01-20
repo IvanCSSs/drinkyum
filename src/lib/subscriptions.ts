@@ -3,79 +3,79 @@
  *
  * Handles Subscribe & Save functionality: listing, pausing,
  * resuming, canceling, and modifying subscriptions.
+ *
+ * Uses WooCommerce REST API endpoints for subscription management.
  */
 
-import { medusa } from './medusa-client'
+import { woocommerce } from './wc-client'
 
 // Types
-export type SubscriptionFrequency =
-  | 'weekly'
-  | 'biweekly'
-  | 'monthly'
-  | 'bimonthly'
-  | 'quarterly'
-  | 'yearly'
+export type SubscriptionPeriod = 'day' | 'week' | 'month' | 'year'
+
+// Friendly frequency strings for UI (maps to period + interval)
+export type SubscriptionFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'bimonthly' | 'quarterly' | 'yearly'
 
 export type SubscriptionStatus =
   | 'active'
-  | 'paused'
+  | 'on-hold'
   | 'cancelled'
   | 'expired'
   | 'pending'
+  | 'pending-cancel'
 
 export interface Subscription {
-  id: string
-  customer_id: string
+  id: number
   status: SubscriptionStatus
-  frequency: SubscriptionFrequency
-  interval_count: number
-  discount_percent: number
-  next_billing_date: string
-  last_billing_date?: string
-  created_at: string
-  updated_at: string
-  items: SubscriptionItem[]
-  payment_method_id?: string
-  shipping_address?: {
+  customer_id: number
+  billing_period: SubscriptionPeriod
+  billing_interval: number
+  // Computed frequency string for backwards compatibility with UI
+  frequency?: SubscriptionFrequency
+  total: number
+  currency: string
+  date_created: string
+  date_next_payment: string | null
+  date_end: string | null
+  date_trial_end: string | null
+  payment_method: string
+  payment_method_title: string
+  parent_order_id: number | null
+  billing: {
+    first_name: string
+    last_name: string
+    email: string
+  }
+  shipping?: {
     first_name: string
     last_name: string
     address_1: string
     address_2?: string
     city: string
-    province: string
-    postal_code: string
-    country_code: string
+    state: string
+    postcode: string
+    country: string
     phone?: string
   }
-  metadata?: Record<string, unknown>
+  line_items: SubscriptionItem[]
+  related_orders: SubscriptionOrder[]
+  available_actions: ('pause' | 'resume' | 'cancel')[]
 }
 
 export interface SubscriptionItem {
-  id: string
-  subscription_id: string
-  variant_id: string
+  product_id: number
+  variation_id: number
+  name: string
   quantity: number
-  unit_price: number
-  product: {
-    id: string
-    title: string
-    handle: string
-    thumbnail?: string
-  }
-  variant: {
-    id: string
-    title: string
-    sku?: string
-  }
+  subtotal: number
+  total: number
 }
 
 export interface SubscriptionOrder {
-  id: string
-  subscription_id: string
-  order_id: string
+  id: number
+  type: string
+  date: string
   status: string
   total: number
-  created_at: string
 }
 
 /**
@@ -85,153 +85,175 @@ export async function getMySubscriptions(): Promise<{
   subscriptions: Subscription[]
   count: number
 }> {
-  return medusa.get('/store/product-subscriptions/me')
+  const subscriptions = await woocommerce.get<Subscription[]>('/subscriptions/me')
+  return {
+    subscriptions,
+    count: subscriptions.length
+  }
 }
 
 /**
  * Get a single subscription by ID
  */
-export async function getSubscription(subscriptionId: string): Promise<{
+export async function getSubscription(subscriptionId: number): Promise<{
   subscription: Subscription
 }> {
-  return medusa.get(`/store/product-subscriptions/me/${subscriptionId}`)
+  const subscription = await woocommerce.get<Subscription>(`/subscriptions/${subscriptionId}`)
+  return { subscription }
 }
 
 /**
  * Pause a subscription
  */
-export async function pauseSubscription(subscriptionId: string): Promise<{
+export async function pauseSubscription(subscriptionId: number): Promise<{
   subscription: Subscription
 }> {
-  return medusa.post(`/store/product-subscriptions/me/${subscriptionId}/pause`)
+  const subscription = await woocommerce.post<Subscription>(`/subscriptions/${subscriptionId}/pause`)
+  return { subscription }
 }
 
 /**
  * Resume a paused subscription
  */
-export async function resumeSubscription(subscriptionId: string): Promise<{
+export async function resumeSubscription(subscriptionId: number): Promise<{
   subscription: Subscription
 }> {
-  return medusa.post(`/store/product-subscriptions/me/${subscriptionId}/resume`)
+  const subscription = await woocommerce.post<Subscription>(`/subscriptions/${subscriptionId}/resume`)
+  return { subscription }
 }
 
 /**
  * Cancel a subscription
  */
 export async function cancelSubscription(
-  subscriptionId: string,
+  subscriptionId: number,
   reason?: string
 ): Promise<{
   subscription: Subscription
 }> {
-  return medusa.post(`/store/product-subscriptions/me/${subscriptionId}/cancel`, {
+  const subscription = await woocommerce.post<Subscription>(`/subscriptions/${subscriptionId}/cancel`, {
     reason,
   })
+  return { subscription }
 }
 
 /**
  * Skip the next shipment
  */
-export async function skipNextShipment(subscriptionId: string): Promise<{
+export async function skipNextShipment(subscriptionId: number): Promise<{
   subscription: Subscription
   skipped_date: string
 }> {
-  return medusa.post(`/store/product-subscriptions/me/${subscriptionId}/skip`)
+  return woocommerce.post(`/subscriptions/${subscriptionId}/skip`)
 }
 
 /**
  * Change subscription frequency
  */
 export async function changeFrequency(
-  subscriptionId: string,
-  frequency: SubscriptionFrequency
+  subscriptionId: number,
+  period: SubscriptionPeriod,
+  interval: number = 1
 ): Promise<{
   subscription: Subscription
 }> {
-  return medusa.patch(
-    `/store/product-subscriptions/me/${subscriptionId}/frequency`,
-    { frequency }
+  const subscription = await woocommerce.post<Subscription>(
+    `/subscriptions/${subscriptionId}/frequency`,
+    { period, interval }
   )
+  return { subscription }
 }
 
 /**
  * Update subscription payment method
  */
 export async function updatePaymentMethod(
-  subscriptionId: string,
-  paymentMethodId: string
+  subscriptionId: number,
+  paymentTokenId: number
 ): Promise<{
   subscription: Subscription
 }> {
-  return medusa.patch(
-    `/store/product-subscriptions/me/${subscriptionId}/payment-method`,
-    { payment_method_id: paymentMethodId }
+  const subscription = await woocommerce.post<Subscription>(
+    `/subscriptions/${subscriptionId}/payment-method`,
+    { payment_token_id: paymentTokenId }
   )
+  return { subscription }
 }
 
 /**
  * Update subscription shipping address
  */
-export async function updateShippingAddress(
-  subscriptionId: string,
+export async function updateSubscriptionShippingAddress(
+  subscriptionId: number,
   address: {
     first_name: string
     last_name: string
     address_1: string
     address_2?: string
     city: string
-    province: string
-    postal_code: string
-    country_code: string
+    state: string
+    postcode: string
+    country: string
     phone?: string
   }
 ): Promise<{
   subscription: Subscription
 }> {
-  return medusa.patch(
-    `/store/product-subscriptions/me/${subscriptionId}/shipping-address`,
-    { shipping_address: address }
+  const subscription = await woocommerce.post<Subscription>(
+    `/subscriptions/${subscriptionId}/shipping-address`,
+    { shipping: address }
   )
+  return { subscription }
 }
 
 /**
  * Update subscription item quantity
  */
 export async function updateItemQuantity(
-  subscriptionId: string,
-  itemId: string,
+  subscriptionId: number,
+  productId: number,
   quantity: number
 ): Promise<{
   subscription: Subscription
 }> {
-  return medusa.patch(
-    `/store/product-subscriptions/me/${subscriptionId}/items/${itemId}`,
-    { quantity }
+  const subscription = await woocommerce.post<Subscription>(
+    `/subscriptions/${subscriptionId}/items`,
+    { product_id: productId, quantity }
   )
+  return { subscription }
 }
 
 /**
  * Get subscription order history
  */
-export async function getSubscriptionOrders(subscriptionId: string): Promise<{
+export async function getSubscriptionOrders(subscriptionId: number): Promise<{
   orders: SubscriptionOrder[]
 }> {
-  return medusa.get(`/store/product-subscriptions/me/${subscriptionId}/orders`)
+  const subscription = await woocommerce.get<Subscription>(`/subscriptions/${subscriptionId}`)
+  return { orders: subscription.related_orders || [] }
 }
 
 /**
  * Format frequency for display
  */
-export function formatFrequency(frequency: SubscriptionFrequency): string {
-  const labels: Record<SubscriptionFrequency, string> = {
-    weekly: 'Every week',
-    biweekly: 'Every 2 weeks',
-    monthly: 'Every month',
-    bimonthly: 'Every 2 months',
-    quarterly: 'Every 3 months',
-    yearly: 'Every year',
+export function formatFrequency(period: SubscriptionPeriod, interval: number = 1): string {
+  if (interval === 1) {
+    const labels: Record<SubscriptionPeriod, string> = {
+      day: 'Daily',
+      week: 'Weekly',
+      month: 'Monthly',
+      year: 'Yearly',
+    }
+    return labels[period] || period
   }
-  return labels[frequency] || frequency
+
+  const plurals: Record<SubscriptionPeriod, string> = {
+    day: 'days',
+    week: 'weeks',
+    month: 'months',
+    year: 'years',
+  }
+  return `Every ${interval} ${plurals[period] || period}`
 }
 
 /**
@@ -240,10 +262,11 @@ export function formatFrequency(frequency: SubscriptionFrequency): string {
 export function formatStatus(status: SubscriptionStatus): string {
   const labels: Record<SubscriptionStatus, string> = {
     active: 'Active',
-    paused: 'Paused',
+    'on-hold': 'Paused',
     cancelled: 'Cancelled',
     expired: 'Expired',
     pending: 'Pending',
+    'pending-cancel': 'Pending Cancellation',
   }
   return labels[status] || status
 }
@@ -254,10 +277,42 @@ export function formatStatus(status: SubscriptionStatus): string {
 export function getStatusColor(status: SubscriptionStatus): string {
   const colors: Record<SubscriptionStatus, string> = {
     active: 'green',
-    paused: 'yellow',
+    'on-hold': 'yellow',
     cancelled: 'red',
     expired: 'gray',
     pending: 'blue',
+    'pending-cancel': 'orange',
   }
   return colors[status] || 'gray'
+}
+
+/**
+ * Convert period/interval to friendly frequency string
+ */
+export function toFrequency(period: SubscriptionPeriod, interval: number): SubscriptionFrequency {
+  if (period === 'day' && interval === 1) return 'daily'
+  if (period === 'week' && interval === 1) return 'weekly'
+  if (period === 'week' && interval === 2) return 'biweekly'
+  if (period === 'month' && interval === 1) return 'monthly'
+  if (period === 'month' && interval === 2) return 'bimonthly'
+  if (period === 'month' && interval === 3) return 'quarterly'
+  if (period === 'year' && interval === 1) return 'yearly'
+  // Default to monthly for any other combination
+  return 'monthly'
+}
+
+/**
+ * Convert friendly frequency string to period/interval
+ */
+export function fromFrequency(frequency: SubscriptionFrequency): { period: SubscriptionPeriod; interval: number } {
+  const mapping: Record<SubscriptionFrequency, { period: SubscriptionPeriod; interval: number }> = {
+    daily: { period: 'day', interval: 1 },
+    weekly: { period: 'week', interval: 1 },
+    biweekly: { period: 'week', interval: 2 },
+    monthly: { period: 'month', interval: 1 },
+    bimonthly: { period: 'month', interval: 2 },
+    quarterly: { period: 'month', interval: 3 },
+    yearly: { period: 'year', interval: 1 },
+  }
+  return mapping[frequency] || { period: 'month', interval: 1 }
 }

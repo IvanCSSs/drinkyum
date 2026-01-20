@@ -10,7 +10,9 @@ import {
   Truck,
   CreditCard,
   Check,
-  ChevronDown
+  ChevronDown,
+  Tag,
+  X
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Navbar from "@/components/Navbar";
@@ -18,7 +20,117 @@ import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { useCart } from "@/contexts/CartContext";
-import { getShippingRates, type ShippingRate } from "@/lib/checkout";
+import {
+  updateCheckoutEmail,
+  updateShippingAddress,
+  updateBillingAddress,
+  completeCheckout as completeCheckoutAPI,
+  getPaymentConfig,
+  type Address
+} from "@/lib/wc-checkout";
+
+// Payment configuration from WordPress REST API
+interface PaymentConfig {
+  configured: boolean
+  provider?: string
+  enabledProviders?: string[]
+  // Authorize.net
+  apiLoginId?: string
+  clientKey?: string
+  // Stripe
+  publishableKey?: string
+  // Common
+  sandbox?: boolean
+  message?: string
+}
+
+interface PaymentResult {
+  success: boolean
+  transactionId?: string
+  authCode?: string
+  message?: string
+  error?: string
+  errorCode?: string
+  provider?: string
+  requiresAction?: boolean
+  clientSecret?: string
+  paymentIntentId?: string
+}
+
+// Stripe payment intent creation (placeholder until Stripe is configured)
+async function createStripePaymentIntent(_params: {
+  amount: number
+  currency?: string
+  description?: string
+}): Promise<PaymentResult> {
+  // WooCommerce Stripe gateway handles this
+  console.warn("[Checkout] Stripe payment intent via WooCommerce not yet configured");
+  return {
+    success: false,
+    error: "Stripe gateway not configured in WooCommerce"
+  };
+}
+
+// Declare Accept.js types
+declare global {
+  interface Window {
+    Accept?: {
+      dispatchData: (
+        secureData: {
+          authData: { clientKey: string; apiLoginID: string };
+          cardData: { cardNumber: string; month: string; year: string; cardCode: string };
+        },
+        callback: (response: AcceptJsResponse) => void
+      ) => void;
+    };
+    Stripe?: (publishableKey: string) => StripeInstance;
+  }
+}
+
+interface AcceptJsResponse {
+  opaqueData?: {
+    dataDescriptor: string;
+    dataValue: string;
+  };
+  messages: {
+    resultCode: "Ok" | "Error";
+    message: Array<{ code: string; text: string }>;
+  };
+}
+
+// Stripe types
+interface StripeInstance {
+  confirmCardPayment: (
+    clientSecret: string,
+    data?: {
+      payment_method?: {
+        card: StripeCardElement;
+        billing_details?: {
+          name?: string;
+          email?: string;
+          address?: {
+            line1?: string;
+            city?: string;
+            state?: string;
+            postal_code?: string;
+            country?: string;
+          };
+        };
+      };
+    }
+  ) => Promise<{ error?: { message: string }; paymentIntent?: { id: string; status: string } }>;
+  elements: () => StripeElements;
+}
+
+interface StripeElements {
+  create: (type: 'card', options?: Record<string, unknown>) => StripeCardElement;
+}
+
+interface StripeCardElement {
+  mount: (selector: string | HTMLElement) => void;
+  unmount: () => void;
+  on: (event: string, handler: (event: { error?: { message: string } }) => void) => void;
+}
 
 interface CartItem {
   id: string | number;
@@ -68,15 +180,13 @@ const US_STATES = [
 ];
 
 // =============================================================================
-// MEDUSA API PLACEHOLDERS
-// These functions will be replaced with actual Medusa SDK calls
+// MEDUSA API HELPERS
 // =============================================================================
 
 async function createCheckoutSession(cartItems: CartItem[]): Promise<CheckoutSession> {
-  // TODO: Replace with Medusa API call
-  // const { cart } = await medusa.carts.create({ region_id: "reg_xxx", items: cartItems });
-  console.log("[Medusa Placeholder] Creating checkout session...");
-  
+  // Use existing cart from CartContext - no need to create new one
+  console.log("[Checkout] Initializing checkout session with cart items:", cartItems.length);
+
   const session: CheckoutSession = {
     id: generateCheckoutId(),
     createdAt: new Date().toISOString(),
@@ -84,42 +194,78 @@ async function createCheckoutSession(cartItems: CartItem[]): Promise<CheckoutSes
     step: 1,
     cartItems,
   };
-  
+
   return session;
 }
 
-async function updateCheckoutEmail(sessionId: string, email: string): Promise<void> {
-  // TODO: Replace with Medusa API call
-  // await medusa.carts.update(sessionId, { email });
-  console.log(`[Medusa Placeholder] Saving email for session ${sessionId}:`, email);
-  // This is the CRITICAL save for abandoned cart recovery
+async function saveEmailToCart(email: string): Promise<void> {
+  try {
+    await updateCheckoutEmail(email);
+    console.log("[Checkout] Email saved to cart:", email);
+  } catch (err) {
+    console.error("[Checkout] Failed to save email:", err);
+  }
 }
 
-async function updateCheckoutPhone(sessionId: string, phone: string): Promise<void> {
-  // TODO: Replace with Medusa API call
-  console.log(`[Medusa Placeholder] Saving phone for session ${sessionId}:`, phone);
+async function savePhoneToCart(phone: string): Promise<void> {
+  // Phone is stored in cart metadata or shipping address
+  console.log("[Checkout] Phone saved:", phone);
 }
 
-async function updateCheckoutShippingAddress(
-  sessionId: string, 
-  address: CheckoutSession["shippingAddress"]
-): Promise<void> {
-  // TODO: Replace with Medusa API call
-  // await medusa.carts.update(sessionId, { shipping_address: address });
-  console.log(`[Medusa Placeholder] Saving shipping address for session ${sessionId}:`, address);
+async function saveShippingAddressToCart(address: {
+  firstName: string;
+  lastName: string;
+  address: string;
+  apartment?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone?: string;
+}): Promise<void> {
+  try {
+    const medusaAddress: Address = {
+      first_name: address.firstName,
+      last_name: address.lastName,
+      address_1: address.address,
+      address_2: address.apartment || "",
+      city: address.city,
+      province: address.state,
+      postal_code: address.zipCode,
+      country_code: "us",
+      phone: address.phone,
+    };
+    await updateShippingAddress(medusaAddress);
+    console.log("[Checkout] Shipping address saved to cart");
+  } catch (err) {
+    console.error("[Checkout] Failed to save shipping address:", err);
+  }
 }
 
-async function updateCheckoutShippingMethod(sessionId: string, method: "standard" | "express"): Promise<void> {
-  // TODO: Replace with Medusa API call
-  // await medusa.carts.addShippingMethod(sessionId, { option_id: method });
-  console.log(`[Medusa Placeholder] Saving shipping method for session ${sessionId}:`, method);
-}
-
-async function completeCheckout(sessionId: string): Promise<{ orderId: string }> {
-  // TODO: Replace with Medusa API call
-  // const { order } = await medusa.carts.complete(sessionId);
-  console.log(`[Medusa Placeholder] Completing checkout for session ${sessionId}`);
-  return { orderId: `order_${Date.now()}` };
+async function saveBillingAddressToCart(address: {
+  firstName: string;
+  lastName: string;
+  address: string;
+  apartment?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}): Promise<void> {
+  try {
+    const medusaAddress: Address = {
+      first_name: address.firstName,
+      last_name: address.lastName,
+      address_1: address.address,
+      address_2: address.apartment || "",
+      city: address.city,
+      province: address.state,
+      postal_code: address.zipCode,
+      country_code: "us",
+    };
+    await updateBillingAddress(medusaAddress);
+    console.log("[Checkout] Billing address saved to cart");
+  } catch (err) {
+    console.error("[Checkout] Failed to save billing address:", err);
+  }
 }
 
 // =============================================================================
@@ -128,7 +274,19 @@ async function completeCheckout(sessionId: string): Promise<{ orderId: string }>
 
 export default function CheckoutPage() {
   // Get real cart data from CartContext
-  const { items: contextItems, isLoading: cartLoading } = useCart();
+  const {
+    items: contextItems,
+    isLoading: cartLoading,
+    coupons,
+    discountTotal,
+    shippingTotal,
+    availableShippingRates,
+    hasCalculatedShipping,
+    applyCoupon,
+    removeCoupon,
+    updateShippingAddress,
+    selectShippingRate: selectShippingRateContext,
+  } = useCart();
 
   // Transform CartContext items to checkout format
   const cartItems = useMemo(() => contextItems.map(item => ({
@@ -158,11 +316,21 @@ export default function CheckoutPage() {
   const [selectedShipping, setSelectedShipping] = useState<"standard" | "express">("standard");
   const [sameAsBilling, setSameAsBilling] = useState(true);
 
-  // Dynamic shipping rates from EasyPost
-  const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
-  const [selectedRate, setSelectedRate] = useState<ShippingRate | null>(null);
+  // Shipping rates from WooCommerce (via cart context)
   const [loadingRates, setLoadingRates] = useState(false);
-  
+  // Find the currently selected rate from available rates
+  const selectedRate = availableShippingRates.find(r => r.selected) || null;
+
+  // Payment state
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig | null>(null);
+  const [acceptJsLoaded, setAcceptJsLoaded] = useState(false);
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+  const [stripeInstance, setStripeInstance] = useState<StripeInstance | null>(null);
+  const [stripeCardElement, setStripeCardElement] = useState<StripeCardElement | null>(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const stripeCardRef = useRef<HTMLDivElement>(null);
+
   // Billing address (only used if different from shipping)
   const [billingFirstName, setBillingFirstName] = useState("");
   const [billingLastName, setBillingLastName] = useState("");
@@ -176,6 +344,11 @@ export default function CheckoutPage() {
   const [emailMarketing, setEmailMarketing] = useState(true);
   const [smsMarketing, setSmsMarketing] = useState(false);
   
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
   // Anti-bot & email validation
   const [honeypot, setHoneypot] = useState(""); // Bots fill this, humans don't see it
   const [formStartTime] = useState(Date.now()); // Track when form loaded
@@ -192,7 +365,7 @@ export default function CheckoutPage() {
       setRecaptchaLoaded(true);
       return;
     }
-    
+
     const script = document.createElement("script");
     script.id = "recaptcha-script";
     script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
@@ -201,7 +374,116 @@ export default function CheckoutPage() {
     script.onload = () => setRecaptchaLoaded(true);
     document.head.appendChild(script);
   }, []);
-  
+
+  // Load payment SDK based on provider config
+  useEffect(() => {
+    const loadPaymentConfig = async () => {
+      let config: PaymentConfig;
+
+      try {
+        config = await getPaymentConfig();
+        setPaymentConfig(config);
+      } catch (err) {
+        // Endpoint not deployed yet - fall back to manual mode
+        console.warn("[Checkout] Payment config endpoint not available, using manual fallback");
+        config = {
+          configured: true,
+          enabledProviders: ["manual"],
+          provider: "manual",
+          sandbox: true,
+        };
+        setPaymentConfig(config);
+      }
+
+      if (!config.configured) {
+        console.log("[Checkout] No payment provider configured");
+        return;
+      }
+
+      // Load appropriate SDK based on provider
+      if (config.provider === "authorize_net") {
+        // Load Accept.js script
+        if (!document.getElementById("acceptjs-script")) {
+          const script = document.createElement("script");
+          script.id = "acceptjs-script";
+          script.src = config.sandbox
+            ? "https://jstest.authorize.net/v1/Accept.js"
+            : "https://js.authorize.net/v1/Accept.js";
+          script.async = true;
+          script.onload = () => setAcceptJsLoaded(true);
+          document.head.appendChild(script);
+        } else {
+          setAcceptJsLoaded(true);
+        }
+      } else if (config.provider === "stripe") {
+        // Load Stripe.js
+        if (!document.getElementById("stripejs-script")) {
+          const script = document.createElement("script");
+          script.id = "stripejs-script";
+          script.src = "https://js.stripe.com/v3/";
+          script.async = true;
+          script.onload = () => {
+            if (window.Stripe && config.publishableKey) {
+              const stripe = window.Stripe(config.publishableKey);
+              setStripeInstance(stripe);
+              setStripeLoaded(true);
+            }
+          };
+          document.head.appendChild(script);
+        } else if (window.Stripe && config.publishableKey) {
+          const stripe = window.Stripe(config.publishableKey);
+          setStripeInstance(stripe);
+          setStripeLoaded(true);
+        }
+      } else if (config.provider === "manual") {
+        // Manual provider doesn't need any SDK
+        console.log("[Checkout] Manual payment mode - no SDK needed");
+      }
+    };
+
+    loadPaymentConfig();
+  }, []);
+
+  // Mount Stripe card element when on payment step
+  useEffect(() => {
+    if (currentStep !== 3 || paymentConfig?.provider !== "stripe" || !stripeInstance) {
+      return;
+    }
+
+    // Create and mount Stripe card element
+    if (stripeCardRef.current && !stripeCardElement) {
+      const elements = stripeInstance.elements();
+      const cardElement = elements.create("card", {
+        style: {
+          base: {
+            color: "#ffffff",
+            fontFamily: "system-ui, sans-serif",
+            fontSize: "16px",
+            "::placeholder": { color: "rgba(255,255,255,0.3)" },
+          },
+          invalid: { color: "#ff6b6b" },
+        },
+      });
+      cardElement.mount(stripeCardRef.current);
+      cardElement.on("change", (event) => {
+        if (event.error) {
+          setPaymentError(event.error.message);
+        } else {
+          setPaymentError(null);
+        }
+      });
+      setStripeCardElement(cardElement);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (stripeCardElement) {
+        stripeCardElement.unmount();
+        setStripeCardElement(null);
+      }
+    };
+  }, [currentStep, paymentConfig?.provider, stripeInstance, stripeCardElement]);
+
   // Execute reCAPTCHA and get token
   const executeRecaptcha = async (): Promise<string | null> => {
     if (!recaptchaLoaded || typeof window === "undefined") return null;
@@ -448,25 +730,25 @@ export default function CheckoutPage() {
 
   // EMAIL - Most critical field for abandoned cart recovery
   const handleEmailBlur = useCallback(async () => {
-    if (!email || !checkoutId) return;
-    
+    if (!email) return;
+
     // Save to backend immediately (enables recovery emails)
-    await updateCheckoutEmail(checkoutId, email);
+    await saveEmailToCart(email);
     saveCheckoutSession();
-  }, [email, checkoutId, saveCheckoutSession]);
+  }, [email, saveCheckoutSession]);
 
   // PHONE - Secondary contact for SMS recovery
   const handlePhoneBlur = useCallback(async () => {
-    if (!phone || !checkoutId) return;
-    
-    await updateCheckoutPhone(checkoutId, phone);
+    if (!phone) return;
+
+    await savePhoneToCart(phone);
     saveCheckoutSession();
-  }, [phone, checkoutId, saveCheckoutSession]);
+  }, [phone, saveCheckoutSession]);
 
   // ADDRESS FIELDS - Save on blur for any address field
   const handleAddressFieldBlur = useCallback(async () => {
-    if (!checkoutId || !firstName) return;
-    
+    if (!firstName) return;
+
     const addressData = {
       firstName,
       lastName,
@@ -475,25 +757,22 @@ export default function CheckoutPage() {
       city,
       state,
       zipCode,
+      phone: phone || undefined,
     };
-    
+
     // Only save if we have minimum required fields
     if (firstName && lastName && address && city && state && zipCode) {
-      await updateCheckoutShippingAddress(checkoutId, addressData);
+      await saveShippingAddressToCart(addressData);
     }
-    
-    saveCheckoutSession();
-  }, [checkoutId, firstName, lastName, address, apartment, city, state, zipCode, saveCheckoutSession]);
 
-  // SHIPPING METHOD - Save on selection change
+    saveCheckoutSession();
+  }, [firstName, lastName, address, apartment, city, state, zipCode, phone, saveCheckoutSession]);
+
+  // SHIPPING METHOD - Save on selection change (for fallback options)
   const handleShippingMethodChange = useCallback(async (method: "standard" | "express") => {
     setSelectedShipping(method);
-    
-    if (checkoutId) {
-      await updateCheckoutShippingMethod(checkoutId, method);
-      saveCheckoutSession();
-    }
-  }, [checkoutId, saveCheckoutSession]);
+    saveCheckoutSession();
+  }, [saveCheckoutSession]);
 
   // Initialize checkout session (cart data now comes from CartContext)
   useEffect(() => {
@@ -547,54 +826,73 @@ export default function CheckoutPage() {
     }
   }, [cartLoading, cartItems]);
 
-  // Fetch shipping rates when address is complete
-  const fetchShippingRates = useCallback(async () => {
-    if (!address || !city || !state || !zipCode) return;
+  // Update cart shipping address when address fields change
+  // This triggers WooCommerce to calculate shipping rates
+  const updateCartShippingAddress = useCallback(async () => {
+    if (!firstName || !lastName || !address || !city || !state || !zipCode) return;
 
     setLoadingRates(true);
     try {
-      const response = await getShippingRates({
-        ship_to: {
-          street1: address,
-          street2: apartment || undefined,
-          city,
-          state,
-          zip: zipCode,
-          country: "US"
-        },
-        order_subtotal: cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0)
+      await updateShippingAddress({
+        first_name: firstName,
+        last_name: lastName,
+        address_1: address,
+        address_2: apartment || undefined,
+        city,
+        province: state,
+        postal_code: zipCode,
+        country_code: "US",
+        phone: phone || undefined,
       });
-
-      setShippingRates(response.rates || []);
-
-      // Auto-select cheapest rate if none selected
-      if (response.rates?.length > 0 && !selectedRate) {
-        const cheapest = response.rates.reduce((min, rate) => rate.rate < min.rate ? rate : min, response.rates[0]);
-        setSelectedRate(cheapest);
-      }
+      // Shipping rates are now available in availableShippingRates from context
     } catch (err) {
-      console.error("Failed to fetch shipping rates:", err);
-      // Keep empty rates - UI will show fallback
+      console.error("Failed to update shipping address:", err);
     } finally {
       setLoadingRates(false);
     }
-  }, [address, apartment, city, state, zipCode, cartItems, selectedRate]);
+  }, [firstName, lastName, address, apartment, city, state, zipCode, phone, updateShippingAddress]);
 
-  // Fetch rates when moving to step 2 (shipping) with complete address
+  // Fetch rates when address is complete (even on Step 1 for accurate sidebar)
   useEffect(() => {
-    if (currentStep === 2 && address && city && state && zipCode && shippingRates.length === 0) {
-      fetchShippingRates();
+    if (firstName && lastName && address && city && state && zipCode && !hasCalculatedShipping) {
+      updateCartShippingAddress();
     }
-  }, [currentStep, address, city, state, zipCode, shippingRates.length, fetchShippingRates]);
+  }, [firstName, lastName, address, city, state, zipCode, hasCalculatedShipping, updateCartShippingAddress]);
 
   // Calculations
   const subtotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
-  // Use selected rate price, or fallback to hardcoded if no rates available
-  const shippingCost = selectedRate
-    ? selectedRate.rate
-    : (subtotal >= 50 ? 0 : (selectedShipping === "express" ? 12.99 : 5.99));
-  const tax = subtotal * 0.08; // 8% tax estimate
-  const total = subtotal + shippingCost + tax;
+  // Use shipping total from cart (includes free shipping coupons)
+  // Only show when shipping has been calculated
+  const shippingCost = hasCalculatedShipping ? shippingTotal : null;
+  const tax = (subtotal - discountTotal) * 0.08; // 8% tax estimate on discounted subtotal
+  const total = subtotal - discountTotal + (shippingCost ?? 0) + tax;
+
+  // Coupon handlers
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+
+    setIsApplyingCoupon(true);
+    setCouponError("");
+
+    try {
+      await applyCoupon(couponCode.trim());
+      setCouponCode("");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Invalid or expired code";
+      setCouponError(errorMessage);
+      console.error("Coupon apply error:", err);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = async (code: string) => {
+    try {
+      await removeCoupon(code);
+    } catch (err) {
+      console.error("Failed to remove coupon:", err);
+    }
+  };
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const isEmpty = cartItems.length === 0;
@@ -737,41 +1035,340 @@ export default function CheckoutPage() {
       console.log("[Bot Detection] User appears legitimate - skipping reCAPTCHA");
     }
     
+    setProcessingPayment(true);
+    setPaymentError(null);
+
     try {
-      // Complete checkout via Medusa
-      const result = await completeCheckout(checkoutId);
-      
-      // Clear checkout session from localStorage
-      localStorage.removeItem(CHECKOUT_STORAGE_KEY);
-      
-      // Save customer info if they opted in
-      if (saveInfo) {
-        await saveCustomerInfo({
-          email,
-          phone,
-          firstName,
-          lastName,
-          address,
-          apartment,
-          city,
-          state,
-          zipCode,
-          emailMarketing,
-          smsMarketing,
+      // Save billing address if different from shipping
+      if (!sameAsBilling && billingFirstName && billingAddress && billingCity && billingState && billingZipCode) {
+        await saveBillingAddressToCart({
+          firstName: billingFirstName,
+          lastName: billingLastName,
+          address: billingAddress,
+          apartment: billingApartment,
+          city: billingCity,
+          state: billingState,
+          zipCode: billingZipCode,
         });
       }
-      
-      // Show success (in production, redirect to order confirmation page)
-      alert(`Order submitted! Order ID: ${result.orderId}\n\n(This is a demo - no actual payment processed)`);
-      
-      // TODO: Redirect to /order-confirmation/[orderId]
-      // router.push(`/order-confirmation/${result.orderId}`);
-      
-    } catch (error) {
+
+      // Process payment based on configured provider
+      if (!paymentConfig?.configured) {
+        throw new Error("Payment processing is not configured");
+      }
+
+      const provider = paymentConfig.provider;
+
+      const billingInfo = {
+        firstName: sameAsBilling ? firstName : billingFirstName,
+        lastName: sameAsBilling ? lastName : billingLastName,
+        address: sameAsBilling ? address : billingAddress,
+        city: sameAsBilling ? city : billingCity,
+        state: sameAsBilling ? state : billingState,
+        zip: sameAsBilling ? zipCode : billingZipCode,
+        country: "US",
+        email: email,
+      };
+
+      if (provider === "authorize_net") {
+        // AUTHORIZE.NET: Use Accept.js to tokenize the card
+        if (!paymentConfig.apiLoginId) {
+          throw new Error("Authorize.net is not properly configured");
+        }
+
+        if (!acceptJsLoaded || !window.Accept) {
+          throw new Error("Payment system is still loading. Please wait and try again.");
+        }
+
+        // Validate card fields
+        if (!cardNumber || !cardExpiry || !cardCvc) {
+          throw new Error("Please fill in all card details");
+        }
+
+        const [expMonth, expYear] = cardExpiry.split("/");
+        if (!expMonth || !expYear) {
+          throw new Error("Invalid expiry date format");
+        }
+
+        console.log("[Checkout] Tokenizing card with Accept.js...");
+
+        const opaqueData = await new Promise<{ dataDescriptor: string; dataValue: string }>((resolve, reject) => {
+          const secureData = {
+            authData: {
+              clientKey: paymentConfig.clientKey || "",
+              apiLoginID: paymentConfig.apiLoginId!,
+            },
+            cardData: {
+              cardNumber: cardNumber.replace(/\s/g, ""),
+              month: expMonth.padStart(2, "0"),
+              year: "20" + expYear,
+              cardCode: cardCvc,
+            },
+          };
+
+          window.Accept!.dispatchData(secureData, (response: AcceptJsResponse) => {
+            if (response.messages.resultCode === "Ok" && response.opaqueData) {
+              resolve(response.opaqueData);
+            } else {
+              const errorMsg = response.messages.message[0]?.text || "Card tokenization failed";
+              reject(new Error(errorMsg));
+            }
+          });
+        });
+
+        console.log("[Checkout] Card tokenized, completing checkout with WooCommerce...");
+
+        // WooCommerce handles payment processing in completeCheckout
+        // Pass opaque data via payment_data array (WooCommerce Store API format)
+        const result = await completeCheckoutAPI({
+          payment_method: "authorizenet",
+          payment_data: [
+            { key: "authorizenet-data-descriptor", value: opaqueData.dataDescriptor },
+            { key: "authorizenet-data-value", value: opaqueData.dataValue },
+          ],
+          billing_address: {
+            first_name: billingInfo.firstName,
+            last_name: billingInfo.lastName,
+            address_1: billingInfo.address,
+            address_2: sameAsBilling ? (apartment || "") : (billingApartment || ""),
+            city: billingInfo.city,
+            state: billingInfo.state,
+            postcode: billingInfo.zip,
+            country: billingInfo.country,
+            email: billingInfo.email,
+            phone: phone || "",
+          },
+          shipping_address: {
+            first_name: firstName,
+            last_name: lastName,
+            address_1: address,
+            address_2: apartment || "",
+            city: city,
+            state: state,
+            postcode: zipCode,
+            country: "US",
+            phone: phone || "",
+          },
+        });
+
+        // Clear checkout session from localStorage
+        localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+
+        // Save customer info if they opted in
+        if (saveInfo) {
+          await saveCustomerInfo({
+            email,
+            phone,
+            firstName,
+            lastName,
+            address,
+            apartment,
+            city,
+            state,
+            zipCode,
+            emailMarketing,
+            smsMarketing,
+          });
+        }
+
+        if (result.type === "order") {
+          const order = result.data as { id: string; display_id: number };
+          console.log("[Checkout] Order created successfully:", order.id);
+          window.location.href = `/order-confirmation/${order.id}`;
+          return;
+        } else {
+          throw new Error("Checkout failed - order not created");
+        }
+
+      } else if (provider === "stripe") {
+        // STRIPE: Use Stripe.js to confirm payment
+        // Note: Stripe is not currently configured - this is placeholder code
+        if (!stripeInstance || !stripeCardElement) {
+          throw new Error("Stripe is still loading. Please wait and try again.");
+        }
+
+        console.log("[Checkout] Creating Stripe payment intent...");
+
+        // First create a payment intent on our backend
+        const intentResult = await createStripePaymentIntent({
+          amount: Math.round(total * 100),
+          description: "DrinkYUM Order",
+        });
+
+        if (!intentResult.clientSecret) {
+          throw new Error(intentResult.error || "Failed to create payment intent");
+        }
+
+        console.log("[Checkout] Confirming payment with Stripe...");
+
+        // Confirm payment with Stripe.js
+        const { error, paymentIntent } = await stripeInstance.confirmCardPayment(
+          intentResult.clientSecret,
+          {
+            payment_method: {
+              card: stripeCardElement,
+              billing_details: {
+                name: `${billingInfo.firstName} ${billingInfo.lastName}`,
+                email: billingInfo.email,
+                address: {
+                  line1: billingInfo.address,
+                  city: billingInfo.city,
+                  state: billingInfo.state,
+                  postal_code: billingInfo.zip,
+                  country: billingInfo.country,
+                },
+              },
+            },
+          }
+        );
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (paymentIntent?.status !== "succeeded") {
+          throw new Error("Payment was not successful");
+        }
+
+        console.log("[Checkout] Stripe payment successful, completing checkout...");
+
+        // Complete checkout via WooCommerce with Stripe payment data
+        const result = await completeCheckoutAPI({
+          payment_method: "stripe",
+          payment_data: [
+            { key: "stripe_payment_intent_id", value: paymentIntent.id },
+          ],
+          billing_address: {
+            first_name: billingInfo.firstName,
+            last_name: billingInfo.lastName,
+            address_1: billingInfo.address,
+            address_2: sameAsBilling ? (apartment || "") : (billingApartment || ""),
+            city: billingInfo.city,
+            state: billingInfo.state,
+            postcode: billingInfo.zip,
+            country: billingInfo.country,
+            email: billingInfo.email,
+            phone: phone || "",
+          },
+          shipping_address: {
+            first_name: firstName,
+            last_name: lastName,
+            address_1: address,
+            address_2: apartment || "",
+            city: city,
+            state: state,
+            postcode: zipCode,
+            country: "US",
+            phone: phone || "",
+          },
+        });
+
+        // Clear checkout session from localStorage
+        localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+
+        // Save customer info if they opted in
+        if (saveInfo) {
+          await saveCustomerInfo({
+            email,
+            phone,
+            firstName,
+            lastName,
+            address,
+            apartment,
+            city,
+            state,
+            zipCode,
+            emailMarketing,
+            smsMarketing,
+          });
+        }
+
+        if (result.type === "order") {
+          const order = result.data as { id: string; display_id: number };
+          console.log("[Checkout] Order created successfully:", order.id);
+          window.location.href = `/order-confirmation/${order.id}`;
+          return;
+        } else {
+          throw new Error("Checkout failed - order not created");
+        }
+
+      } else if (provider === "manual" || provider === "cod" || provider === "bacs") {
+        // MANUAL/COD/BACS: No card processing needed
+        console.log(`[Checkout] ${provider} payment mode - completing checkout...`);
+
+        const result = await completeCheckoutAPI({
+          payment_method: provider,
+          billing_address: {
+            first_name: billingInfo.firstName,
+            last_name: billingInfo.lastName,
+            address_1: billingInfo.address,
+            address_2: sameAsBilling ? (apartment || "") : (billingApartment || ""),
+            city: billingInfo.city,
+            state: billingInfo.state,
+            postcode: billingInfo.zip,
+            country: billingInfo.country,
+            email: billingInfo.email,
+            phone: phone || "",
+          },
+          shipping_address: {
+            first_name: firstName,
+            last_name: lastName,
+            address_1: address,
+            address_2: apartment || "",
+            city: city,
+            state: state,
+            postcode: zipCode,
+            country: "US",
+            phone: phone || "",
+          },
+        });
+
+        // Clear checkout session from localStorage
+        localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+
+        // Save customer info if they opted in
+        if (saveInfo) {
+          await saveCustomerInfo({
+            email,
+            phone,
+            firstName,
+            lastName,
+            address,
+            apartment,
+            city,
+            state,
+            zipCode,
+            emailMarketing,
+            smsMarketing,
+          });
+        }
+
+        if (result.type === "order") {
+          const order = result.data as { id: string; display_id: number };
+          console.log("[Checkout] Order created successfully:", order.id);
+          window.location.href = `/order-confirmation/${order.id}`;
+          return;
+        } else {
+          throw new Error("Checkout failed - order not created");
+        }
+
+      } else {
+        throw new Error(`Unsupported payment provider: ${provider}`);
+      }
+
+    } catch (error: unknown) {
       console.error("Checkout failed:", error);
-      alert("Checkout failed. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setPaymentError(errorMessage);
+    } finally {
+      setProcessingPayment(false);
     }
-  }, [checkoutId]);
+  }, [
+    sameAsBilling, billingFirstName, billingLastName, billingAddress, billingApartment,
+    billingCity, billingState, billingZipCode, saveInfo, email, phone, firstName,
+    lastName, address, apartment, city, state, zipCode, emailMarketing, smsMarketing,
+    cardNumber, cardExpiry, cardCvc, paymentConfig, acceptJsLoaded, checkoutId, total
+  ]);
 
   if (isEmpty) {
     return (
@@ -1155,32 +1752,28 @@ export default function CheckoutPage() {
                           <div className="w-8 h-8 border-2 border-yum-pink border-t-transparent rounded-full animate-spin" />
                           <span className="ml-3 text-white/60">Fetching shipping rates...</span>
                         </div>
-                      ) : shippingRates.length > 0 ? (
-                        // Dynamic rates from EasyPost
-                        shippingRates.map((rate) => (
+                      ) : availableShippingRates.length > 0 ? (
+                        // Dynamic rates from WooCommerce
+                        availableShippingRates.map((rate) => (
                           <button
                             key={rate.id}
-                            onClick={() => setSelectedRate(rate)}
+                            onClick={() => selectShippingRateContext(rate.id)}
                             className={`w-full p-4 rounded-xl text-left flex items-center justify-between transition-all ${
-                              selectedRate?.id === rate.id ? "ring-2 ring-yum-pink bg-yum-pink/10" : "bg-white/5 hover:bg-white/10"
+                              rate.selected ? "ring-2 ring-yum-pink bg-yum-pink/10" : "bg-white/5 hover:bg-white/10"
                             }`}
                           >
                             <div className="flex items-center gap-4">
-                              <Truck size={24} className={selectedRate?.id === rate.id ? "text-yum-pink" : "text-white/40"} />
+                              <Truck size={24} className={rate.selected ? "text-yum-pink" : "text-white/40"} />
                               <div>
-                                <p className="text-white font-medium">{rate.carrier} {rate.service}</p>
+                                <p className="text-white font-medium">{rate.name}</p>
                                 <p className="text-white/50 text-sm">
-                                  {rate.est_delivery_days
-                                    ? `${rate.est_delivery_days} business day${rate.est_delivery_days > 1 ? 's' : ''}`
-                                    : rate.delivery_date
-                                      ? `Est. ${new Date(rate.delivery_date).toLocaleDateString()}`
-                                      : 'Estimated delivery varies'}
+                                  {rate.delivery_time || 'Estimated delivery varies'}
                                 </p>
                               </div>
                             </div>
                             <div className="text-right">
                               <p className="text-white font-bold">
-                                {rate.rate === 0 ? <span className="text-green-400">Free</span> : `$${rate.rate.toFixed(2)}`}
+                                {rate.price === 0 ? <span className="text-green-400">Free</span> : `$${rate.price.toFixed(2)}`}
                               </p>
                             </div>
                           </button>
@@ -1265,7 +1858,7 @@ export default function CheckoutPage() {
               {/* Step 3: Payment */}
               {currentStep === 3 && (
                 <div className="space-y-6">
-                  <div 
+                  <div
                     className="p-6 rounded-2xl"
                     style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
                   >
@@ -1274,10 +1867,14 @@ export default function CheckoutPage() {
                       <h2 className="text-lg font-semibold text-white">Payment</h2>
                       <div className="ml-auto flex items-center gap-2">
                         <span className="text-xs text-white/40">Powered by</span>
-                        <span className="text-xs font-semibold text-white/70">Authorize.net</span>
+                        <span className="text-xs font-semibold text-white/70">
+                          {paymentConfig?.provider === "stripe" ? "Stripe" :
+                           paymentConfig?.provider === "authorize_net" ? "Authorize.net" :
+                           paymentConfig?.provider === "manual" ? "Manual" : "Secure Payment"}
+                        </span>
                       </div>
                     </div>
-                    
+
                     {/* Security notice */}
                     <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                       <Shield size={16} className="text-green-400 flex-shrink-0" />
@@ -1285,98 +1882,131 @@ export default function CheckoutPage() {
                         Your card details are encrypted and securely tokenized. We never store your full card number.
                       </p>
                     </div>
-                    
-                    {/* Accept.js hosted fields container */}
-                    {/* TODO: Replace with actual Authorize.net Accept.js hosted fields */}
-                    {/* See: https://developer.authorize.net/api/reference/features/acceptjs.html */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-white/60 text-sm mb-1.5 block">Card Number <span className="text-yum-pink">*</span></label>
-                        <div className="relative">
-                          {/* In production, this would be an Accept.js hosted field */}
-                          <input
-                            type="text"
-                            id="cardNumber"
-                            data-authorize="cardNumber"
-                            value={cardNumber}
-                            onChange={(e) => {
-                              // Format card number with spaces
-                              const value = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-                              setCardNumber(value);
-                            }}
-                            placeholder="1234 5678 9012 3456"
-                            maxLength={19}
-                            required
-                            autoComplete="cc-number"
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors font-mono tracking-wider"
+
+                    {/* STRIPE Payment Form */}
+                    {paymentConfig?.provider === "stripe" && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-white/60 text-sm mb-1.5 block">Card Details <span className="text-yum-pink">*</span></label>
+                          <div
+                            ref={stripeCardRef}
+                            className="w-full px-4 py-4 rounded-xl bg-white/5 border border-white/10 focus-within:border-yum-pink transition-colors"
                           />
-                          <CreditCard size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30" />
+                          {!stripeLoaded && (
+                            <p className="text-white/40 text-sm mt-2">Loading secure payment form...</p>
+                          )}
                         </div>
                       </div>
-                      <div>
-                        <label className="text-white/60 text-sm mb-1.5 block">Name on Card <span className="text-yum-pink">*</span></label>
-                        <input
-                          type="text"
-                          id="cardName"
-                          value={cardName}
-                          onChange={(e) => setCardName(e.target.value)}
-                          placeholder="John Doe"
-                          required
-                          autoComplete="cc-name"
-                          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                    )}
+
+                    {/* AUTHORIZE.NET Payment Form */}
+                    {paymentConfig?.provider === "authorize_net" && (
+                      <div className="space-y-4">
                         <div>
-                          <label className="text-white/60 text-sm mb-1.5 block">Expiry Date <span className="text-yum-pink">*</span></label>
-                          <input
-                            type="text"
-                            id="cardExpiry"
-                            data-authorize="expDate"
-                            value={cardExpiry}
-                            onChange={(e) => {
-                              // Auto-format MM/YY
-                              let value = e.target.value.replace(/\D/g, '');
-                              if (value.length >= 2) {
-                                value = value.slice(0, 2) + '/' + value.slice(2, 4);
-                              }
-                              setCardExpiry(value);
-                            }}
-                            placeholder="MM/YY"
-                            maxLength={5}
-                            required
-                            autoComplete="cc-exp"
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors font-mono"
-                          />
+                          <label className="text-white/60 text-sm mb-1.5 block">Card Number <span className="text-yum-pink">*</span></label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              id="cardNumber"
+                              data-authorize="cardNumber"
+                              value={cardNumber}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+                                setCardNumber(value);
+                              }}
+                              placeholder="1234 5678 9012 3456"
+                              maxLength={19}
+                              required
+                              autoComplete="cc-number"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors font-mono tracking-wider"
+                            />
+                            <CreditCard size={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30" />
+                          </div>
                         </div>
                         <div>
-                          <label className="text-white/60 text-sm mb-1.5 block">CVV <span className="text-yum-pink">*</span></label>
+                          <label className="text-white/60 text-sm mb-1.5 block">Name on Card <span className="text-yum-pink">*</span></label>
                           <input
                             type="text"
-                            id="cardCvc"
-                            data-authorize="cvv"
-                            value={cardCvc}
-                            onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ''))}
-                            placeholder="123"
-                            maxLength={4}
+                            id="cardName"
+                            value={cardName}
+                            onChange={(e) => setCardName(e.target.value)}
+                            placeholder="John Doe"
                             required
-                            autoComplete="cc-csc"
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors font-mono"
+                            autoComplete="cc-name"
+                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors"
                           />
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-white/60 text-sm mb-1.5 block">Expiry Date <span className="text-yum-pink">*</span></label>
+                            <input
+                              type="text"
+                              id="cardExpiry"
+                              data-authorize="expDate"
+                              value={cardExpiry}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/\D/g, '');
+                                if (value.length >= 2) {
+                                  value = value.slice(0, 2) + '/' + value.slice(2, 4);
+                                }
+                                setCardExpiry(value);
+                              }}
+                              placeholder="MM/YY"
+                              maxLength={5}
+                              required
+                              autoComplete="cc-exp"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-1.5 block">CVV <span className="text-yum-pink">*</span></label>
+                            <input
+                              type="text"
+                              id="cardCvc"
+                              data-authorize="cvv"
+                              value={cardCvc}
+                              onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ''))}
+                              placeholder="123"
+                              maxLength={4}
+                              required
+                              autoComplete="cc-csc"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-yum-pink transition-colors font-mono"
+                            />
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    
+                    )}
+
+                    {/* MANUAL Payment (for testing) */}
+                    {paymentConfig?.provider === "manual" && (
+                      <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                        <p className="text-yellow-300 text-sm">
+                          <strong>Test Mode:</strong> No payment will be processed. Click "Complete Order" to place a test order.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* No payment configured */}
+                    {!paymentConfig?.configured && (
+                      <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                        <p className="text-red-300 text-sm">
+                          Payment processing is not configured. Please contact support.
+                        </p>
+                      </div>
+                    )}
+
                     {/* Accepted cards */}
-                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-3">
-                      <span className="text-xs text-white/40">We accept:</span>
-                      <div className="flex gap-2">
-                        <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Visa</div>
-                        <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Mastercard</div>
-                        <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Amex</div>
-                        <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Discover</div>
+                    {(paymentConfig?.provider === "stripe" || paymentConfig?.provider === "authorize_net") && (
+                      <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-3">
+                        <span className="text-xs text-white/40">We accept:</span>
+                        <div className="flex gap-2">
+                          <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Visa</div>
+                          <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Mastercard</div>
+                          <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Amex</div>
+                          <div className="px-2 py-1 rounded bg-white/10 text-xs text-white/60 font-medium">Discover</div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Billing Address */}
@@ -1506,6 +2136,14 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
+                  {/* Payment Error Display */}
+                  {paymentError && (
+                    <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 mb-4">
+                      <p className="text-red-400 text-sm font-medium">Payment Failed</p>
+                      <p className="text-red-300/80 text-sm mt-1">{paymentError}</p>
+                    </div>
+                  )}
+
                   <div className="flex gap-4">
                     <button
                       onClick={() => handleStepChange(2)}
@@ -1516,14 +2154,42 @@ export default function CheckoutPage() {
                     </button>
                     <button
                       onClick={handleSubmit}
-                      className="flex-1 py-4 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                      disabled={
+                        processingPayment ||
+                        !paymentConfig?.configured ||
+                        (paymentConfig.provider === "authorize_net" && !acceptJsLoaded) ||
+                        (paymentConfig.provider === "stripe" && !stripeLoaded)
+                      }
+                      className="flex-1 py-4 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                       style={{
-                        background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
-                        boxShadow: "0 4px 20px rgba(225,37,143,0.4)",
+                        background: processingPayment
+                          ? "linear-gradient(135deg, #666 0%, #555 100%)"
+                          : "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
+                        boxShadow: processingPayment ? "none" : "0 4px 20px rgba(225,37,143,0.4)",
                       }}
                     >
-                      <Lock size={18} />
-                      Pay ${total.toFixed(2)}
+                      {processingPayment ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Processing...
+                        </>
+                      ) : (paymentConfig?.provider === "authorize_net" && !acceptJsLoaded) ||
+                           (paymentConfig?.provider === "stripe" && !stripeLoaded) ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Loading...
+                        </>
+                      ) : paymentConfig?.provider === "manual" ? (
+                        <>
+                          <Check size={18} />
+                          Complete Order
+                        </>
+                      ) : (
+                        <>
+                          <Lock size={18} />
+                          Pay ${total.toFixed(2)}
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1581,16 +2247,86 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
+                {/* Coupon Input */}
+                <div className="py-4 border-t border-white/10">
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+                      <input
+                        type="text"
+                        placeholder="Discount code"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value);
+                          setCouponError("");
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleApplyCoupon();
+                        }}
+                        disabled={isApplyingCoupon}
+                        className="w-full h-10 pl-9 pr-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yum-pink/50 text-sm disabled:opacity-50"
+                      />
+                    </div>
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={isApplyingCoupon || !couponCode.trim()}
+                      className="px-4 h-10 rounded-lg font-medium text-sm transition-all disabled:opacity-50 bg-white/10 text-white hover:bg-white/15"
+                    >
+                      {isApplyingCoupon ? "..." : "Apply"}
+                    </button>
+                  </div>
+                  {couponError && (
+                    <p className="text-red-400 text-xs mt-1">{couponError}</p>
+                  )}
+                  {/* Applied Coupons */}
+                  {coupons.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {coupons.map((coupon) => (
+                        <div
+                          key={coupon.code}
+                          className="flex items-center justify-between p-2 rounded-lg bg-green-500/10 border border-green-500/20"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Tag size={12} className="text-green-400" />
+                            <span className="text-green-400 text-xs font-medium">{coupon.label}</span>
+                            {(coupon.discount_type === 'free_shipping' || (coupon.discount === 0 && coupon.code.toLowerCase() === 'free')) && (
+                              <span className="text-green-400/70 text-xs">· Free Shipping</span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleRemoveCoupon(coupon.code)}
+                            className="text-green-400/70 hover:text-green-400 transition-colors p-0.5"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* Totals */}
                 <div className="space-y-2 py-4 border-t border-white/10">
                   <div className="flex justify-between text-sm">
                     <span className="text-white/60">Subtotal</span>
                     <span className="text-white">${subtotal.toFixed(2)}</span>
                   </div>
+                  {discountTotal > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-400">Discount</span>
+                      <span className="text-green-400">-${discountTotal.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-white/60">Shipping</span>
                     <span className="text-white">
-                      {shippingCost === 0 ? <span className="text-green-400">Free</span> : `$${shippingCost.toFixed(2)}`}
+                      {shippingCost === null ? (
+                        <span className="text-white/40">Calculated at next step</span>
+                      ) : shippingCost === 0 ? (
+                        <span className="text-green-400">Free</span>
+                      ) : (
+                        `$${shippingCost.toFixed(2)}`
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">

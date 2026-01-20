@@ -3,9 +3,11 @@
  *
  * Tracks customer behavior for analytics and personalization.
  * Uses fingerprint ID for anonymous visitors and merges identity on login.
+ * Events are sent to WordPress Customer Tracking plugin.
  */
 
-import { medusa } from './medusa-client'
+// WordPress tracking API URL
+const WP_TRACKING_URL = process.env.NEXT_PUBLIC_WP_TRACKING_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum/wp-json/tracking/v1'
 
 // Types
 export type EventType =
@@ -67,17 +69,23 @@ export async function trackEvent(
   if (typeof window === 'undefined') return
 
   try {
-    await medusa.post('/store/webhooks/track', {
-      event_type: eventType,
-      fingerprint_id: getFingerprint(),
-      session_id: getSessionId(),
-      properties: {
-        ...properties,
+    await fetch(`${WP_TRACKING_URL}/track`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        fingerprint_id: getFingerprint(),
+        session_id: getSessionId(),
+        properties: {
+          ...properties,
+          timestamp: new Date().toISOString(),
+        },
         url: window.location.href,
         referrer: document.referrer,
         user_agent: navigator.userAgent,
-        timestamp: new Date().toISOString(),
-      },
+      }),
     })
   } catch (error) {
     // Silently fail - don't break UX for analytics
@@ -95,10 +103,16 @@ export async function identifyCustomer(
   if (typeof window === 'undefined') return
 
   try {
-    await medusa.post('/store/webhooks/identify', {
-      fingerprint_id: getFingerprint(),
-      customer_id: customerId,
-      email,
+    await fetch(`${WP_TRACKING_URL}/identify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fingerprint_id: getFingerprint(),
+        customer_id: customerId,
+        email,
+      }),
     })
   } catch (error) {
     console.error('Failed to identify customer:', error)

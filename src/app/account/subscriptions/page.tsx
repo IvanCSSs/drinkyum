@@ -36,7 +36,7 @@ export default function SubscriptionsPage() {
     switch (status) {
       case "active":
         return `${baseClasses} bg-green-500/20 text-green-400 border border-green-500/30`;
-      case "paused":
+      case "on-hold":
         return `${baseClasses} bg-yellow-500/20 text-yellow-400 border border-yellow-500/30`;
       case "cancelled":
         return `${baseClasses} bg-red-500/20 text-red-400 border border-red-500/30`;
@@ -56,11 +56,8 @@ export default function SubscriptionsPage() {
   };
 
   const calculateTotal = (subscription: Subscription) => {
-    return subscription.items.reduce((sum, item) => {
-      const discountedPrice =
-        item.unit_price * (1 - subscription.discount_percent / 100);
-      return sum + discountedPrice * item.quantity;
-    }, 0);
+    // Use the pre-calculated total from WooCommerce
+    return subscription.total;
   };
 
   return (
@@ -97,28 +94,18 @@ export default function SubscriptionsPage() {
                 <div className="flex flex-col lg:flex-row lg:items-start gap-4">
                   {/* Product Thumbnails */}
                   <div className="flex items-center gap-3">
-                    {subscription.items.slice(0, 3).map((item) => (
+                    {subscription.line_items.slice(0, 3).map((item) => (
                       <div
-                        key={item.id}
-                        className="w-16 h-16 rounded-xl bg-white/10 overflow-hidden shrink-0"
+                        key={item.product_id}
+                        className="w-16 h-16 rounded-xl bg-white/10 overflow-hidden shrink-0 flex items-center justify-center"
                       >
-                        {item.product?.thumbnail ? (
-                          <img
-                            src={item.product.thumbnail}
-                            alt={item.product.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package size={24} className="text-white/30" />
-                          </div>
-                        )}
+                        <Package size={24} className="text-white/30" />
                       </div>
                     ))}
-                    {subscription.items.length > 3 && (
+                    {subscription.line_items.length > 3 && (
                       <div className="w-16 h-16 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
                         <span className="text-white/50 text-sm">
-                          +{subscription.items.length - 3}
+                          +{subscription.line_items.length - 3}
                         </span>
                       </div>
                     )}
@@ -130,25 +117,20 @@ export default function SubscriptionsPage() {
                       <span className={getStatusBadgeClasses(subscription.status)}>
                         {formatStatus(subscription.status)}
                       </span>
-                      {subscription.discount_percent > 0 && (
-                        <span className="px-2 py-0.5 rounded text-xs bg-yum-pink/20 text-yum-pink">
-                          {subscription.discount_percent}% off
-                        </span>
-                      )}
                     </div>
 
                     <div className="space-y-1">
-                      {subscription.items.slice(0, 2).map((item) => (
-                        <p key={item.id} className="text-white text-sm truncate">
-                          {item.product.title}
+                      {subscription.line_items.slice(0, 2).map((item) => (
+                        <p key={item.product_id} className="text-white text-sm truncate">
+                          {item.name}
                           {item.quantity > 1 && (
                             <span className="text-white/50"> × {item.quantity}</span>
                           )}
                         </p>
                       ))}
-                      {subscription.items.length > 2 && (
+                      {subscription.line_items.length > 2 && (
                         <p className="text-white/50 text-sm">
-                          +{subscription.items.length - 2} more items
+                          +{subscription.line_items.length - 2} more items
                         </p>
                       )}
                     </div>
@@ -156,13 +138,13 @@ export default function SubscriptionsPage() {
                     <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-white/50">
                       <div className="flex items-center gap-1.5">
                         <RefreshCw size={14} />
-                        <span>{formatFrequency(subscription.frequency)}</span>
+                        <span>{formatFrequency(subscription.billing_period, subscription.billing_interval)}</span>
                       </div>
-                      {subscription.status === "active" && (
+                      {subscription.status === "active" && subscription.date_next_payment && (
                         <div className="flex items-center gap-1.5">
                           <Calendar size={14} />
                           <span>
-                            Next delivery: {formatDate(subscription.next_billing_date)}
+                            Next delivery: {formatDate(subscription.date_next_payment)}
                           </span>
                         </div>
                       )}

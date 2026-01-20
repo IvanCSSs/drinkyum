@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import { useRef, useState, useEffect, MouseEvent } from "react";
-import { getCollections, type Collection } from "@/lib/products";
+import { getCollections, type Collection } from "@/lib/wc-products";
 
 // Fallback collection styling
 const collectionStyles: Record<string, {

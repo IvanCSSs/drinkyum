@@ -15,7 +15,7 @@ import {
   getProductPrice,
   type Product,
   type Collection,
-} from "@/lib/products";
+} from "@/lib/wc-products";
 
 // Fallback collections for when API data isn't available yet
 const fallbackCollections: Record<string, {

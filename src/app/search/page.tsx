@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Search as SearchIcon, X, Package, ShoppingCart } from "lucide-react";
-import { getProducts, formatPrice, Product } from "@/lib/products";
+import { getProducts, formatPrice, Product } from "@/lib/wc-products";
 import { useCart } from "@/contexts/CartContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";

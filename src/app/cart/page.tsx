@@ -28,11 +28,25 @@ const FREE_SHIPPING_THRESHOLD = 50;
 const STANDARD_SHIPPING = 5.99;
 
 export default function CartPage() {
-  const { items, itemCount, subtotal, updateQuantity, removeItem, isLoading } = useCart();
+  const {
+    items,
+    itemCount,
+    subtotal,
+    discountTotal,
+    shippingTotal,
+    hasCalculatedShipping,
+    availableShippingRates,
+    selectShippingRate,
+    coupons,
+    updateQuantity,
+    removeItem,
+    applyCoupon,
+    removeCoupon,
+    isLoading
+  } = useCart();
   const [promoCode, setPromoCode] = useState("");
-  const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState("");
-  const [selectedShipping, setSelectedShipping] = useState<"standard" | "express">("standard");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const handleUpdateQuantity = async (lineItemId: string, quantity: number) => {
     try {
@@ -50,20 +64,39 @@ export default function CartPage() {
     }
   };
 
-  const applyPromoCode = () => {
-    if (promoCode.toUpperCase() === "YUM20") {
-      setPromoApplied(true);
-      setPromoError("");
-    } else if (promoCode.length > 0) {
-      setPromoError("Invalid promo code");
-      setPromoApplied(false);
+  const handleApplyCoupon = async () => {
+    if (!promoCode.trim()) return;
+
+    setIsApplyingCoupon(true);
+    setPromoError("");
+
+    try {
+      await applyCoupon(promoCode.trim());
+      setPromoCode(""); // Clear input on success
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Invalid or expired coupon code";
+      setPromoError(errorMessage);
+      console.error("Coupon apply error:", err);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = async (code: string) => {
+    try {
+      await removeCoupon(code);
+    } catch (err) {
+      console.error("Failed to remove coupon:", err);
     }
   };
 
   // Subtotal from cart - prices come as dollars (1 = $1.00)
   const subtotalDollars = subtotal;
-  const discount = promoApplied ? subtotalDollars * 0.2 : 0;
-  const shippingCost = subtotalDollars >= FREE_SHIPPING_THRESHOLD ? 0 : (selectedShipping === "express" ? 12.99 : STANDARD_SHIPPING);
+  const discount = discountTotal;
+  // Use WooCommerce-calculated shipping when available, otherwise estimate
+  const shippingCost = hasCalculatedShipping
+    ? shippingTotal
+    : (subtotalDollars >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING);
   const total = subtotalDollars - discount + shippingCost;
   const amountToFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotalDollars);
 
@@ -271,32 +304,61 @@ export default function CartPage() {
                         <Tag size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
                         <input
                           type="text"
-                          placeholder="Promo code"
+                          placeholder="Coupon code"
                           value={promoCode}
                           onChange={(e) => {
                             setPromoCode(e.target.value);
                             setPromoError("");
                           }}
-                          className="w-full h-11 pl-10 pr-4 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yum-pink/50 text-sm"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleApplyCoupon();
+                          }}
+                          disabled={isApplyingCoupon}
+                          className="w-full h-11 pl-10 pr-4 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-yum-pink/50 text-sm disabled:opacity-50"
                         />
                       </div>
                       <button
-                        onClick={applyPromoCode}
-                        className="px-4 h-11 rounded-lg font-medium text-sm transition-all"
+                        onClick={handleApplyCoupon}
+                        disabled={isApplyingCoupon || !promoCode.trim()}
+                        className="px-4 h-11 rounded-lg font-medium text-sm transition-all disabled:opacity-50"
                         style={{
-                          background: promoApplied ? "rgba(34, 197, 94, 0.2)" : "rgba(255, 255, 255, 0.1)",
-                          color: promoApplied ? "#22c55e" : "white",
-                          border: promoApplied ? "1px solid rgba(34, 197, 94, 0.3)" : "1px solid transparent",
+                          background: "rgba(255, 255, 255, 0.1)",
+                          color: "white",
+                          border: "1px solid transparent",
                         }}
                       >
-                        {promoApplied ? "Applied!" : "Apply"}
+                        {isApplyingCoupon ? "..." : "Apply"}
                       </button>
                     </div>
                     {promoError && (
                       <p className="text-red-400 text-xs mt-2">{promoError}</p>
                     )}
-                    {promoApplied && (
-                      <p className="text-green-400 text-xs mt-2">20% discount applied!</p>
+                    {/* Applied Coupons */}
+                    {coupons.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {coupons.map((coupon) => (
+                          <div
+                            key={coupon.code}
+                            className="flex items-center justify-between p-2 rounded-lg bg-green-500/10 border border-green-500/20"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Tag size={14} className="text-green-400" />
+                              <span className="text-green-400 text-sm font-medium">{coupon.label}</span>
+                              <span className="text-green-400/70 text-xs">
+                                {coupon.discount_type === 'free_shipping' || (coupon.discount === 0 && coupon.code.toLowerCase() === 'free')
+                                  ? 'Free Shipping'
+                                  : `-$${coupon.discount.toFixed(2)}`}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveCoupon(coupon.code)}
+                              className="text-green-400/70 hover:text-green-400 transition-colors"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
 
@@ -304,32 +366,47 @@ export default function CartPage() {
                   <div className="mb-6">
                     <p className="text-white/60 text-sm mb-3">Shipping</p>
                     <div className="space-y-2">
-                      <button
-                        onClick={() => setSelectedShipping("standard")}
-                        className={`w-full p-3 rounded-lg text-left flex items-center justify-between transition-all ${
-                          selectedShipping === "standard"
-                            ? "bg-yum-pink/10 border-yum-pink"
-                            : "bg-white/5 border-white/10 hover:border-white/20"
-                        }`}
-                        style={{ border: `1px solid ${selectedShipping === "standard" ? "#E1258F" : "rgba(255,255,255,0.1)"}` }}
-                      >
-                        <span className="text-white text-sm">Standard (3-5 days)</span>
-                        <span className="text-white font-medium text-sm">
-                          {subtotalDollars >= FREE_SHIPPING_THRESHOLD ? "FREE" : `$${STANDARD_SHIPPING.toFixed(2)}`}
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => setSelectedShipping("express")}
-                        className={`w-full p-3 rounded-lg text-left flex items-center justify-between transition-all ${
-                          selectedShipping === "express"
-                            ? "bg-yum-pink/10 border-yum-pink"
-                            : "bg-white/5 border-white/10 hover:border-white/20"
-                        }`}
-                        style={{ border: `1px solid ${selectedShipping === "express" ? "#E1258F" : "rgba(255,255,255,0.1)"}` }}
-                      >
-                        <span className="text-white text-sm">Express (1-2 days)</span>
-                        <span className="text-white font-medium text-sm">$12.99</span>
-                      </button>
+                      {hasCalculatedShipping && availableShippingRates.length > 0 ? (
+                        // Show WooCommerce-calculated shipping rates
+                        availableShippingRates.map((rate) => (
+                          <button
+                            key={rate.id}
+                            onClick={() => selectShippingRate(rate.id)}
+                            className={`w-full p-3 rounded-lg text-left flex items-center justify-between transition-all ${
+                              rate.selected
+                                ? "bg-yum-pink/10 border-yum-pink"
+                                : "bg-white/5 border-white/10 hover:border-white/20"
+                            }`}
+                            style={{ border: `1px solid ${rate.selected ? "#E1258F" : "rgba(255,255,255,0.1)"}` }}
+                          >
+                            <div>
+                              <span className="text-white text-sm">{rate.name}</span>
+                              {rate.delivery_time && (
+                                <p className="text-white/40 text-xs">{rate.delivery_time}</p>
+                              )}
+                            </div>
+                            <span className={`font-medium text-sm ${rate.price === 0 ? "text-green-400" : "text-white"}`}>
+                              {rate.price === 0 ? "FREE" : `$${rate.price.toFixed(2)}`}
+                            </span>
+                          </button>
+                        ))
+                      ) : (
+                        // Show estimated shipping (calculated at checkout)
+                        <div
+                          className="w-full p-3 rounded-lg text-left flex items-center justify-between bg-white/5"
+                          style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                        >
+                          <span className="text-white text-sm">Estimated Shipping</span>
+                          <span className={`font-medium text-sm ${subtotalDollars >= FREE_SHIPPING_THRESHOLD ? "text-green-400" : "text-white"}`}>
+                            {subtotalDollars >= FREE_SHIPPING_THRESHOLD ? "FREE" : `$${STANDARD_SHIPPING.toFixed(2)}`}
+                          </span>
+                        </div>
+                      )}
+                      {!hasCalculatedShipping && (
+                        <p className="text-white/40 text-xs mt-1">
+                          Final shipping calculated at checkout
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -339,9 +416,9 @@ export default function CartPage() {
                       <span className="text-white/60">Subtotal</span>
                       <span className="text-white">${subtotalDollars.toFixed(2)}</span>
                     </div>
-                    {promoApplied && (
+                    {discount > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-green-400">Discount (20%)</span>
+                        <span className="text-green-400">Discount</span>
                         <span className="text-green-400">-${discount.toFixed(2)}</span>
                       </div>
                     )}

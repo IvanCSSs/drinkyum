@@ -21,16 +21,15 @@ import { useState, useEffect, use } from "react";
 import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
+import SubscribeSaveWidget from "@/components/SubscribeSaveWidget";
 import { useCart } from "@/contexts/CartContext";
 import {
-  getProductByHandle,
-  getSubscriptionOptions,
-  getProductPrice,
   formatPrice,
+  getProductPrice,
   type Product,
   type SubscriptionOption,
   type ProductSection,
-} from "@/lib/products";
+} from "@/lib/wc-products";
 
 // Default benefits for all products
 const defaultBenefits = [
@@ -60,24 +59,30 @@ export default function ProductPage({
   const [expandedSection, setExpandedSection] = useState<string | null>("benefits");
   const [justAdded, setJustAdded] = useState(false);
 
-  // Load product
+  // Load product via API route (credentials stay server-side)
   useEffect(() => {
     async function loadProduct() {
       try {
         setIsLoading(true);
         setError(null);
 
-        const prod = await getProductByHandle(handle);
-        if (prod) {
-          setProduct(prod);
-          // Load subscription options
-          const options = await getSubscriptionOptions(prod.id);
-          setSubscriptionOptions(options);
-          if (options.length > 0) {
-            setSelectedSubscriptionKey(`${options[0].interval}-${options[0].interval_count}`);
+        const res = await fetch(`/api/products/${encodeURIComponent(handle)}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            setError("Product not found");
+          } else {
+            setError("Failed to load product");
           }
-        } else {
-          setError("Product not found");
+          return;
+        }
+
+        const data = await res.json();
+        setProduct(data.product);
+        setSubscriptionOptions(data.subscriptionOptions || []);
+
+        if (data.subscriptionOptions?.length > 0) {
+          const first = data.subscriptionOptions[0];
+          setSelectedSubscriptionKey(`${first.interval}-${first.interval_count}`);
         }
       } catch (err) {
         console.error("Failed to load product:", err);
@@ -378,86 +383,21 @@ export default function ProductPage({
               </p>
 
               {/* Purchase Options */}
-              <div className="space-y-3 mb-8">
-                {/* One-time purchase */}
-                <button
-                  onClick={() => setIsSubscribe(false)}
-                  className={`w-full p-4 rounded-xl text-left transition-all ${
-                    !isSubscribe
-                      ? "ring-2 ring-yum-pink bg-yum-pink/10"
-                      : "ring-1 ring-white/15 hover:ring-white/30"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        !isSubscribe ? "border-yum-pink" : "border-white/30"
-                      }`}>
-                        {!isSubscribe && <div className="w-2.5 h-2.5 rounded-full bg-yum-pink" />}
-                      </div>
-                      <span className="text-white font-medium">One-time purchase</span>
-                    </div>
-                    <span className="text-white font-bold">{formatPrice(basePrice)}</span>
-                  </div>
-                </button>
-
-                {/* Subscribe & Save */}
-                {subscriptionOptions.length > 0 && (
-                  <div
-                    className={`w-full p-4 rounded-xl text-left transition-all cursor-pointer ${
-                      isSubscribe
-                        ? "ring-2 ring-yum-pink bg-yum-pink/10"
-                        : "ring-1 ring-white/15 hover:ring-white/30"
-                    }`}
-                  >
-                    <div
-                      className="flex items-center justify-between mb-2"
-                      onClick={() => setIsSubscribe(true)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          isSubscribe ? "border-yum-pink" : "border-white/30"
-                        }`}>
-                          {isSubscribe && <div className="w-2.5 h-2.5 rounded-full bg-yum-pink" />}
-                        </div>
-                        <span className="text-white font-medium">Subscribe & Save{subscribeDiscountPercent > 0 ? ` ${subscribeDiscountPercent}%` : ''}</span>
-                      </div>
-                      <span className="text-white font-bold">{formatPrice(subscribePrice)}</span>
-                    </div>
-                    {isSubscribe && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        className="ml-8 mt-3"
-                      >
-                        <p className="text-white/50 text-sm mb-3">Delivery frequency:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {subscriptionOptions.map((option) => {
-                            const optionKey = `${option.interval}-${option.interval_count}`;
-                            return (
-                              <button
-                                key={optionKey}
-                                onClick={() => setSelectedSubscriptionKey(optionKey)}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                                  selectedSubscriptionKey === optionKey
-                                    ? "bg-yum-pink text-white"
-                                    : "bg-white/10 text-white/60 hover:bg-white/20"
-                                }`}
-                              >
-                                {option.label} ({option.discount_percent}% off)
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div className="flex items-center gap-2 mt-3 text-white/50 text-xs">
-                          <Check size={14} className="text-green-400" />
-                          <span>Cancel anytime - Free shipping - Skip or pause deliveries</span>
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
-                )}
-              </div>
+              {subscriptionOptions.length > 0 ? (
+                <SubscribeSaveWidget
+                  subscriptionOptions={subscriptionOptions}
+                  basePrice={basePrice}
+                  isSubscribe={isSubscribe}
+                  onSubscribeChange={setIsSubscribe}
+                  selectedFrequency={selectedSubscriptionKey}
+                  onFrequencyChange={setSelectedSubscriptionKey}
+                  formatPrice={formatPrice}
+                />
+              ) : (
+                <div className="mb-8">
+                  <span className="text-2xl font-bold text-white">{formatPrice(basePrice)}</span>
+                </div>
+              )}
 
               {/* Quantity & Add to Cart */}
               <div className="flex gap-4 mb-8">

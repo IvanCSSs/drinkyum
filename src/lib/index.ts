@@ -101,7 +101,7 @@ export {
   skipNextShipment,
   changeFrequency,
   updatePaymentMethod,
-  updateShippingAddress as updateSubscriptionShippingAddress,
+  updateSubscriptionShippingAddress,
   updateItemQuantity,
   getSubscriptionOrders,
   formatFrequency,

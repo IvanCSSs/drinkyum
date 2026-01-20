@@ -26,6 +26,7 @@ import {
   changeFrequency,
   formatFrequency,
   formatStatus,
+  fromFrequency,
   Subscription,
   SubscriptionFrequency,
 } from "@/lib/subscriptions";
@@ -58,7 +59,12 @@ export default function SubscriptionDetailPage({
 
   async function loadSubscription() {
     try {
-      const { subscription: fetched } = await getSubscription(resolvedParams.id);
+      const subscriptionId = parseInt(resolvedParams.id, 10);
+      if (isNaN(subscriptionId)) {
+        setError("Invalid subscription ID");
+        return;
+      }
+      const { subscription: fetched } = await getSubscription(subscriptionId);
       setSubscription(fetched);
     } catch {
       setError("Subscription not found");
@@ -135,9 +141,11 @@ export default function SubscriptionDetailPage({
     if (!subscription) return;
     setActionLoading("frequency");
     try {
+      const { period, interval } = fromFrequency(frequency);
       const { subscription: updated } = await changeFrequency(
         subscription.id,
-        frequency
+        period,
+        interval
       );
       setSubscription(updated);
       showSuccess("Frequency updated");
@@ -153,7 +161,7 @@ export default function SubscriptionDetailPage({
     switch (status) {
       case "active":
         return `${baseClasses} bg-green-500/20 text-green-400 border border-green-500/30`;
-      case "paused":
+      case "on-hold":
         return `${baseClasses} bg-yellow-500/20 text-yellow-400 border border-yellow-500/30`;
       case "cancelled":
         return `${baseClasses} bg-red-500/20 text-red-400 border border-red-500/30`;
@@ -172,10 +180,8 @@ export default function SubscriptionDetailPage({
   };
 
   const calculateTotal = (sub: Subscription) => {
-    return sub.items.reduce((sum, item) => {
-      const discountedPrice = item.unit_price * (1 - sub.discount_percent / 100);
-      return sum + discountedPrice * item.quantity;
-    }, 0);
+    // Use the pre-calculated total from WooCommerce
+    return sub.total;
   };
 
   if (isLoading) {
@@ -247,13 +253,8 @@ export default function SubscriptionDetailPage({
           {formatStatus(subscription.status)}
         </span>
         <span className="px-3 py-1.5 rounded-full text-sm bg-white/10 text-white/70 border border-white/20">
-          {formatFrequency(subscription.frequency)}
+          {formatFrequency(subscription.billing_period, subscription.billing_interval)}
         </span>
-        {subscription.discount_percent > 0 && (
-          <span className="px-3 py-1.5 rounded-full text-sm bg-yum-pink/20 text-yum-pink border border-yum-pink/30">
-            {subscription.discount_percent}% discount
-          </span>
-        )}
       </motion.div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -275,44 +276,25 @@ export default function SubscriptionDetailPage({
               Subscription Items
             </h2>
             <div className="divide-y divide-white/10">
-              {subscription.items.map((item) => (
-                <div key={item.id} className="py-4 first:pt-0 last:pb-0">
+              {subscription.line_items.map((item) => (
+                <div key={item.product_id} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex gap-4">
-                    <div className="w-20 h-20 rounded-xl bg-white/10 overflow-hidden shrink-0">
-                      {item.product?.thumbnail ? (
-                        <img
-                          src={item.product.thumbnail}
-                          alt={item.product.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package size={24} className="text-white/30" />
-                        </div>
-                      )}
+                    <div className="w-20 h-20 rounded-xl bg-white/10 overflow-hidden shrink-0 flex items-center justify-center">
+                      <Package size={24} className="text-white/30" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white mb-1">
-                        {item.product.title}
+                        {item.name}
                       </p>
-                      {item.variant && (
-                        <p className="text-sm text-white/50 mb-2">
-                          {item.variant.title}
-                        </p>
-                      )}
                       <p className="text-sm text-white/60">Qty: {item.quantity}</p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="font-semibold text-white">
-                        {formatOrderAmount(
-                          item.unit_price *
-                            item.quantity *
-                            (1 - subscription.discount_percent / 100)
-                        )}
+                        {formatOrderAmount(item.total)}
                       </p>
-                      {subscription.discount_percent > 0 && (
+                      {item.subtotal > item.total && (
                         <p className="text-sm text-white/40 line-through">
-                          {formatOrderAmount(item.unit_price * item.quantity)}
+                          {formatOrderAmount(item.subtotal)}
                         </p>
                       )}
                     </div>
@@ -330,7 +312,7 @@ export default function SubscriptionDetailPage({
           </motion.div>
 
           {/* Shipping Address */}
-          {subscription.shipping_address && (
+          {subscription.shipping && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -347,17 +329,17 @@ export default function SubscriptionDetailPage({
               </h2>
               <div className="text-white/70 space-y-1">
                 <p className="text-white font-medium">
-                  {subscription.shipping_address.first_name}{" "}
-                  {subscription.shipping_address.last_name}
+                  {subscription.shipping.first_name}{" "}
+                  {subscription.shipping.last_name}
                 </p>
-                <p>{subscription.shipping_address.address_1}</p>
-                {subscription.shipping_address.address_2 && (
-                  <p>{subscription.shipping_address.address_2}</p>
+                <p>{subscription.shipping.address_1}</p>
+                {subscription.shipping.address_2 && (
+                  <p>{subscription.shipping.address_2}</p>
                 )}
                 <p>
-                  {subscription.shipping_address.city},{" "}
-                  {subscription.shipping_address.province}{" "}
-                  {subscription.shipping_address.postal_code}
+                  {subscription.shipping.city},{" "}
+                  {subscription.shipping.state}{" "}
+                  {subscription.shipping.postcode}
                 </p>
               </div>
             </motion.div>
@@ -383,7 +365,7 @@ export default function SubscriptionDetailPage({
                 Next Delivery
               </h3>
               <p className="text-yum-pink font-medium">
-                {formatDate(subscription.next_billing_date)}
+                {subscription.date_next_payment ? formatDate(subscription.date_next_payment) : "Not scheduled"}
               </p>
             </motion.div>
           )}
@@ -455,7 +437,7 @@ export default function SubscriptionDetailPage({
               </>
             )}
 
-            {subscription.status === "paused" && (
+            {subscription.status === "on-hold" && (
               <button
                 onClick={handleResume}
                 disabled={actionLoading !== null}
@@ -467,7 +449,7 @@ export default function SubscriptionDetailPage({
             )}
 
             {(subscription.status === "active" ||
-              subscription.status === "paused") && (
+              subscription.status === "on-hold") && (
               <>
                 {!showCancelConfirm ? (
                   <button
