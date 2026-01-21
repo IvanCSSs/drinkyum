@@ -136,16 +136,29 @@ function parseNewPlaceAddress(place: google.maps.places.Place): AddressComponent
     country: "",
   };
 
-  if (!place.addressComponents) return components;
+  // Debug: log what we received
+  console.log("parseNewPlaceAddress - place object:", place);
+  console.log("parseNewPlaceAddress - addressComponents:", place.addressComponents);
+
+  if (!place.addressComponents) {
+    console.warn("No addressComponents found on place object");
+    return components;
+  }
 
   for (const component of place.addressComponents) {
     const types = component.types;
+
+    // Debug: log each component
+    console.log("Component:", { types, longText: component.longText, shortText: component.shortText });
 
     if (types.includes("street_number")) {
       components.streetNumber = component.longText || "";
     } else if (types.includes("route")) {
       components.street = component.longText || "";
     } else if (types.includes("locality")) {
+      components.city = component.longText || "";
+    } else if (types.includes("sublocality_level_1") && !components.city) {
+      // Fallback for cities that use sublocality (e.g., NYC boroughs)
       components.city = component.longText || "";
     } else if (types.includes("administrative_area_level_1")) {
       components.state = component.longText || "";
@@ -157,6 +170,7 @@ function parseNewPlaceAddress(place: google.maps.places.Place): AddressComponent
     }
   }
 
+  console.log("parseNewPlaceAddress - final components:", components);
   return components;
 }
 
@@ -217,14 +231,29 @@ export default function AddressAutocomplete({
 
       // Listen for place selection
       autocomplete.addEventListener("gmp-placeselect", async (event: Event) => {
-        const placeEvent = event as CustomEvent<{ place: google.maps.places.Place }>;
-        const place = placeEvent.detail.place;
+        try {
+          const placeEvent = event as CustomEvent<{ place: google.maps.places.Place }>;
+          const place = placeEvent.detail.place;
 
-        // Fetch full place details
-        await place.fetchFields({ fields: ["addressComponents", "formattedAddress"] });
+          console.log("gmp-placeselect event fired, place:", place);
 
-        const components = parseNewPlaceAddress(place);
-        handlePlaceSelect(components);
+          // Fetch full place details - must await this
+          await place.fetchFields({ fields: ["addressComponents", "formattedAddress"] });
+
+          console.log("After fetchFields, place.addressComponents:", place.addressComponents);
+          console.log("After fetchFields, place.formattedAddress:", place.formattedAddress);
+
+          const components = parseNewPlaceAddress(place);
+
+          // If parsing failed (no city/zip), log a warning
+          if (!components.city || !components.zipCode) {
+            console.warn("Address parsing incomplete:", components);
+          }
+
+          handlePlaceSelect(components);
+        } catch (err) {
+          console.error("Error handling place selection:", err);
+        }
       });
 
       // Add to container
