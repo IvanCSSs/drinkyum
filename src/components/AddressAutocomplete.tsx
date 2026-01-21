@@ -190,12 +190,17 @@ export default function AddressAutocomplete({
   const [useNewApi, setUseNewApi] = useState(true);
 
   const handlePlaceSelect = useCallback((components: AddressComponents) => {
+    console.log("handlePlaceSelect called with components:", components);
+
     // Build the street address
     const streetAddress = components.streetNumber
       ? `${components.streetNumber} ${components.street}`
       : components.street;
 
+    console.log("Setting street address to:", streetAddress);
     onChange(streetAddress);
+
+    console.log("Calling onAddressSelect with:", components);
     onAddressSelect(components);
   }, [onChange, onAddressSelect]);
 
