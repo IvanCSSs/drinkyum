@@ -299,6 +299,12 @@ export default function CheckoutPage() {
     quantity: item.quantity,
   })), [contextItems]);
 
+  // Check if cart contains any subscription items - require account creation
+  const hasSubscription = useMemo(() =>
+    contextItems.some(item => item.is_subscription),
+    [contextItems]
+  );
+
   const [currentStep, setCurrentStep] = useState(1);
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -1136,6 +1142,7 @@ export default function CheckoutPage() {
 
         // WooCommerce handles payment processing in completeCheckout
         // Pass opaque data via payment_data array (WooCommerce Store API format)
+        // For subscriptions, we must create an account
         const result = await completeCheckoutAPI({
           payment_method: "authorizenet",
           payment_data: [
@@ -1165,6 +1172,7 @@ export default function CheckoutPage() {
             country: "US",
             phone: phone || "",
           },
+          create_account: hasSubscription, // Create account for subscription orders
         });
 
         // Clear checkout session from localStorage
@@ -1287,6 +1295,7 @@ export default function CheckoutPage() {
             country: "US",
             phone: phone || "",
           },
+          create_account: hasSubscription, // Create account for subscription orders
         });
 
         // Clear checkout session from localStorage
@@ -1357,6 +1366,7 @@ export default function CheckoutPage() {
             country: "US",
             phone: phone || "",
           },
+          create_account: hasSubscription, // Create account for subscription orders
         });
 
         // Clear checkout session from localStorage
