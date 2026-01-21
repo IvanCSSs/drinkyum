@@ -383,13 +383,12 @@ export interface PaymentConfigResponse {
 
 /**
  * Get payment configuration (for frontend)
- * Calls the WordPress REST API endpoint that returns payment gateway config
+ * Calls our API proxy which forwards to WordPress REST API
  */
 export async function getPaymentConfig(): Promise<PaymentConfigResponse> {
   try {
-    // Call the WordPress payment-config endpoint
-    const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
-    const response = await fetch(`${WC_URL}/wp-json/wc/v3/payment-config`)
+    // Use local API proxy to avoid CORS issues
+    const response = await fetch('/api/payment-config')
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`)
