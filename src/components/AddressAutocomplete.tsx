@@ -187,7 +187,8 @@ export default function AddressAutocomplete({
   const autocompleteElementRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [useNewApi, setUseNewApi] = useState(true);
+  // Use legacy API by default - more stable and reliable
+  const [useNewApi, setUseNewApi] = useState(false);
 
   const handlePlaceSelect = useCallback((components: AddressComponents) => {
     console.log("handlePlaceSelect called with components:", components);
@@ -333,6 +334,8 @@ export default function AddressAutocomplete({
   const initLegacyAutocomplete = useCallback(() => {
     if (!inputRef.current || !window.google?.maps?.places) return;
 
+    console.log("[AddressAutocomplete] Initializing legacy autocomplete...");
+
     try {
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
         componentRestrictions: { country: "us" },
@@ -342,12 +345,24 @@ export default function AddressAutocomplete({
 
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
-        if (!place) return;
+        console.log("[AddressAutocomplete] place_changed event, place:", place);
+
+        if (!place) {
+          console.warn("[AddressAutocomplete] No place returned");
+          return;
+        }
+
+        if (!place.address_components) {
+          console.warn("[AddressAutocomplete] No address_components on place");
+          return;
+        }
 
         const components = parseAddressComponents(place);
+        console.log("[AddressAutocomplete] Parsed components:", components);
         handlePlaceSelect(components);
       });
 
+      console.log("[AddressAutocomplete] Legacy autocomplete initialized successfully");
       setIsLoaded(true);
     } catch (err) {
       console.error("Failed to initialize legacy autocomplete:", err);
@@ -359,12 +374,15 @@ export default function AddressAutocomplete({
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
 
     if (!apiKey) {
-      console.warn("Google Places API key not configured. Address autocomplete disabled.");
+      console.warn("[AddressAutocomplete] Google Places API key not configured. Address autocomplete disabled.");
       return;
     }
 
+    console.log("[AddressAutocomplete] Loading Google Places script...", { useNewApi });
+
     loadGooglePlacesScript(apiKey)
       .then(() => {
+        console.log("[AddressAutocomplete] Google Places script loaded successfully");
         if (useNewApi) {
           initNewAutocomplete();
         } else {
@@ -372,7 +390,7 @@ export default function AddressAutocomplete({
         }
       })
       .catch((err) => {
-        console.error("Failed to load Google Places:", err);
+        console.error("[AddressAutocomplete] Failed to load Google Places:", err);
         setError("Failed to load address service");
       });
   }, [initNewAutocomplete, initLegacyAutocomplete, useNewApi]);
