@@ -171,3 +171,66 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   pointer-events: none;
 }
+
+/* Google Places Autocomplete Dropdown Styling */
+.pac-container {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  margin-top: 8px;
+  font-family: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.pac-container::after {
+  /* Hide "powered by Google" or style it */
+  background: #1a1a1a !important;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pac-item {
+  background: #1a1a1a;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 12px 16px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pac-item:last-child {
+  border-bottom: none;
+}
+
+.pac-item:hover,
+.pac-item-selected {
+  background: rgba(225, 37, 143, 0.1);
+}
+
+.pac-item-query {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.pac-item span:not(.pac-item-query) {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+}
+
+.pac-icon {
+  /* Style the location pin icon */
+  filter: brightness(0) invert(1) opacity(0.4);
+  margin-right: 12px;
+}
+
+.pac-icon-marker {
+  filter: brightness(0) saturate(100%) invert(32%) sepia(85%) saturate(2500%) hue-rotate(310deg) brightness(95%) contrast(95%);
+}
+
+.pac-matched {
+  font-weight: 600;
+  color: var(--yum-pink);
+}
