@@ -250,21 +250,70 @@ export default function AddressAutocomplete({
           const place = placeEvent.detail.place;
 
           console.log("gmp-placeselect event fired, place:", place);
+          console.log("place.id:", place.id);
 
           // Fetch full place details - must await this
-          await place.fetchFields({ fields: ["addressComponents", "formattedAddress"] });
+          // Note: The new API uses different field names
+          try {
+            await place.fetchFields({
+              fields: ["addressComponents", "formattedAddress", "displayName"]
+            });
+          } catch (fetchErr) {
+            console.error("fetchFields error:", fetchErr);
+            // Try alternative approach - the place object might already have the data
+          }
 
           console.log("After fetchFields, place.addressComponents:", place.addressComponents);
           console.log("After fetchFields, place.formattedAddress:", place.formattedAddress);
+          console.log("After fetchFields, place.displayName:", place.displayName);
 
-          const components = parseNewPlaceAddress(place);
+          // If addressComponents is available, parse it
+          if (place.addressComponents && place.addressComponents.length > 0) {
+            const components = parseNewPlaceAddress(place);
 
-          // If parsing failed (no city/zip), log a warning
-          if (!components.city || !components.zipCode) {
-            console.warn("Address parsing incomplete:", components);
+            // If parsing failed (no city/zip), log a warning
+            if (!components.city || !components.zipCode) {
+              console.warn("Address parsing incomplete:", components);
+            }
+
+            handlePlaceSelect(components);
+          } else {
+            // Fallback: try to extract from formattedAddress string
+            console.warn("No addressComponents, attempting to parse from formattedAddress");
+            const formattedAddress = place.formattedAddress || "";
+
+            if (formattedAddress) {
+              // Call onChange with the formatted address so the field isn't empty
+              onChange(formattedAddress);
+
+              // Try to parse the formatted address (US format: "123 Main St, City, ST ZIP, USA")
+              const parts = formattedAddress.split(", ");
+              const components: AddressComponents = {
+                streetNumber: "",
+                street: parts[0] || "",
+                city: parts[1] || "",
+                state: "",
+                stateCode: "",
+                zipCode: "",
+                country: "",
+              };
+
+              // Parse state and zip from "ST ZIP" format
+              if (parts[2]) {
+                const stateZip = parts[2].split(" ");
+                components.stateCode = stateZip[0] || "";
+                components.state = stateZip[0] || ""; // Will need to map to full name
+                components.zipCode = stateZip[1] || "";
+              }
+
+              if (parts[3]) {
+                components.country = parts[3];
+              }
+
+              console.log("Parsed from formattedAddress:", components);
+              onAddressSelect(components);
+            }
           }
-
-          handlePlaceSelect(components);
         } catch (err) {
           console.error("Error handling place selection:", err);
         }
@@ -278,7 +327,7 @@ export default function AddressAutocomplete({
       console.error("Failed to initialize new autocomplete:", err);
       setUseNewApi(false);
     }
-  }, [handlePlaceSelect]);
+  }, [handlePlaceSelect, onChange, onAddressSelect]);
 
   // Fallback to legacy Autocomplete API
   const initLegacyAutocomplete = useCallback(() => {
