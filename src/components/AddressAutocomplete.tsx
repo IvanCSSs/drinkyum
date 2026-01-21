@@ -202,7 +202,16 @@ export default function AddressAutocomplete({
   // Initialize with the new PlaceAutocompleteElement API
   const initNewAutocomplete = useCallback(() => {
     if (!containerRef.current || !window.google?.maps?.places) return;
+
+    // Prevent duplicate initialization
     if (autocompleteElementRef.current) return;
+
+    // Also check if container already has an autocomplete element
+    const existingElement = containerRef.current.querySelector('gmp-place-autocomplete');
+    if (existingElement) {
+      console.warn("Autocomplete element already exists, skipping initialization");
+      return;
+    }
 
     try {
       // Check if PlaceAutocompleteElement is available
@@ -323,9 +332,17 @@ export default function AddressAutocomplete({
 
   // Cleanup on unmount
   useEffect(() => {
+    const container = containerRef.current;
     return () => {
+      // Remove the stored reference
       if (autocompleteElementRef.current) {
         autocompleteElementRef.current.remove();
+        autocompleteElementRef.current = null;
+      }
+      // Also clean up any orphaned elements in the container
+      if (container) {
+        const elements = container.querySelectorAll('gmp-place-autocomplete');
+        elements.forEach(el => el.remove());
       }
     };
   }, []);
