@@ -2,10 +2,13 @@
  * Address Management Functions
  *
  * Handles customer address CRUD operations for shipping
- * and billing addresses.
+ * and billing addresses using WooCommerce backend.
  */
 
-import { medusa } from './medusa-client'
+import { getCurrentAuthToken } from './auth'
+
+// WordPress API URL
+const WP_API_URL = process.env.NEXT_PUBLIC_WP_URL
 
 // Types
 export interface Address {
@@ -45,12 +48,36 @@ export interface AddressInput {
 }
 
 /**
+ * Get headers with auth token
+ */
+function getAuthHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+  const token = getCurrentAuthToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
+}
+
+/**
  * Get all addresses for the current customer
  */
 export async function getAddresses(): Promise<{
   addresses: Address[]
 }> {
-  return medusa.get('/store/addresses/me')
+  const response = await fetch(`/api/addresses`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to fetch addresses' }))
+    throw new Error(error.message || 'Failed to fetch addresses')
+  }
+
+  return response.json()
 }
 
 /**
@@ -59,7 +86,17 @@ export async function getAddresses(): Promise<{
 export async function getAddress(addressId: string): Promise<{
   address: Address
 }> {
-  return medusa.get(`/store/addresses/me/${addressId}`)
+  const response = await fetch(`/api/addresses/${addressId}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Address not found' }))
+    throw new Error(error.message || 'Address not found')
+  }
+
+  return response.json()
 }
 
 /**
@@ -68,7 +105,18 @@ export async function getAddress(addressId: string): Promise<{
 export async function addAddress(address: AddressInput): Promise<{
   address: Address
 }> {
-  return medusa.post('/store/addresses/me', address)
+  const response = await fetch(`/api/addresses`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(address),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to add address' }))
+    throw new Error(error.message || 'Failed to add address')
+  }
+
+  return response.json()
 }
 
 /**
@@ -80,14 +128,33 @@ export async function updateAddress(
 ): Promise<{
   address: Address
 }> {
-  return medusa.patch(`/store/addresses/me/${addressId}`, data)
+  const response = await fetch(`/api/addresses/${addressId}`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to update address' }))
+    throw new Error(error.message || 'Failed to update address')
+  }
+
+  return response.json()
 }
 
 /**
  * Delete an address
  */
 export async function deleteAddress(addressId: string): Promise<void> {
-  await medusa.delete(`/store/addresses/me/${addressId}`)
+  const response = await fetch(`/api/addresses/${addressId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to delete address' }))
+    throw new Error(error.message || 'Failed to delete address')
+  }
 }
 
 /**
@@ -96,9 +163,7 @@ export async function deleteAddress(addressId: string): Promise<void> {
 export async function setDefaultShipping(addressId: string): Promise<{
   address: Address
 }> {
-  return medusa.patch(`/store/addresses/me/${addressId}`, {
-    is_default_shipping: true,
-  })
+  return updateAddress(addressId, { is_default_shipping: true })
 }
 
 /**
@@ -107,9 +172,7 @@ export async function setDefaultShipping(addressId: string): Promise<{
 export async function setDefaultBilling(addressId: string): Promise<{
   address: Address
 }> {
-  return medusa.patch(`/store/addresses/me/${addressId}`, {
-    is_default_billing: true,
-  })
+  return updateAddress(addressId, { is_default_billing: true })
 }
 
 /**

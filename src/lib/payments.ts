@@ -1,10 +1,13 @@
 /**
  * Payment Methods Management
  *
- * Handles saved payment methods for customers using Stripe.
+ * Handles saved payment methods for customers using WooCommerce/Stripe.
  */
 
-import { medusa } from './medusa-client'
+import { getCurrentAuthToken } from './auth'
+
+// WordPress API URL
+const WP_API_URL = process.env.NEXT_PUBLIC_WP_URL
 
 // Types
 export interface PaymentMethod {
@@ -30,19 +33,53 @@ export interface SetupIntent {
 }
 
 /**
+ * Get headers with auth token
+ */
+function getAuthHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+  const token = getCurrentAuthToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
+}
+
+/**
  * Get all saved payment methods for the current customer
  */
 export async function getPaymentMethods(): Promise<{
   payment_methods: PaymentMethod[]
 }> {
-  return medusa.get('/store/payment-methods/me')
+  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to fetch payment methods' }))
+    throw new Error(error.message || 'Failed to fetch payment methods')
+  }
+
+  return response.json()
 }
 
 /**
  * Get Stripe SetupIntent for adding a new card
  */
 export async function getSetupIntent(): Promise<SetupIntent> {
-  return medusa.post('/store/payment-methods/me/setup-intent')
+  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods/setup-intent`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to create setup intent' }))
+    throw new Error(error.message || 'Failed to create setup intent')
+  }
+
+  return response.json()
 }
 
 /**
@@ -52,9 +89,18 @@ export async function getSetupIntent(): Promise<SetupIntent> {
 export async function addPaymentMethod(paymentMethodId: string): Promise<{
   payment_method: PaymentMethod
 }> {
-  return medusa.post('/store/payment-methods/me', {
-    payment_method_id: paymentMethodId,
+  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ payment_method_id: paymentMethodId }),
   })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to add payment method' }))
+    throw new Error(error.message || 'Failed to add payment method')
+  }
+
+  return response.json()
 }
 
 /**
@@ -63,14 +109,32 @@ export async function addPaymentMethod(paymentMethodId: string): Promise<{
 export async function setDefaultPaymentMethod(paymentMethodId: string): Promise<{
   payment_method: PaymentMethod
 }> {
-  return medusa.post(`/store/payment-methods/me/${paymentMethodId}/default`)
+  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods/${paymentMethodId}/default`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to set default payment method' }))
+    throw new Error(error.message || 'Failed to set default payment method')
+  }
+
+  return response.json()
 }
 
 /**
  * Remove a payment method
  */
 export async function removePaymentMethod(paymentMethodId: string): Promise<void> {
-  await medusa.delete(`/store/payment-methods/me/${paymentMethodId}`)
+  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods/${paymentMethodId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to remove payment method' }))
+    throw new Error(error.message || 'Failed to remove payment method')
+  }
 }
 
 /**

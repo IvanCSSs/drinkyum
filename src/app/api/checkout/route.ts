@@ -129,17 +129,40 @@ export async function POST(request: NextRequest) {
         )
     }
 
+    const forwardHeaders = getForwardHeaders(request) as Record<string, string>
+    console.log('[Checkout API] Request to WooCommerce:', {
+      endpoint: `${STORE_API_BASE}${endpoint}`,
+      method,
+      headers: {
+        'Cart-Token': forwardHeaders['Cart-Token'] ? 'present' : 'missing',
+        'Nonce': forwardHeaders['Nonce'] ? forwardHeaders['Nonce'] : 'missing',
+      },
+      payload: JSON.stringify(payload).substring(0, 1000),
+    })
+
     const wcResponse = await fetch(`${STORE_API_BASE}${endpoint}`, {
       method,
-      headers: getForwardHeaders(request),
+      headers: forwardHeaders,
       body: JSON.stringify(payload),
     })
 
     const data = await wcResponse.json()
 
     if (!wcResponse.ok) {
-      console.error('[Checkout API] WooCommerce error:', data)
-      return NextResponse.json(data, { status: wcResponse.status })
+      console.error('[Checkout API] WooCommerce error:', {
+        status: wcResponse.status,
+        code: data?.code,
+        message: data?.message,
+        fullError: JSON.stringify(data, null, 2),
+      })
+      // Return detailed error for debugging
+      return NextResponse.json({
+        ...data,
+        _debug: {
+          endpoint: `${STORE_API_BASE}${endpoint}`,
+          status: wcResponse.status,
+        }
+      }, { status: wcResponse.status })
     }
 
     return buildResponse(wcResponse, data)

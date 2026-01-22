@@ -1,11 +1,14 @@
 /**
  * Order History Functions
  *
- * Handles fetching customer orders and returns.
+ * Handles fetching customer orders from WooCommerce backend.
  */
 
-import { medusa } from './medusa-client'
+import { getCurrentAuthToken } from './auth'
 import type { Address } from './addresses'
+
+// WordPress API URL
+const WP_API_URL = process.env.NEXT_PUBLIC_WP_URL
 
 // Types
 export interface OrderItem {
@@ -73,25 +76,24 @@ export interface Order {
   metadata?: Record<string, unknown>
 }
 
-export interface Return {
-  id: string
-  order_id: string
-  status: 'requested' | 'received' | 'requires_action' | 'canceled'
-  refund_amount: number
-  items: {
-    item_id: string
-    quantity: number
-    reason: string
-    note?: string
-  }[]
-  created_at: string
-  updated_at: string
-}
-
 export interface OrderListParams {
   limit?: number
   offset?: number
   status?: string
+}
+
+/**
+ * Get headers with auth token
+ */
+function getAuthHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+  const token = getCurrentAuthToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
 }
 
 /**
@@ -109,7 +111,20 @@ export async function getOrders(params?: OrderListParams): Promise<{
   if (params?.status) query.set('status', params.status)
 
   const queryStr = query.toString()
-  return medusa.get(`/store/purchases/me${queryStr ? `?${queryStr}` : ''}`)
+  const response = await fetch(
+    `/api/orders${queryStr ? `?${queryStr}` : ''}`,
+    {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to fetch orders' }))
+    throw new Error(error.message || 'Failed to fetch orders')
+  }
+
+  return response.json()
 }
 
 /**
@@ -118,7 +133,20 @@ export async function getOrders(params?: OrderListParams): Promise<{
 export async function getOrder(orderId: string): Promise<{
   order: Order
 }> {
-  return medusa.get(`/store/purchases/me/${orderId}`)
+  const response = await fetch(
+    `${WP_API_URL}/wp-json/store/v1/orders/${orderId}`,
+    {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Order not found' }))
+    throw new Error(error.message || 'Order not found')
+  }
+
+  return response.json()
 }
 
 /**
@@ -127,41 +155,6 @@ export async function getOrder(orderId: string): Promise<{
 export async function getRecentOrders(): Promise<Order[]> {
   const { orders } = await getOrders({ limit: 5 })
   return orders
-}
-
-/**
- * Create a return request
- */
-export async function createReturn(data: {
-  order_id: string
-  items: {
-    item_id: string
-    quantity: number
-    reason: string
-    note?: string
-  }[]
-}): Promise<{
-  return: Return
-}> {
-  return medusa.post('/store/returns', data)
-}
-
-/**
- * Get customer returns
- */
-export async function getReturns(): Promise<{
-  returns: Return[]
-}> {
-  return medusa.get('/store/returns/me')
-}
-
-/**
- * Get return by ID
- */
-export async function getReturn(returnId: string): Promise<{
-  return: Return
-}> {
-  return medusa.get(`/store/returns/me/${returnId}`)
 }
 
 /**
@@ -260,4 +253,53 @@ export function canRequestReturn(order: Order): boolean {
     order.fulfillment_status !== 'returned' &&
     order.fulfillment_status !== 'canceled'
   )
+}
+
+// ============================================================================
+// Returns - Placeholder implementations
+// WooCommerce doesn't have built-in returns API, will need custom implementation
+// ============================================================================
+
+export interface Return {
+  id: string
+  order_id: string
+  status: 'requested' | 'received' | 'requires_action' | 'refunded' | 'canceled'
+  refund_amount: number
+  items: Array<{
+    id: string
+    item_id: string
+    quantity: number
+    reason?: string
+  }>
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Get customer returns
+ * TODO: Implement with WooCommerce refunds or custom returns system
+ */
+export async function getReturns(): Promise<{ returns: Return[] }> {
+  // Placeholder - returns not yet implemented
+  return { returns: [] }
+}
+
+/**
+ * Get a single return by ID
+ * TODO: Implement with WooCommerce refunds or custom returns system
+ */
+export async function getReturn(_returnId: string): Promise<Return | null> {
+  // Placeholder - returns not yet implemented
+  return null
+}
+
+/**
+ * Request a return for an order
+ * TODO: Implement with WooCommerce refunds or custom returns system
+ */
+export async function createReturn(
+  _orderId: string,
+  _items: Array<{ item_id: string; quantity: number; reason?: string }>
+): Promise<Return> {
+  throw new Error('Returns are not yet implemented')
 }

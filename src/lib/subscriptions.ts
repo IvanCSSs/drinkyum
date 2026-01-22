@@ -105,36 +105,59 @@ export async function getMySubscriptions(email?: string): Promise<{
 
 /**
  * Get a single subscription by ID
+ * Uses local API proxy to handle WooCommerce OAuth authentication
  */
 export async function getSubscription(subscriptionId: number): Promise<{
   subscription: Subscription
 }> {
-  const subscription = await woocommerce.get<Subscription>(`/subscriptions/${subscriptionId}`)
-  return { subscription }
+  const response = await fetch(`/api/subscriptions/${subscriptionId}`)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch subscription')
+  }
+
+  return response.json()
 }
 
 /**
  * Pause a subscription
+ * Uses local API proxy to handle WooCommerce OAuth authentication
  */
 export async function pauseSubscription(subscriptionId: number): Promise<{
   subscription: Subscription
 }> {
-  const subscription = await woocommerce.post<Subscription>(`/subscriptions/${subscriptionId}/pause`)
-  return { subscription }
+  const response = await fetch(`/api/subscriptions/${subscriptionId}/pause`, {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to pause subscription')
+  }
+
+  return response.json()
 }
 
 /**
  * Resume a paused subscription
+ * Uses local API proxy to handle WooCommerce OAuth authentication
  */
 export async function resumeSubscription(subscriptionId: number): Promise<{
   subscription: Subscription
 }> {
-  const subscription = await woocommerce.post<Subscription>(`/subscriptions/${subscriptionId}/resume`)
-  return { subscription }
+  const response = await fetch(`/api/subscriptions/${subscriptionId}/resume`, {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to resume subscription')
+  }
+
+  return response.json()
 }
 
 /**
  * Cancel a subscription
+ * Uses local API proxy to handle WooCommerce OAuth authentication
  */
 export async function cancelSubscription(
   subscriptionId: number,
@@ -142,24 +165,43 @@ export async function cancelSubscription(
 ): Promise<{
   subscription: Subscription
 }> {
-  const subscription = await woocommerce.post<Subscription>(`/subscriptions/${subscriptionId}/cancel`, {
-    reason,
+  const response = await fetch(`/api/subscriptions/${subscriptionId}/cancel`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ reason }),
   })
-  return { subscription }
+
+  if (!response.ok) {
+    throw new Error('Failed to cancel subscription')
+  }
+
+  return response.json()
 }
 
 /**
  * Skip the next shipment
+ * Uses local API proxy to handle WooCommerce OAuth authentication
  */
 export async function skipNextShipment(subscriptionId: number): Promise<{
   subscription: Subscription
   skipped_date: string
 }> {
-  return woocommerce.post(`/subscriptions/${subscriptionId}/skip`)
+  const response = await fetch(`/api/subscriptions/${subscriptionId}/skip`, {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to skip shipment')
+  }
+
+  return response.json()
 }
 
 /**
  * Change subscription frequency
+ * Uses local API proxy to handle WooCommerce OAuth authentication
  */
 export async function changeFrequency(
   subscriptionId: number,
@@ -168,11 +210,19 @@ export async function changeFrequency(
 ): Promise<{
   subscription: Subscription
 }> {
-  const subscription = await woocommerce.post<Subscription>(
-    `/subscriptions/${subscriptionId}/frequency`,
-    { period, interval }
-  )
-  return { subscription }
+  const response = await fetch(`/api/subscriptions/${subscriptionId}/frequency`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ billing_period: period, billing_interval: interval }),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to change frequency')
+  }
+
+  return response.json()
 }
 
 /**
