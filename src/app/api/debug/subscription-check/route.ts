@@ -111,11 +111,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ debug, message: 'No customer found with this email' })
     }
 
-    const customerId = customers[0].id
+    const wcCustomerId = customers[0].id
 
     // Step 4: Fetch subscriptions for this customer
     const subscriptionsResponse = await fetch(
-      `${WC_URL}/wp-json/wc/v3/subscriptions?customer=${customerId}`,
+      `${WC_URL}/wp-json/wc/v3/subscriptions?customer=${wcCustomerId}`,
       {
         method: 'GET',
         headers: {
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
       name: 'Fetch subscriptions',
       status: subscriptionsResponse.status,
       ok: subscriptionsResponse.ok,
-      url: `${WC_URL}/wp-json/wc/v3/subscriptions?customer=${customerId}`
+      url: `${WC_URL}/wp-json/wc/v3/subscriptions?customer=${wcCustomerId}`
     })
 
     if (!subscriptionsResponse.ok) {
