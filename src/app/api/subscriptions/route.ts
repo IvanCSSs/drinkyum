@@ -80,18 +80,39 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get customer email from query param or cookie
-    const { searchParams } = new URL(request.url)
-    let customerEmail = searchParams.get('email')
-
-    // If no email provided, try to get from a stored customer cookie
-    if (!customerEmail) {
-      const cookieStore = await cookies()
-      customerEmail = cookieStore.get('customer_email')?.value || null
+    // Get JWT token to fetch customer info
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: 'Authorization required' },
+        { status: 401 }
+      )
     }
 
+    // First, get customer info from WordPress auth endpoint using JWT
+    const customerResponse = await fetch(
+      `${WC_URL}/wp-json/auth/v1/me`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    if (!customerResponse.ok) {
+      console.error('[Subscriptions API] Failed to get customer from JWT')
+      return NextResponse.json(
+        { error: 'Authentication failed' },
+        { status: 401 }
+      )
+    }
+
+    const customerData = await customerResponse.json()
+    const customerEmail = customerData.email
+
     if (!customerEmail) {
-      // Return empty array if no customer identified
       return NextResponse.json({ subscriptions: [], count: 0 })
     }
 
