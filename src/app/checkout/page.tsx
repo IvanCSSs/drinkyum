@@ -791,6 +791,9 @@ export default function CheckoutPage() {
 
   // Initialize checkout session (cart data now comes from CartContext)
   useEffect(() => {
+    // Prevent re-initialization after first load (e.g., when cartItems changes due to coupon)
+    if (isInitialized) return;
+
     const initCheckout = async () => {
       // Try to recover existing checkout session
       let existingSession: CheckoutSession | null = null;
@@ -846,7 +849,7 @@ export default function CheckoutPage() {
     if (!cartLoading) {
       initCheckout();
     }
-  }, [cartLoading, cartItems]);
+  }, [cartLoading, cartItems, isInitialized]);
 
   // Update cart shipping address when address fields change
   // This triggers WooCommerce to calculate shipping rates
@@ -938,6 +941,8 @@ export default function CheckoutPage() {
   // Handle step transitions (save session on each step)
   const handleStepChange = useCallback((newStep: number) => {
     setCurrentStep(newStep);
+    // Scroll to top on step change for better UX
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     // Save session with new step
     setTimeout(() => saveCheckoutSession(), 0);
   }, [saveCheckoutSession]);
