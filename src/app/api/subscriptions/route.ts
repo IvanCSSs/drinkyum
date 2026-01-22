@@ -112,7 +112,10 @@ export async function GET(request: NextRequest) {
     const customerData = await customerResponse.json()
     const customerEmail = customerData.email
 
+    console.log('[Subscriptions API] Customer email from JWT:', customerEmail)
+
     if (!customerEmail) {
+      console.log('[Subscriptions API] No customer email found in JWT')
       return NextResponse.json({ subscriptions: [], count: 0 })
     }
 
@@ -129,18 +132,21 @@ export async function GET(request: NextRequest) {
     )
 
     if (!customersResponse.ok) {
-      console.error('[Subscriptions API] Failed to fetch customer:', await customersResponse.text())
+      const errorText = await customersResponse.text()
+      console.error('[Subscriptions API] Failed to fetch customer:', errorText)
       return NextResponse.json({ subscriptions: [], count: 0 })
     }
 
     const customers = await customersResponse.json()
+    console.log('[Subscriptions API] Found customers:', customers.length, 'for email:', customerEmail)
 
     if (!customers || customers.length === 0) {
-      // No customer found with this email
+      console.log('[Subscriptions API] No customer found with this email')
       return NextResponse.json({ subscriptions: [], count: 0 })
     }
 
     const customerId = customers[0].id
+    console.log('[Subscriptions API] Using customer ID:', customerId)
 
     // Fetch subscriptions for this customer
     const subscriptionsResponse = await fetch(
@@ -164,6 +170,8 @@ export async function GET(request: NextRequest) {
     }
 
     const subscriptions: WCSubscription[] = await subscriptionsResponse.json()
+    console.log('[Subscriptions API] Found subscriptions:', subscriptions.length)
+    console.log('[Subscriptions API] Subscription details:', JSON.stringify(subscriptions, null, 2))
 
     return NextResponse.json({
       subscriptions,

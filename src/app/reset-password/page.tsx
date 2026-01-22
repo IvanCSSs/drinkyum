@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Lock, Eye, EyeOff, Check, CheckCircle, AlertCircle } from "lucide-react";
-import { confirmPasswordReset } from "@/lib/auth";
+import { Lock, Eye, EyeOff, Check, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { confirmPasswordReset, requestPasswordReset } from "@/lib/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileLogo from "@/components/MobileLogo";
@@ -14,6 +14,7 @@ function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const email = searchParams.get("email"); // WordPress requires email for password reset
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,6 +23,9 @@ function ResetPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTokenExpired, setIsTokenExpired] = useState(false);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+  const [emailResent, setEmailResent] = useState(false);
 
   // Password validation
   const passwordRequirements = [
@@ -33,12 +37,28 @@ function ResetPasswordForm() {
   const allRequirementsMet = passwordRequirements.every((req) => req.met);
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
 
-  // Redirect if no token
+  // Redirect if missing token or email (WordPress requires both)
   useEffect(() => {
-    if (!token) {
+    if (!token || !email) {
       router.push("/forgot-password");
     }
-  }, [token, router]);
+  }, [token, email, router]);
+
+  const handleResendEmail = async () => {
+    if (!email) return;
+
+    setIsResendingEmail(true);
+    try {
+      await requestPasswordReset(email);
+      setEmailResent(true);
+      setError(null);
+      setIsTokenExpired(false);
+    } catch {
+      setError("Failed to send reset email. Please try again.");
+    } finally {
+      setIsResendingEmail(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,24 +74,25 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (!token) {
-      setError("Invalid reset token");
+    if (!token || !email) {
+      setError("Invalid reset link");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await confirmPasswordReset(token, password);
+      await confirmPasswordReset(token, password, email);
       setIsSuccess(true);
     } catch {
-      setError("This reset link has expired or is invalid. Please request a new one.");
+      setError("This reset link has expired or is invalid.");
+      setIsTokenExpired(true);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!token) {
+  if (!token || !email) {
     return (
       <div className="text-center py-12">
         <AlertCircle size={48} className="text-yellow-400 mx-auto mb-4" />
@@ -88,7 +109,29 @@ function ResetPasswordForm() {
         border: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      {isSuccess ? (
+      {emailResent ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-6"
+        >
+          <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={32} className="text-green-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">
+            New Reset Link Sent
+          </h2>
+          <p className="text-white/60 mb-6">
+            We&apos;ve sent a new password reset link to <span className="text-white">{email}</span>. Please check your inbox.
+          </p>
+          <Link
+            href="/login"
+            className="text-yum-pink hover:text-white transition-colors text-sm"
+          >
+            Back to Sign In
+          </Link>
+        </motion.div>
+      ) : isSuccess ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -122,7 +165,27 @@ function ResetPasswordForm() {
               animate={{ opacity: 1, y: 0 }}
               className="p-4 rounded-xl bg-red-500/10 border border-red-500/20"
             >
-              <p className="text-red-400 text-sm">{error}</p>
+              <p className="text-red-400 text-sm mb-3">{error}</p>
+              {isTokenExpired && email && (
+                <button
+                  type="button"
+                  onClick={handleResendEmail}
+                  disabled={isResendingEmail}
+                  className="inline-flex items-center gap-2 text-sm text-yum-pink hover:text-white transition-colors disabled:opacity-50"
+                >
+                  {isResendingEmail ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-yum-pink/30 border-t-yum-pink rounded-full animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={16} />
+                      Send a new reset link
+                    </>
+                  )}
+                </button>
+              )}
             </motion.div>
           )}
 

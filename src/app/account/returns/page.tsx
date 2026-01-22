@@ -46,6 +46,7 @@ export default function ReturnsPage() {
       requested: "Requested",
       received: "Received",
       requires_action: "Action Required",
+      refunded: "Refunded",
       canceled: "Canceled",
     };
     return labels[status] || status;
