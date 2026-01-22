@@ -62,14 +62,15 @@ export async function GET(request: NextRequest) {
     }
 
     const customerData = await customerResponse.json()
+    const customerEmail = customerData.email
+
     debug.steps.push({
       step: 3,
       name: 'Customer data',
-      email: customerData.email,
-      id: customerData.id
+      email: customerEmail,
+      id: customerData.id,
+      fullCustomerData: customerData
     })
-
-    const customerEmail = customerData.email
 
     // Step 3: Look up customer by email in WooCommerce
     const customersResponse = await fetch(
