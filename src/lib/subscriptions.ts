@@ -89,7 +89,19 @@ export async function getMySubscriptions(email?: string): Promise<{
   // Use local API proxy which handles WC authentication
   const url = email ? `/api/subscriptions?email=${encodeURIComponent(email)}` : '/api/subscriptions'
 
-  const response = await fetch(url)
+  // Get auth token
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers,
+  })
 
   if (!response.ok) {
     throw new Error('Failed to fetch subscriptions')
