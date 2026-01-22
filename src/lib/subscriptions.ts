@@ -9,6 +9,20 @@
 
 import { woocommerce } from './wc-client'
 
+// Import getAuthHeaders from auth.ts - need to export it first
+function getAuthHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('wp_auth_token')
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+  }
+  return headers
+}
+
 // Types
 export type SubscriptionPeriod = 'day' | 'week' | 'month' | 'year'
 
@@ -89,18 +103,9 @@ export async function getMySubscriptions(email?: string): Promise<{
   // Use local API proxy which handles WC authentication
   const url = email ? `/api/subscriptions?email=${encodeURIComponent(email)}` : '/api/subscriptions'
 
-  // Get auth token (use same key as auth.ts: 'wp_auth_token')
-  const token = typeof window !== 'undefined' ? localStorage.getItem('wp_auth_token') : null
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  }
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
   const response = await fetch(url, {
     method: 'GET',
-    headers,
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
