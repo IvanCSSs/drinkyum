@@ -62,13 +62,15 @@ export async function GET(request: NextRequest) {
     }
 
     const customerData = await customerResponse.json()
-    const customerEmail = customerData.email
+    // The customer data is nested under 'customer' key
+    const customerEmail = customerData.customer?.email || customerData.email
+    const customerId = customerData.customer?.id || customerData.id
 
     debug.steps.push({
       step: 3,
       name: 'Customer data',
       email: customerEmail,
-      id: customerData.id,
+      id: customerId,
       fullCustomerData: customerData
     })
 

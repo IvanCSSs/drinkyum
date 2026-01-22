@@ -110,9 +110,11 @@ export async function GET(request: NextRequest) {
     }
 
     const customerData = await customerResponse.json()
-    const customerEmail = customerData.email
+    // The customer data is nested under 'customer' key
+    const customerEmail = customerData.customer?.email || customerData.email
 
     console.log('[Subscriptions API] Customer email from JWT:', customerEmail)
+    console.log('[Subscriptions API] Full customer data:', JSON.stringify(customerData, null, 2))
 
     if (!customerEmail) {
       console.log('[Subscriptions API] No customer email found in JWT')
