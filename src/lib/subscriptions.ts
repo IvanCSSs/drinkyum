@@ -89,8 +89,8 @@ export async function getMySubscriptions(email?: string): Promise<{
   // Use local API proxy which handles WC authentication
   const url = email ? `/api/subscriptions?email=${encodeURIComponent(email)}` : '/api/subscriptions'
 
-  // Get auth token
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+  // Get auth token (use same key as auth.ts: 'wp_auth_token')
+  const token = typeof window !== 'undefined' ? localStorage.getItem('wp_auth_token') : null
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   }
