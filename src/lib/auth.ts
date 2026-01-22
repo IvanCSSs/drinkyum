@@ -344,10 +344,12 @@ export async function getAccountSummary(): Promise<AccountSummary> {
       return sum + parseFloat(order.total || 0)
     }, 0)
 
-    // Count active subscriptions (status: active, pending, or on-hold)
-    const activeSubscriptions = subscriptions.filter((sub: any) =>
-      ['active', 'pending', 'on-hold'].includes(sub.status)
-    )
+    // Count active subscriptions (any status except cancelled, expired, pending-cancel, switched, or trash)
+    // This matches WooCommerce Subscriptions behavior
+    const activeSubscriptions = subscriptions.filter((sub: any) => {
+      const status = sub.status?.toLowerCase()
+      return !['cancelled', 'canceled', 'expired', 'pending-cancel', 'switched', 'trash'].includes(status)
+    })
 
     return {
       orders_count: orders.length,
