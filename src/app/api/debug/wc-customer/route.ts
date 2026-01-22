@@ -20,7 +20,10 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('Authorization')
 
   if (!authHeader) {
-    return NextResponse.json({ error: 'No auth header' })
+    return NextResponse.json({
+      error: 'No auth header',
+      headers: Object.fromEntries(request.headers.entries())
+    })
   }
 
   // Get customer from JWT
