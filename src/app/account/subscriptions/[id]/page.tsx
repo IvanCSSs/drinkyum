@@ -8,37 +8,17 @@ import {
   RefreshCw,
   Calendar,
   Package,
-  Pause,
-  Play,
-  SkipForward,
-  XCircle,
   MapPin,
-  Clock,
-  CheckCircle,
+  Mail,
 } from "lucide-react";
 import { AccountLayout } from "@/components/account";
 import {
   getSubscription,
-  pauseSubscription,
-  resumeSubscription,
-  skipNextShipment,
-  cancelSubscription,
-  changeFrequency,
   formatFrequency,
   formatStatus,
-  fromFrequency,
   Subscription,
-  SubscriptionFrequency,
 } from "@/lib/subscriptions";
 import { formatOrderAmount } from "@/lib/orders";
-
-const FREQUENCIES: { value: SubscriptionFrequency; label: string }[] = [
-  { value: "weekly", label: "Every week" },
-  { value: "biweekly", label: "Every 2 weeks" },
-  { value: "monthly", label: "Every month" },
-  { value: "bimonthly", label: "Every 2 months" },
-  { value: "quarterly", label: "Every 3 months" },
-];
 
 export default function SubscriptionDetailPage({
   params,
@@ -49,9 +29,6 @@ export default function SubscriptionDetailPage({
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     loadSubscription();
@@ -72,89 +49,6 @@ export default function SubscriptionDetailPage({
       setIsLoading(false);
     }
   }
-
-  const showSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(null), 3000);
-  };
-
-  const handlePause = async () => {
-    if (!subscription) return;
-    setActionLoading("pause");
-    try {
-      const { subscription: updated } = await pauseSubscription(subscription.id);
-      setSubscription(updated);
-      showSuccess("Subscription paused");
-    } catch {
-      setError("Failed to pause subscription");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleResume = async () => {
-    if (!subscription) return;
-    setActionLoading("resume");
-    try {
-      const { subscription: updated } = await resumeSubscription(subscription.id);
-      setSubscription(updated);
-      showSuccess("Subscription resumed");
-    } catch {
-      setError("Failed to resume subscription");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleSkip = async () => {
-    if (!subscription) return;
-    setActionLoading("skip");
-    try {
-      const { subscription: updated, skipped_date } = await skipNextShipment(
-        subscription.id
-      );
-      setSubscription(updated);
-      showSuccess(`Skipped delivery on ${new Date(skipped_date).toLocaleDateString()}`);
-    } catch {
-      setError("Failed to skip shipment");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleCancel = async () => {
-    if (!subscription) return;
-    setActionLoading("cancel");
-    try {
-      const { subscription: updated } = await cancelSubscription(subscription.id);
-      setSubscription(updated);
-      showSuccess("Subscription cancelled");
-      setShowCancelConfirm(false);
-    } catch {
-      setError("Failed to cancel subscription");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleFrequencyChange = async (frequency: SubscriptionFrequency) => {
-    if (!subscription) return;
-    setActionLoading("frequency");
-    try {
-      const { period, interval } = fromFrequency(frequency);
-      const { subscription: updated } = await changeFrequency(
-        subscription.id,
-        period,
-        interval
-      );
-      setSubscription(updated);
-      showSuccess("Frequency updated");
-    } catch {
-      setError("Failed to update frequency");
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const getStatusBadgeClasses = (status: Subscription["status"]) => {
     const baseClasses = "px-3 py-1.5 rounded-full text-sm font-medium";
@@ -230,18 +124,6 @@ export default function SubscriptionDetailPage({
         </Link>
       </motion.div>
 
-      {/* Success Message */}
-      {successMessage && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-2"
-        >
-          <CheckCircle size={18} className="text-green-400" />
-          <p className="text-green-400 text-sm">{successMessage}</p>
-        </motion.div>
-      )}
 
       {/* Status & Frequency */}
       <motion.div
@@ -370,119 +252,31 @@ export default function SubscriptionDetailPage({
             </motion.div>
           )}
 
-          {/* Frequency Selector */}
-          {subscription.status === "active" && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="p-6 rounded-2xl"
-              style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                <Clock size={18} className="text-white/60" />
-                Delivery Frequency
-              </h3>
-              <select
-                value={subscription.frequency}
-                onChange={(e) =>
-                  handleFrequencyChange(e.target.value as SubscriptionFrequency)
-                }
-                disabled={actionLoading === "frequency"}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-yum-pink transition-colors disabled:opacity-50"
-              >
-                {FREQUENCIES.map((freq) => (
-                  <option key={freq.value} value={freq.value}>
-                    {freq.label}
-                  </option>
-                ))}
-              </select>
-            </motion.div>
-          )}
-
-          {/* Actions */}
+          {/* Need to Make Changes? */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="p-6 rounded-2xl space-y-3"
+            transition={{ delay: 0.2 }}
+            className="p-6 rounded-2xl"
             style={{
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(255,255,255,0.08)",
             }}
           >
-            <h3 className="text-white font-semibold mb-3">Actions</h3>
-
-            {subscription.status === "active" && (
-              <>
-                <button
-                  onClick={handleSkip}
-                  disabled={actionLoading !== null}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50"
-                >
-                  <SkipForward size={18} />
-                  Skip Next Shipment
-                </button>
-                <button
-                  onClick={handlePause}
-                  disabled={actionLoading !== null}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-colors disabled:opacity-50"
-                >
-                  <Pause size={18} />
-                  Pause Subscription
-                </button>
-              </>
-            )}
-
-            {subscription.status === "on-hold" && (
-              <button
-                onClick={handleResume}
-                disabled={actionLoading !== null}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-50"
-              >
-                <Play size={18} />
-                Resume Subscription
-              </button>
-            )}
-
-            {(subscription.status === "active" ||
-              subscription.status === "on-hold") && (
-              <>
-                {!showCancelConfirm ? (
-                  <button
-                    onClick={() => setShowCancelConfirm(true)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
-                  >
-                    <XCircle size={18} />
-                    Cancel Subscription
-                  </button>
-                ) : (
-                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-                    <p className="text-red-400 text-sm mb-3">
-                      Are you sure you want to cancel? This cannot be undone.
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleCancel}
-                        disabled={actionLoading === "cancel"}
-                        className="flex-1 px-3 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
-                      >
-                        {actionLoading === "cancel" ? "Cancelling..." : "Yes, Cancel"}
-                      </button>
-                      <button
-                        onClick={() => setShowCancelConfirm(false)}
-                        className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20 transition-colors"
-                      >
-                        Keep It
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+              <Mail size={18} className="text-white/60" />
+              Need to Make Changes?
+            </h3>
+            <p className="text-white/70 text-sm mb-4">
+              To pause, resume, skip deliveries, change frequency, update your address, or cancel your subscription, please contact our support team.
+            </p>
+            <a
+              href="mailto:support@drinkyum.com"
+              className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-yum-pink text-white font-medium hover:bg-yum-pink/80 transition-colors"
+            >
+              <Mail size={18} />
+              Contact Support
+            </a>
           </motion.div>
         </div>
       </div>

@@ -10,7 +10,6 @@ import {
   MapPin,
   User,
   Lock,
-  RotateCcw,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +21,6 @@ const navItems = [
   { href: "/account/addresses", label: "Addresses", icon: MapPin },
   { href: "/account/profile", label: "Profile", icon: User },
   { href: "/account/password", label: "Password", icon: Lock },
-  { href: "/account/returns", label: "Returns", icon: RotateCcw },
 ];
 
 export default function AccountSidebar() {
