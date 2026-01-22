@@ -25,8 +25,8 @@ export default function SubscriptionsPage() {
       if (authLoading) return;
 
       try {
-        // Pass customer email to fetch their subscriptions
-        const { subscriptions: fetched } = await getMySubscriptions(customer?.email);
+        // Fetch subscriptions using JWT auth (no email param needed)
+        const { subscriptions: fetched } = await getMySubscriptions();
         setSubscriptions(fetched);
       } catch (error) {
         console.error("Failed to load subscriptions:", error);
