@@ -6,6 +6,7 @@ export default function DebugSubscriptions() {
   const [subResult, setSubResult] = useState<any>(null);
   const [orderResult, setOrderResult] = useState<any>(null);
   const [addressResult, setAddressResult] = useState<any>(null);
+  const [wcCustomerResult, setWcCustomerResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   const runSubDebug = async () => {
@@ -87,6 +88,31 @@ export default function DebugSubscriptions() {
     }
   };
 
+  const runWcCustomerDebug = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('wp_auth_token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch('/api/debug/wc-customer', {
+        method: 'GET',
+        headers,
+      });
+
+      const data = await response.json();
+      setWcCustomerResult(data);
+    } catch (error: any) {
+      setWcCustomerResult({ error: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', background: '#1a1a1a', color: 'white', minHeight: '100vh' }}>
       <h1 style={{ marginBottom: '2rem' }}>Subscription Debug</h1>
@@ -139,6 +165,22 @@ export default function DebugSubscriptions() {
         >
           {loading ? 'Running...' : 'Check Addresses'}
         </button>
+
+        <button
+          onClick={runWcCustomerDebug}
+          disabled={loading}
+          style={{
+            padding: '1rem 2rem',
+            background: '#F59E0B',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontSize: '16px',
+          }}
+        >
+          {loading ? 'Running...' : 'Check WC Customer'}
+        </button>
       </div>
 
       {subResult && (
@@ -172,7 +214,7 @@ export default function DebugSubscriptions() {
       )}
 
       {addressResult && (
-        <div>
+        <div style={{ marginBottom: '2rem' }}>
           <h2>Addresses Result:</h2>
           <pre style={{
             background: '#2a2a2a',
@@ -182,6 +224,21 @@ export default function DebugSubscriptions() {
             maxHeight: '600px',
           }}>
             {JSON.stringify(addressResult, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {wcCustomerResult && (
+        <div>
+          <h2>WooCommerce Customer Result:</h2>
+          <pre style={{
+            background: '#2a2a2a',
+            padding: '1rem',
+            borderRadius: '8px',
+            overflow: 'auto',
+            maxHeight: '600px',
+          }}>
+            {JSON.stringify(wcCustomerResult, null, 2)}
           </pre>
         </div>
       )}
