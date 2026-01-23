@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import { useRef, useState, useEffect, MouseEvent } from "react";
-import { getCollections, type Collection } from "@/lib/wc-products";
+import { type Collection } from "@/lib/wc-products";
 
 // Fallback collection styling
 const collectionStyles: Record<string, {
@@ -223,11 +223,16 @@ export default function CollectionsPage() {
     async function loadCollections() {
       try {
         setIsLoading(true);
-        const data = await getCollections();
-        if (data.collections && data.collections.length > 0) {
-          setCollections(data.collections);
+        const res = await fetch('/api/collections');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.collections && data.collections.length > 0) {
+            setCollections(data.collections);
+          } else {
+            // Use default collections if API returns empty
+            setCollections(defaultCollections as Collection[]);
+          }
         } else {
-          // Use default collections if API returns empty
           setCollections(defaultCollections as Collection[]);
         }
       } catch (err) {

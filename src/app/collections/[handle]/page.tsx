@@ -10,8 +10,6 @@ import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import { useCart } from "@/contexts/CartContext";
 import {
-  getCollectionByHandle,
-  getProductsByCollection,
   getProductPrice,
   type Product,
   type Collection,
@@ -74,21 +72,26 @@ export default function CollectionPage({
     return item?.quantity || 0;
   };
 
-  // Load collection and products
+  // Load collection and products via API routes
   useEffect(() => {
     async function loadData() {
       try {
         setIsLoading(true);
         setError(null);
 
-        // Fetch collection by handle
-        const col = await getCollectionByHandle(handle);
+        // Fetch collection by handle via API
+        const colRes = await fetch(`/api/collections/${encodeURIComponent(handle)}`);
 
-        if (col) {
+        if (colRes.ok) {
+          const { collection: col } = await colRes.json();
           setCollection(col);
-          // Fetch products in this collection
-          const { products: prods } = await getProductsByCollection(col.id);
-          setProducts(prods);
+
+          // Fetch products in this collection via API
+          const prodsRes = await fetch(`/api/products?collection_id=${col.id}&limit=50`);
+          if (prodsRes.ok) {
+            const { products: prods } = await prodsRes.json();
+            setProducts(prods);
+          }
         } else {
           // Collection not found in API, use fallback if available
           const fallback = fallbackCollections[handle];
