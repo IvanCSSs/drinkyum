@@ -44,7 +44,7 @@ interface WPWebhookPayload {
   webhook_name?: string
   webhook_url_name?: string
 
-  // Product webhook
+  // Product/Post webhook
   post?: {
     ID: number
     post_name: string
@@ -71,6 +71,10 @@ interface WPWebhookPayload {
   // Inventory/stock change
   product_id?: number
   stock_quantity?: number
+
+  // Blog post specific
+  post_id?: number
+  post_slug?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -187,6 +191,77 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      // Blog post created
+      case 'post_created': {
+        const postType = data.post?.post_type
+        const slug = data.post?.post_name || data.post_slug
+
+        // Only handle blog posts (not products or other CPTs)
+        if (postType && postType !== 'post') {
+          return NextResponse.json({ message: 'Skipped non-post type' })
+        }
+
+        // Revalidate blog listing
+        revalidatePath('/blog')
+        revalidateTag('blog-posts', 'max')
+
+        console.log('[Revalidate] /blog (post created)')
+
+        return NextResponse.json({
+          success: true,
+          revalidated: ['/blog'],
+        })
+      }
+
+      // Blog post updated
+      case 'post_published':
+      case 'publish_post': {
+        const postType = data.post?.post_type
+        const slug = data.post?.post_name || data.post_slug
+
+        // Only handle blog posts
+        if (postType && postType !== 'post') {
+          return NextResponse.json({ message: 'Skipped non-post type' })
+        }
+
+        // Revalidate specific post page if we have slug
+        if (slug) {
+          revalidatePath(`/blog/${slug}`)
+          console.log(`[Revalidate] /blog/${slug}`)
+        }
+
+        // Revalidate blog listing
+        revalidatePath('/blog')
+        revalidateTag('blog-posts', 'max')
+
+        return NextResponse.json({
+          success: true,
+          revalidated: ['/blog', slug ? `/blog/${slug}` : null].filter(Boolean),
+        })
+      }
+
+      // Blog post deleted
+      case 'post_deleted':
+      case 'trash_post': {
+        const postType = data.post?.post_type
+
+        // Only handle blog posts
+        if (postType && postType !== 'post') {
+          return NextResponse.json({ message: 'Skipped non-post type' })
+        }
+
+        // Revalidate blog listing
+        revalidatePath('/blog')
+        revalidateTag('blog-posts', 'max')
+
+        console.log('[Revalidate] /blog (post deleted)')
+
+        return NextResponse.json({
+          success: true,
+          revalidated: ['/blog'],
+        })
+      }
+
       default:
         console.log(`[WordPress Webhook] Unhandled action: ${action}`)
         return NextResponse.json({
@@ -215,6 +290,9 @@ export async function GET() {
       'order_completed',
       'term_created',
       'term_updated',
+      'post_created',
+      'post_published',
+      'post_deleted',
     ],
   })
 }
