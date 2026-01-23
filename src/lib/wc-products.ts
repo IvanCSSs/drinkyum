@@ -615,6 +615,7 @@ function adaptWCCategory(wc: WCCategory): Collection {
     metadata: {
       description: wc.description,
       featured_image: wc.image?.src,
+      product_count: wc.count,
     },
   }
 }
