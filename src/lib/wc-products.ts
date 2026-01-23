@@ -718,12 +718,15 @@ export async function getCollections(params?: {
   count: number
 }> {
   const result = await getWCCategories({
-    per_page: params?.limit || 10,
+    per_page: params?.limit || 20,
   })
 
+  // Filter out 'uncategorized' category
+  const filtered = result.categories.filter(cat => cat.slug !== 'uncategorized')
+
   return {
-    collections: result.categories.map(adaptWCCategory),
-    count: result.total,
+    collections: filtered.map(adaptWCCategory),
+    count: filtered.length,
   }
 }
 
