@@ -9,9 +9,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { buildWpApiUrl } from '@/lib/wp-api-url'
 
-const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
-const STORE_API_BASE = `${WC_URL}/wp-json/wc/store/v1`
+// Using buildWpApiUrl for compatibility with subdirectory multisite
+function getStoreApiUrl(path: string) { return buildWpApiUrl(`/wc/store/v1${path}`) }
 
 // Forward headers from client to WooCommerce
 function getForwardHeaders(request: NextRequest): HeadersInit {
@@ -59,7 +60,7 @@ function buildResponse(wcResponse: Response, data: unknown, status?: number): Ne
 export async function GET(request: NextRequest) {
   try {
     // Get cart data (which includes checkout-ready info)
-    const wcResponse = await fetch(`${STORE_API_BASE}/cart`, {
+    const wcResponse = await fetch(getStoreApiUrl("/cart"), {
       method: 'GET',
       headers: getForwardHeaders(request),
     })
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
 
       case 'get-payment-gateways':
         // List available payment gateways
-        const gatewaysResponse = await fetch(`${STORE_API_BASE}/payment-gateways`, {
+        const gatewaysResponse = await fetch(getStoreApiUrl("/payment-gateways"), {
           method: 'GET',
           headers: getForwardHeaders(request),
         })
@@ -130,8 +131,9 @@ export async function POST(request: NextRequest) {
     }
 
     const forwardHeaders = getForwardHeaders(request) as Record<string, string>
+    const fullUrl = getStoreApiUrl(endpoint)
     console.log('[Checkout API] Request to WooCommerce:', {
-      endpoint: `${STORE_API_BASE}${endpoint}`,
+      endpoint: fullUrl,
       method,
       headers: {
         'Cart-Token': forwardHeaders['Cart-Token'] ? 'present' : 'missing',
@@ -140,7 +142,7 @@ export async function POST(request: NextRequest) {
       payload: JSON.stringify(payload).substring(0, 1000),
     })
 
-    const wcResponse = await fetch(`${STORE_API_BASE}${endpoint}`, {
+    const wcResponse = await fetch(fullUrl, {
       method,
       headers: forwardHeaders,
       body: JSON.stringify(payload),
@@ -159,7 +161,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         ...data,
         _debug: {
-          endpoint: `${STORE_API_BASE}${endpoint}`,
+          endpoint: fullUrl,
           status: wcResponse.status,
         }
       }, { status: wcResponse.status })
