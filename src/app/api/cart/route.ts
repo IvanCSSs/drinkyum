@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Cart API proxy route
  *
@@ -11,7 +12,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
-const STORE_API_BASE = `${WC_URL}/wp-json/wc/store/v1`
+// Using buildWpApiUrl for compatibility
+function getStoreApiUrl(path: string) { return buildWpApiUrl(`/wc/store/v1${path}`) }
 
 // Forward headers from client to WooCommerce
 function getForwardHeaders(request: NextRequest): HeadersInit {
@@ -54,7 +56,7 @@ function buildResponse(wcResponse: Response, data: unknown): NextResponse {
 
 export async function GET(request: NextRequest) {
   try {
-    const wcResponse = await fetch(`${STORE_API_BASE}/cart`, {
+    const wcResponse = await fetch(getStoreApiUrl(""), {
       method: 'GET',
       headers: getForwardHeaders(request),
     })

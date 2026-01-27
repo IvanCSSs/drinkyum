@@ -31,11 +31,21 @@ function buildAuthHeader(): string {
 }
 
 class WooCommerceClient {
-  private baseUrl: string
+  private siteUrl: string
 
   constructor() {
-    // WooCommerce REST API v3 endpoint
-    this.baseUrl = `${WC_URL}/wp-json/wc/v3`
+    // Base site URL (without /wp-json)
+    this.siteUrl = WC_URL
+  }
+
+  /**
+   * Build full API URL using rest_route query parameter
+   * This bypasses permalink issues with WordPress multisite subdirectories
+   */
+  private buildUrl(path: string): string {
+    // Use ?rest_route= format for compatibility with subdirectory multisite
+    const restPath = `/wc/v3${path}`
+    return `${this.siteUrl}?rest_route=${encodeURIComponent(restPath)}`
   }
 
   /**
@@ -58,7 +68,7 @@ class WooCommerceClient {
    * Make a GET request to WooCommerce API
    */
   async get<T>(path: string): Promise<T> {
-    const url = `${this.baseUrl}${path}`
+    const url = this.buildUrl(path)
 
     const res = await fetch(url, {
       method: 'GET',
@@ -79,7 +89,7 @@ class WooCommerceClient {
    * Make a POST request to WooCommerce API
    */
   async post<T>(path: string, body?: unknown): Promise<T> {
-    const url = `${this.baseUrl}${path}`
+    const url = this.buildUrl(path)
 
     const res = await fetch(url, {
       method: 'POST',
@@ -99,7 +109,7 @@ class WooCommerceClient {
    * Make a PUT request to WooCommerce API
    */
   async put<T>(path: string, body: unknown): Promise<T> {
-    const url = `${this.baseUrl}${path}`
+    const url = this.buildUrl(path)
 
     const res = await fetch(url, {
       method: 'PUT',
@@ -119,7 +129,7 @@ class WooCommerceClient {
    * Make a DELETE request to WooCommerce API
    */
   async delete<T>(path: string): Promise<T> {
-    const url = `${this.baseUrl}${path}`
+    const url = this.buildUrl(path)
 
     const res = await fetch(url, {
       method: 'DELETE',
@@ -145,7 +155,7 @@ class WooCommerceClient {
    * Get base URL for debugging
    */
   getBaseUrl(): string {
-    return this.baseUrl
+    return this.siteUrl
   }
 }
 

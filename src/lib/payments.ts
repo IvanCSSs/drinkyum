@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "./wp-api-url"
 /**
  * Payment Methods Management
  *
@@ -52,7 +53,7 @@ function getAuthHeaders(): HeadersInit {
 export async function getPaymentMethods(): Promise<{
   payment_methods: PaymentMethod[]
 }> {
-  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods`, {
+  const response = await fetch(buildWpApiUrl("/store/v1/payment-methods"), {
     method: 'GET',
     headers: getAuthHeaders(),
   })
@@ -69,7 +70,7 @@ export async function getPaymentMethods(): Promise<{
  * Get Stripe SetupIntent for adding a new card
  */
 export async function getSetupIntent(): Promise<SetupIntent> {
-  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods/setup-intent`, {
+  const response = await fetch(buildWpApiUrl("/store/v1/payment-methods/setup-intent"), {
     method: 'POST',
     headers: getAuthHeaders(),
   })
@@ -89,7 +90,7 @@ export async function getSetupIntent(): Promise<SetupIntent> {
 export async function addPaymentMethod(paymentMethodId: string): Promise<{
   payment_method: PaymentMethod
 }> {
-  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods`, {
+  const response = await fetch(buildWpApiUrl("/store/v1/payment-methods"), {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({ payment_method_id: paymentMethodId }),
@@ -109,7 +110,7 @@ export async function addPaymentMethod(paymentMethodId: string): Promise<{
 export async function setDefaultPaymentMethod(paymentMethodId: string): Promise<{
   payment_method: PaymentMethod
 }> {
-  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods/${paymentMethodId}/default`, {
+  const response = await fetch(buildWpApiUrl(`/store/v1/payment-methods/${paymentMethodId}/default`), {
     method: 'POST',
     headers: getAuthHeaders(),
   })
@@ -126,7 +127,7 @@ export async function setDefaultPaymentMethod(paymentMethodId: string): Promise<
  * Remove a payment method
  */
 export async function removePaymentMethod(paymentMethodId: string): Promise<void> {
-  const response = await fetch(`${WP_API_URL}/wp-json/store/v1/payment-methods/${paymentMethodId}`, {
+  const response = await fetch(buildWpApiUrl(`/store/v1/payment-methods/${paymentMethodId}`), {
     method: 'DELETE',
     headers: getAuthHeaders(),
   })

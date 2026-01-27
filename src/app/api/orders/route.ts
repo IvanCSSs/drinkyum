@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Orders List API route
  *

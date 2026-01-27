@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "./wp-api-url"
 /**
  * Authentication Functions
  *
@@ -98,7 +99,7 @@ function getAuthHeaders(): HeadersInit {
  * Register a new customer account
  */
 export async function registerCustomer(data: RegisterData): Promise<AuthResponse> {
-  const response = await fetch(`${WP_API_URL}/wp-json/auth/v1/register`, {
+  const response = await fetch(buildWpApiUrl("/auth/v1/register"), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -122,7 +123,7 @@ export async function registerCustomer(data: RegisterData): Promise<AuthResponse
  * Login with email and password
  */
 export async function loginCustomer(email: string, password: string): Promise<AuthResponse> {
-  const response = await fetch(`${WP_API_URL}/wp-json/auth/v1/login`, {
+  const response = await fetch(buildWpApiUrl("/auth/v1/login"), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -149,7 +150,7 @@ export async function logoutCustomer(): Promise<void> {
   try {
     const token = getAuthToken()
     if (token) {
-      await fetch(`${WP_API_URL}/wp-json/auth/v1/logout`, {
+      await fetch(buildWpApiUrl("/auth/v1/logout"), {
         method: 'POST',
         headers: getAuthHeaders(),
       })
@@ -205,7 +206,7 @@ export async function changePassword(
   oldPassword: string,
   newPassword: string
 ): Promise<void> {
-  const response = await fetch(`${WP_API_URL}/wp-json/auth/v1/change-password`, {
+  const response = await fetch(buildWpApiUrl("/auth/v1/change-password"), {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({
@@ -224,7 +225,7 @@ export async function changePassword(
  * Request password reset email (WooCommerce)
  */
 export async function requestPasswordReset(email: string): Promise<void> {
-  const response = await fetch(`${WP_API_URL}/wp-json/auth/v1/password-reset/request`, {
+  const response = await fetch(buildWpApiUrl("/auth/v1/password-reset/request"), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
@@ -248,7 +249,7 @@ export async function confirmPasswordReset(
     throw new Error('Email is required for password reset')
   }
 
-  const response = await fetch(`${WP_API_URL}/wp-json/auth/v1/password-reset/confirm`, {
+  const response = await fetch(buildWpApiUrl("/auth/v1/password-reset/confirm"), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, password, email }),
@@ -263,7 +264,7 @@ export async function confirmPasswordReset(
  * Refresh auth token
  */
 export async function refreshToken(): Promise<AuthResponse> {
-  const response = await fetch(`${WP_API_URL}/wp-json/auth/v1/refresh`, {
+  const response = await fetch(buildWpApiUrl("/auth/v1/refresh"), {
     method: 'POST',
     headers: getAuthHeaders(),
   })

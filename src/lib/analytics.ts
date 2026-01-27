@@ -7,7 +7,8 @@
  */
 
 // WordPress tracking API URL
-const WP_TRACKING_URL = process.env.NEXT_PUBLIC_WP_TRACKING_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum/wp-json/tracking/v1'
+import { buildWpApiUrl } from './wp-api-url'
+const WP_TRACKING_URL = process.env.NEXT_PUBLIC_WP_TRACKING_URL || buildWpApiUrl('/tracking/v1')
 
 // Types
 export type EventType =

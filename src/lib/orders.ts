@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "./wp-api-url"
 /**
  * Order History Functions
  *
@@ -134,7 +135,7 @@ export async function getOrder(orderId: string): Promise<{
   order: Order
 }> {
   const response = await fetch(
-    `${WP_API_URL}/wp-json/store/v1/orders/${orderId}`,
+    buildWpApiUrl(`/store/v1/orders/${orderId}`),
     {
       method: 'GET',
       headers: getAuthHeaders(),

@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Orders API route
  *
@@ -192,7 +193,7 @@ export async function GET(
     // Fetch order from WooCommerce REST API
     const auth = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64')
 
-    const wcResponse = await fetch(`${WC_URL}/wp-json/wc/v3/orders/${orderId}`, {
+    const wcResponse = await fetch(buildWpApiUrl(`/wc/v3/orders/${orderId}`), {
       method: 'GET',
       headers: {
         'Authorization': `Basic ${auth}`,
