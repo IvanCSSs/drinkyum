@@ -83,7 +83,6 @@ export async function POST(request: NextRequest) {
     const { action, ...payload } = body
 
     let endpoint = '/cart'
-    let baseUrl = STORE_API_BASE
 
     switch (action) {
       case 'add-item':
@@ -122,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Cart API] ${action} request to ${endpoint}`, { payload })
 
-    const wcResponse = await fetch(`${baseUrl}${endpoint}`, {
+    const wcResponse = await fetch(getStoreApiUrl(endpoint), {
       method: 'POST',
       headers: getForwardHeaders(request),
       body: JSON.stringify(payload),
