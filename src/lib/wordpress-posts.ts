@@ -5,6 +5,8 @@
  * Uses the custom /wp-json/headless/v1/posts endpoint.
  */
 
+import { wpImageUrl, transformContentUrls } from './wordpress-images'
+
 const WP_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
 
 // Types
@@ -176,12 +178,27 @@ class WordPressPostsClient {
 export const wordpressPosts = new WordPressPostsClient()
 
 /**
+ * Transform all image URLs in a blog post to local proxy paths
+ */
+function transformPostUrls(post: BlogPost): BlogPost {
+  return {
+    ...post,
+    featured_image: post.featured_image ? wpImageUrl(post.featured_image) : null,
+    content: post.content ? transformContentUrls(post.content) : undefined,
+  }
+}
+
+/**
  * Helper functions with error handling
  */
 
 export async function getBlogPosts(params?: GetPostsParams): Promise<PostsResponse> {
   try {
-    return await wordpressPosts.getPosts(params)
+    const response = await wordpressPosts.getPosts(params)
+    return {
+      ...response,
+      posts: response.posts.map(transformPostUrls),
+    }
   } catch (error) {
     console.error('Error fetching blog posts:', error)
     // Return empty response on error
@@ -201,7 +218,11 @@ export async function getBlogPosts(params?: GetPostsParams): Promise<PostsRespon
 
 export async function getBlogPost(slug: string): Promise<SinglePostResponse | null> {
   try {
-    return await wordpressPosts.getPost(slug)
+    const response = await wordpressPosts.getPost(slug)
+    return {
+      post: transformPostUrls(response.post),
+      related: response.related.map(transformPostUrls),
+    }
   } catch (error) {
     console.error(`Error fetching blog post ${slug}:`, error)
     return null

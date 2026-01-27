@@ -35,11 +35,11 @@ const nextConfig: NextConfig = {
         source: '/cdn/:path*',
         destination: `${s3Url}/${tenantSlug}/:path*`,
       },
-      // WordPress media uploads: /wp-media/2026/01/img.jpg → WordPress uploads
-      // Currently proxies to Railway; will switch to S3 after S3-Uploads migration
+      // WordPress media uploads: /wp-media/2026/01/img.jpg → S3
+      // S3-Uploads plugin stores files at: s3://bucket/wordpress/uploads/sites/{siteId}/
       {
         source: '/wp-media/:path*',
-        destination: `${wpBaseUrl}/wp-content/uploads/sites/${wpSiteId}/:path*`,
+        destination: `${s3Url}/wordpress/uploads/sites/${wpSiteId}/:path*`,
       },
     ];
   },
