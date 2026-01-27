@@ -14,6 +14,22 @@ const nextConfig: NextConfig = {
     const wpBaseUrl = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum';
 
     return [
+      // WordPress REST API: /wp-json/* → Railway WordPress
+      // This allows drinkyum.com/wp-json/wc/v3/products to work
+      {
+        source: '/wp-json/:path*',
+        destination: `${wpBaseUrl}/wp-json/:path*`,
+      },
+      // WordPress Admin: /wp-admin/* → Railway WordPress
+      {
+        source: '/wp-admin/:path*',
+        destination: `${wpBaseUrl}/wp-admin/:path*`,
+      },
+      // WordPress login
+      {
+        source: '/wp-login.php',
+        destination: `${wpBaseUrl}/wp-login.php`,
+      },
       // Medusa product images: /cdn/products/abc.jpg → s3://bucket/drinkyum/products/abc.jpg
       {
         source: '/cdn/:path*',
