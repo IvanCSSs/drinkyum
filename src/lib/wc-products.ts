@@ -417,18 +417,31 @@ export async function getWCCategories(params?: {
   total: number
 }> {
   try {
-    if (!woocommerce.isConfigured()) {
-      return { categories: [], total: 0 }
-    }
+    const storeCategories = await fetchStoreCategories({
+      per_page: params?.per_page || 50,
+      page: params?.page,
+      parent: params?.parent,
+    })
 
-    const query = buildQuery(params)
-    const categories = await woocommerce.get<WCCategory[]>(`/products/categories${query}`)
+    const categories: WCCategory[] = storeCategories.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      parent: cat.parent,
+      description: cat.description,
+      display: 'default',
+      image: cat.image ? {
+        id: cat.image.id,
+        src: wpImageUrl(cat.image.src),
+        name: cat.image.name,
+        alt: cat.image.alt,
+      } : null,
+      menu_order: 0,
+      count: cat.count,
+    }))
 
     return {
-      categories: categories.map(cat => ({
-        ...cat,
-        image: cat.image ? { ...cat.image, src: wpImageUrl(cat.image.src) } : null,
-      })),
+      categories,
       total: categories.length,
     }
   } catch (error) {
