@@ -7,6 +7,7 @@
 
 import { woocommerce } from './wc-client'
 import { wpImageUrl } from './wordpress-images'
+import { fetchStoreProducts, fetchStoreProduct, fetchStoreCategories, StoreProduct } from './wc-store-api'
 
 // ============================================================================
 // Types
@@ -221,7 +222,55 @@ function transformProduct(product: WCProduct): WCProduct {
 // ============================================================================
 
 /**
- * Get list of products from WooCommerce
+ * Convert Store API product to WCProduct format
+ */
+function storeProductToWCProduct(sp: StoreProduct): WCProduct {
+  return {
+    id: sp.id,
+    name: sp.name,
+    slug: sp.slug,
+    permalink: sp.permalink,
+    type: sp.type as WCProduct['type'],
+    status: 'publish',
+    featured: false,
+    description: sp.description,
+    short_description: sp.short_description,
+    sku: sp.sku,
+    price: (parseInt(sp.prices.price) / 100).toString(),
+    regular_price: (parseInt(sp.prices.regular_price) / 100).toString(),
+    sale_price: sp.prices.sale_price ? (parseInt(sp.prices.sale_price) / 100).toString() : '',
+    on_sale: sp.on_sale,
+    purchasable: sp.is_purchasable,
+    total_sales: 0,
+    stock_quantity: null,
+    stock_status: sp.is_in_stock ? 'instock' : 'outofstock',
+    manage_stock: false,
+    images: sp.images.map(img => ({
+      id: img.id,
+      src: img.src,
+      name: img.name,
+      alt: img.alt,
+    })),
+    categories: sp.categories.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+    })),
+    attributes: sp.attributes.map(attr => ({
+      id: attr.id,
+      name: attr.name,
+      position: 0,
+      visible: true,
+      variation: attr.has_variations,
+      options: attr.terms.map(t => t.name),
+    })),
+    variations: sp.variations.map(v => v.id),
+    subscribe_save: undefined,
+  }
+}
+
+/**
+ * Get list of products from WooCommerce Store API (public, no auth required)
  */
 export async function getWCProducts(params?: WCProductListParams): Promise<{
   products: WCProduct[]
@@ -229,19 +278,16 @@ export async function getWCProducts(params?: WCProductListParams): Promise<{
   totalPages: number
 }> {
   try {
-    if (!woocommerce.isConfigured()) {
-      console.warn('[WC Products] API not configured, returning placeholders')
-      return {
-        products: PLACEHOLDER_PRODUCTS,
-        total: PLACEHOLDER_PRODUCTS.length,
-        totalPages: 1,
-      }
-    }
+    const storeProducts = await fetchStoreProducts({
+      per_page: params?.per_page || 10,
+      page: params?.page,
+      search: params?.search,
+      category: params?.category,
+      orderby: params?.orderby,
+      order: params?.order,
+    })
 
-    const query = buildQuery(params)
-    const products = await woocommerce.get<WCProduct[]>(`/products${query}`)
-
-    if (!products || products.length === 0) {
+    if (!storeProducts || storeProducts.length === 0) {
       console.info('[WC Products] No products found, returning placeholders')
       return {
         products: PLACEHOLDER_PRODUCTS,
@@ -251,9 +297,9 @@ export async function getWCProducts(params?: WCProductListParams): Promise<{
     }
 
     return {
-      products: products.map(transformProduct),
-      total: products.length,
-      totalPages: 1, // WC returns total in headers, we'll simplify for now
+      products: storeProducts.map(sp => transformProduct(storeProductToWCProduct(sp))),
+      total: storeProducts.length,
+      totalPages: 1,
     }
   } catch (error) {
     console.error('[WC Products] Error fetching products:', error)
@@ -266,17 +312,12 @@ export async function getWCProducts(params?: WCProductListParams): Promise<{
 }
 
 /**
- * Get single product by ID
+ * Get single product by ID using Store API
  */
 export async function getWCProduct(productId: number): Promise<WCProduct | null> {
   try {
-    if (!woocommerce.isConfigured()) {
-      console.warn('[WC Products] API not configured')
-      return PLACEHOLDER_PRODUCTS[0]
-    }
-
-    const product = await woocommerce.get<WCProduct>(`/products/${productId}?_=${Date.now()}`)
-    return transformProduct(product)
+    const storeProduct = await fetchStoreProduct(productId)
+    return transformProduct(storeProductToWCProduct(storeProduct))
   } catch (error) {
     console.error('[WC Products] Error fetching product:', error)
     return null
