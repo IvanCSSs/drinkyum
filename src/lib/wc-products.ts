@@ -455,22 +455,29 @@ export async function getWCCategories(params?: {
  */
 export async function getWCCategoryBySlug(slug: string): Promise<WCCategory | null> {
   try {
-    if (!woocommerce.isConfigured()) {
+    // Fetch all categories and find by slug
+    const storeCategories = await fetchStoreCategories({ per_page: 100 })
+    const storeCat = storeCategories.find(c => c.slug === slug)
+    
+    if (!storeCat) {
       return null
     }
 
-    const categories = await woocommerce.get<WCCategory[]>(
-      `/products/categories?slug=${encodeURIComponent(slug)}&_=${Date.now()}`
-    )
-
-    if (!categories || categories.length === 0) {
-      return null
-    }
-
-    const cat = categories[0]
     return {
-      ...cat,
-      image: cat.image ? { ...cat.image, src: wpImageUrl(cat.image.src) } : null,
+      id: storeCat.id,
+      name: storeCat.name,
+      slug: storeCat.slug,
+      parent: storeCat.parent,
+      description: storeCat.description,
+      display: 'default',
+      image: storeCat.image ? {
+        id: storeCat.image.id,
+        src: wpImageUrl(storeCat.image.src),
+        name: storeCat.image.name,
+        alt: storeCat.image.alt,
+      } : null,
+      menu_order: 0,
+      count: storeCat.count,
     }
   } catch (error) {
     console.error('[WC Products] Error fetching category:', error)
