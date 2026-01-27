@@ -9,6 +9,31 @@ import { woocommerce } from './wc-client'
 import { wpImageUrl } from './wordpress-images'
 import { fetchStoreProducts, fetchStoreProduct, fetchStoreCategories, StoreProduct } from './wc-store-api'
 
+/**
+ * Decode HTML entities in strings from WooCommerce
+ * e.g., "333 &#8211; Product" → "333 – Product"
+ */
+function decodeHtmlEntities(text: string | undefined | null): string {
+  if (!text) return ''
+  return text
+    .replace(/&#8211;/g, '\u2013')  // en-dash
+    .replace(/&#8212;/g, '\u2014')  // em-dash
+    .replace(/&#8216;/g, '\u2018')  // left single quote
+    .replace(/&#8217;/g, '\u2019')  // right single quote
+    .replace(/&#8220;/g, '\u201C')  // left double quote
+    .replace(/&#8221;/g, '\u201D')  // right double quote
+    .replace(/&#38;/g, '&')         // ampersand
+    .replace(/&amp;/g, '&')
+    .replace(/&#60;/g, '<')         // less than
+    .replace(/&lt;/g, '<')
+    .replace(/&#62;/g, '>')         // greater than
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")         // apostrophe
+    .replace(/&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, ' ')
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -628,16 +653,16 @@ function adaptWCProduct(wc: WCProduct): Product {
 
   return {
     id: String(wc.id),
-    title: wc.name,
+    title: decodeHtmlEntities(wc.name),
     handle: wc.slug,
-    subtitle: wc.short_description?.replace(/<[^>]*>/g, '') || undefined,
-    description: wc.description?.replace(/<[^>]*>/g, '') || undefined,
+    subtitle: decodeHtmlEntities(wc.short_description?.replace(/<[^>]*>/g, '')) || undefined,
+    description: decodeHtmlEntities(wc.description?.replace(/<[^>]*>/g, '')) || undefined,
     // Transform image URLs to use /wp-media/ proxy for cleaner URLs
     thumbnail: wpImageUrl(wc.images[0]?.src),
     images: wc.images.map((img, idx) => ({
       id: String(img.id || idx),
       url: wpImageUrl(img.src),
-      alt: img.alt || wc.name,
+      alt: decodeHtmlEntities(img.alt || wc.name),
     })),
     options: wc.attributes.map(attr => ({
       id: String(attr.id),
@@ -649,7 +674,7 @@ function adaptWCProduct(wc: WCProduct): Product {
     })),
     variants: [{
       id: String(wc.id), // Use product ID as variant ID for simple products
-      title: wc.name,
+      title: decodeHtmlEntities(wc.name),
       sku: wc.sku || undefined,
       prices: [{
         id: `price-${wc.id}`,

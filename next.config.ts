@@ -35,11 +35,11 @@ const nextConfig: NextConfig = {
         source: '/cdn/:path*',
         destination: `${s3Url}/${tenantSlug}/:path*`,
       },
-      // WordPress media uploads: /wp-media/2026/01/img.jpg → S3
-      // S3-Uploads plugin stores files at: s3://bucket/wordpress/uploads/sites/{siteId}/
+      // WordPress media uploads: /wp-media/2026/01/img.jpg → WordPress uploads
+      // Files are stored at: wordpress-server/wp-content/uploads/sites/{siteId}/
       {
         source: '/wp-media/:path*',
-        destination: `${s3Url}/wordpress/uploads/sites/${wpSiteId}/:path*`,
+        destination: `${wpBaseUrl}/wp-content/uploads/sites/${wpSiteId}/:path*`,
       },
     ];
   },
