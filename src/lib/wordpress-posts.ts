@@ -86,20 +86,24 @@ export interface GetPostsParams {
 }
 
 /**
- * WordPress Headless API client
+ * WordPress REST API client (using standard WP REST API)
+ * 
+ * Note: Using ?rest_route= query parameter format because WordPress
+ * permalinks aren't configured for pretty /wp-json/ URLs.
  */
 class WordPressPostsClient {
-  private baseUrl: string
+  private wpUrl: string
 
   constructor() {
-    this.baseUrl = `${WP_URL}/wp-json/headless/v1`
+    this.wpUrl = WP_URL
   }
 
   /**
-   * Make a GET request to the headless API
+   * Make a GET request to the WP REST API using rest_route query param
    */
-  private async get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
-    const url = new URL(`${this.baseUrl}${path}`)
+  private async get<T>(restRoute: string, params?: Record<string, string | number | undefined>): Promise<T> {
+    const url = new URL(this.wpUrl)
+    url.searchParams.set('rest_route', restRoute)
 
     // Add query params
     if (params) {
@@ -132,46 +136,147 @@ class WordPressPostsClient {
 
   /**
    * Get list of blog posts with pagination and filters
+   * Uses standard WP REST API /wp/v2/posts
    */
   async getPosts(params?: GetPostsParams): Promise<PostsResponse> {
-    return this.get<PostsResponse>('/posts', {
+    // Fetch posts from standard WP REST API
+    const wpPosts = await this.get<WPPost[]>('/wp/v2/posts', {
       page: params?.page,
       per_page: params?.per_page,
       search: params?.search,
-      tag: params?.tag,
-      category: params?.category,
       order: params?.order,
       orderby: params?.orderby,
     })
+
+    // Transform WP posts to our format
+    const posts: BlogPost[] = wpPosts.map(this.transformWPPost)
+
+    // WP REST API returns total in headers, but we'll estimate for now
+    const total = wpPosts.length
+    const perPage = params?.per_page || 10
+    const page = params?.page || 1
+
+    return {
+      posts,
+      pagination: {
+        page,
+        per_page: perPage,
+        total,
+        total_pages: Math.ceil(total / perPage),
+        has_next: wpPosts.length === perPage,
+        has_prev: page > 1,
+      },
+    }
   }
 
   /**
    * Get a single post by slug
    */
   async getPost(slug: string): Promise<SinglePostResponse> {
-    return this.get<SinglePostResponse>(`/posts/${encodeURIComponent(slug)}`)
+    const wpPosts = await this.get<WPPost[]>('/wp/v2/posts', {
+      slug: slug,
+    })
+
+    if (!wpPosts.length) {
+      throw new Error('Post not found')
+    }
+
+    const post = this.transformWPPost(wpPosts[0])
+
+    return {
+      post,
+      related: [], // TODO: Fetch related posts if needed
+    }
+  }
+
+  /**
+   * Transform WP REST API post to our BlogPost format
+   */
+  private transformWPPost(wp: WPPost): BlogPost {
+    return {
+      id: String(wp.id),
+      slug: wp.slug,
+      title: wp.title.rendered,
+      excerpt: wp.excerpt.rendered.replace(/<[^>]*>/g, '').trim(),
+      content: wp.content.rendered,
+      featured_image: wp.featured_media ? null : null, // TODO: Fetch featured image if needed
+      status: wp.status === 'publish' ? 'published' : 'draft',
+      published_at: wp.date,
+      updated_at: wp.modified,
+      author: null, // TODO: Fetch author if needed
+      tags: [],
+      categories: [],
+    }
   }
 
   /**
    * Get all tags
    */
   async getTags(): Promise<TagsResponse> {
-    return this.get<TagsResponse>('/tags')
+    const wpTags = await this.get<WPTag[]>('/wp/v2/tags', { per_page: 100 })
+    return {
+      tags: wpTags.map(t => ({
+        id: String(t.id),
+        name: t.name,
+        slug: t.slug,
+        count: t.count,
+      })),
+    }
   }
 
   /**
    * Get all categories
    */
   async getCategories(): Promise<CategoriesResponse> {
-    return this.get<CategoriesResponse>('/categories')
+    const wpCats = await this.get<WPCategory[]>('/wp/v2/categories', { per_page: 100 })
+    return {
+      categories: wpCats.map(c => ({
+        id: String(c.id),
+        name: c.name,
+        slug: c.slug,
+        count: c.count,
+        description: c.description,
+        parent_id: c.parent ? String(c.parent) : null,
+      })),
+    }
   }
 
   /**
    * Get base URL for debugging
    */
   getBaseUrl(): string {
-    return this.baseUrl
+    return this.wpUrl
   }
+}
+
+// WordPress REST API types
+interface WPPost {
+  id: number
+  slug: string
+  title: { rendered: string }
+  content: { rendered: string }
+  excerpt: { rendered: string }
+  date: string
+  modified: string
+  status: string
+  featured_media: number
+  author: number
+}
+
+interface WPTag {
+  id: number
+  name: string
+  slug: string
+  count: number
+}
+
+interface WPCategory {
+  id: number
+  name: string
+  slug: string
+  count: number
+  description: string
+  parent: number
 }
 
 // Singleton instance
