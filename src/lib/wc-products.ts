@@ -225,26 +225,33 @@ function transformProduct(product: WCProduct): WCProduct {
  * Convert Store API product to WCProduct format
  */
 function storeProductToWCProduct(sp: StoreProduct): WCProduct {
+  const priceMultiplier = Math.pow(10, sp.prices.currency_minor_unit || 2)
   return {
     id: sp.id,
     name: sp.name,
     slug: sp.slug,
     permalink: sp.permalink,
-    type: sp.type as WCProduct['type'],
+    type: (sp.type || 'simple') as WCProduct['type'],
     status: 'publish',
     featured: false,
     description: sp.description,
     short_description: sp.short_description,
     sku: sp.sku,
-    price: (parseInt(sp.prices.price) / 100).toString(),
-    regular_price: (parseInt(sp.prices.regular_price) / 100).toString(),
-    sale_price: sp.prices.sale_price ? (parseInt(sp.prices.sale_price) / 100).toString() : '',
+    price: (parseInt(sp.prices.price || '0') / priceMultiplier).toString(),
+    regular_price: (parseInt(sp.prices.regular_price || '0') / priceMultiplier).toString(),
+    sale_price: sp.prices.sale_price ? (parseInt(sp.prices.sale_price) / priceMultiplier).toString() : '',
     on_sale: sp.on_sale,
     purchasable: sp.is_purchasable,
     total_sales: 0,
-    stock_quantity: null,
-    stock_status: sp.is_in_stock ? 'instock' : 'outofstock',
+    virtual: false,
+    downloadable: false,
+    stock_quantity: sp.low_stock_remaining,
+    stock_status: sp.is_in_stock ? 'instock' : (sp.is_on_backorder ? 'onbackorder' : 'outofstock'),
     manage_stock: false,
+    backorders: 'no',
+    backorders_allowed: sp.is_on_backorder,
+    weight: '',
+    dimensions: { length: '', width: '', height: '' },
     images: sp.images.map(img => ({
       id: img.id,
       src: img.src,
@@ -256,6 +263,11 @@ function storeProductToWCProduct(sp: StoreProduct): WCProduct {
       name: cat.name,
       slug: cat.slug,
     })),
+    tags: sp.tags.map(tag => ({
+      id: tag.id,
+      name: tag.name,
+      slug: tag.slug,
+    })),
     attributes: sp.attributes.map(attr => ({
       id: attr.id,
       name: attr.name,
@@ -265,6 +277,9 @@ function storeProductToWCProduct(sp: StoreProduct): WCProduct {
       options: attr.terms.map(t => t.name),
     })),
     variations: sp.variations.map(v => v.id),
+    meta_data: [],
+    date_created: new Date().toISOString(),
+    date_modified: new Date().toISOString(),
     subscribe_save: undefined,
   }
 }
