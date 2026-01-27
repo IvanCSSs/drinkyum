@@ -365,21 +365,14 @@ export async function getWCProduct(productId: number): Promise<WCProduct | null>
 }
 
 /**
- * Get single product by slug (handle)
+ * Get single product by slug (handle) using Store API
  */
 export async function getWCProductBySlug(slug: string): Promise<WCProduct | null> {
   try {
-    if (!woocommerce.isConfigured()) {
-      console.warn('[WC Products] API not configured')
-      if (slug === 'sample-product') {
-        return PLACEHOLDER_PRODUCTS[0]
-      }
-      return null
-    }
-
-    const products = await woocommerce.get<WCProduct[]>(`/products?slug=${encodeURIComponent(slug)}&_=${Date.now()}`)
-
-    if (!products || products.length === 0) {
+    // Use Store API with slug filter
+    const storeProducts = await fetchStoreProducts({ slug } as Parameters<typeof fetchStoreProducts>[0])
+    
+    if (!storeProducts || storeProducts.length === 0) {
       // Check if it's the placeholder
       if (slug === 'sample-product') {
         return PLACEHOLDER_PRODUCTS[0]
@@ -387,7 +380,7 @@ export async function getWCProductBySlug(slug: string): Promise<WCProduct | null
       return null
     }
 
-    return transformProduct(products[0])
+    return transformProduct(storeProductToWCProduct(storeProducts[0]))
   } catch (error) {
     console.error('[WC Products] Error fetching product by slug:', error)
     return null

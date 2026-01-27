@@ -134,6 +134,7 @@ export async function fetchStoreProducts(params?: {
   page?: number
   search?: string
   category?: number
+  slug?: string
   orderby?: string
   order?: 'asc' | 'desc'
 }): Promise<StoreProduct[]> {
