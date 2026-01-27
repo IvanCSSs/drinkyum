@@ -56,7 +56,7 @@ function buildResponse(wcResponse: Response, data: unknown): NextResponse {
 
 export async function GET(request: NextRequest) {
   try {
-    const wcResponse = await fetch(getStoreApiUrl(""), {
+    const wcResponse = await fetch(getStoreApiUrl("/cart"), {
       method: 'GET',
       headers: getForwardHeaders(request),
     })
