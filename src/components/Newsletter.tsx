@@ -75,13 +75,18 @@ export default function Newsletter() {
           <form onSubmit={handleSubmit} className="relative max-w-lg mx-auto">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
+                <label htmlFor="newsletter-email" className="sr-only">
+                  Email address
+                </label>
                 <input
+                  id="newsletter-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   className="w-full px-6 py-4 rounded-xl bg-transparent border border-white/30 text-white placeholder:text-white/40 focus:outline-none focus:border-yum-pink transition-colors"
                   required
+                  aria-describedby="newsletter-privacy"
                 />
               </div>
               <motion.button
@@ -102,7 +107,7 @@ export default function Newsletter() {
             </div>
 
             {/* Privacy note */}
-            <p className="text-white/40 text-sm mt-4">
+            <p id="newsletter-privacy" className="text-white/40 text-sm mt-4">
               We respect your privacy. Unsubscribe anytime.
             </p>
           </form>
