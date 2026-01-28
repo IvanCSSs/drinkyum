@@ -12,9 +12,81 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "DrinkYUM | Premium Kratom Extract Beverages",
-  description: "Experience the perfect blend of taste and wellness. YUM kratom extract mocktails - Love it. Taste it. Feel it.",
-  keywords: ["kratom", "mocktail", "beverage", "extract", "wellness", "energy"],
+  metadataBase: new URL("https://www.drinkyum.com"),
+  title: {
+    default: "DrinkYUM | Premium Kratom Extract Beverages",
+    template: "%s | DrinkYUM",
+  },
+  description: "Experience the perfect blend of taste and wellness with YUM kratom extract mocktails. Premium quality, lab-tested kratom beverages. Love it. Taste it. Feel it.",
+  keywords: ["kratom", "mocktail", "beverage", "extract", "wellness", "energy", "kratom shots", "kratom drinks"],
+  authors: [{ name: "DrinkYUM" }],
+  creator: "DrinkYUM",
+  publisher: "DrinkYUM",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://www.drinkyum.com",
+    siteName: "DrinkYUM",
+    title: "DrinkYUM | Premium Kratom Extract Beverages",
+    description: "Experience the perfect blend of taste and wellness with YUM kratom extract mocktails. Premium quality, lab-tested kratom beverages.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "DrinkYUM - Premium Kratom Extract Beverages",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DrinkYUM | Premium Kratom Extract Beverages",
+    description: "Experience the perfect blend of taste and wellness with YUM kratom extract mocktails.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
+
+// Organization structured data
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "DrinkYUM",
+  url: "https://www.drinkyum.com",
+  logo: "https://www.drinkyum.com/logo.png",
+  description: "Premium kratom extract beverages and mocktails. Lab-tested, high-quality kratom shots.",
+  sameAs: [],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer service",
+    email: "support@drinkyum.com",
+  },
+};
+
+// WebSite structured data with search
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "DrinkYUM",
+  url: "https://www.drinkyum.com",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://www.drinkyum.com/search?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export default function RootLayout({
@@ -24,6 +96,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={lato.variable}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+      </head>
       <body className="antialiased">
         <ConsoleFilter />
         <Providers>

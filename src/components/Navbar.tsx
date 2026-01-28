@@ -127,8 +127,9 @@ export default function Navbar() {
                 boxShadow: "0 4px 24px rgba(0, 0, 0, 0.3)",
               }}
               onClick={() => setIsOpen(true)}
+              aria-label="Open navigation menu"
             >
-              <Menu size={32} />
+              <Menu size={32} aria-hidden="true" />
             </button>
           </motion.div>
         )}
@@ -146,6 +147,7 @@ export default function Navbar() {
           >
             <button
               onClick={openDrawer}
+              aria-label={`Shopping cart${hasItems ? `, ${itemCount} items` : ''}`}
               className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${
                 hasItems
                   ? "text-yum-pink hover:bg-yum-pink/10"
@@ -159,7 +161,7 @@ export default function Navbar() {
                 boxShadow: hasItems ? "0 4px 24px rgba(225, 37, 143, 0.2)" : "0 4px 24px rgba(0, 0, 0, 0.3)",
               }}
             >
-              <ShoppingBag size={28} />
+              <ShoppingBag size={28} aria-hidden="true" />
 
               {/* Cart badge */}
               {hasItems && (
@@ -246,30 +248,36 @@ export default function Navbar() {
 
               {/* Right Actions */}
               <div className="flex items-center gap-3 relative z-10">
-                <button className="p-1.5 text-white hover:text-white/80 transition-colors">
-                  <Search size={18} />
+                <button 
+                  className="p-1.5 text-white hover:text-white/80 transition-colors"
+                  aria-label="Search products"
+                >
+                  <Search size={18} aria-hidden="true" />
                 </button>
 
                 <Link
                   href={isAuthenticated ? "/account" : "/login"}
                   className="p-1.5 text-white hover:text-white/80 transition-colors"
+                  aria-label={isAuthenticated ? "My account" : "Sign in"}
                 >
-                  <User size={18} />
+                  <User size={18} aria-hidden="true" />
                 </Link>
 
                 <button
                   onClick={openDrawer}
+                  aria-label={`Shopping cart${hasItems ? `, ${itemCount} items` : ''}`}
                   className={`p-1.5 transition-colors relative ${
                     hasItems ? "text-yum-pink" : "text-white hover:text-white/80"
                   }`}
                 >
-                  <ShoppingBag size={18} />
+                  <ShoppingBag size={18} aria-hidden="true" />
                   {hasItems && (
                     <span
                       className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1"
                       style={{
                         background: "linear-gradient(135deg, #E1258F 0%, #DC0387 100%)",
                       }}
+                      aria-hidden="true"
                     >
                       {itemCount}
                     </span>
@@ -303,8 +311,9 @@ export default function Navbar() {
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 text-white"
+                  aria-label="Close navigation menu"
                 >
-                  <X size={28} />
+                  <X size={28} aria-hidden="true" />
                 </button>
               </div>
 

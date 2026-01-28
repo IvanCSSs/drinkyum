@@ -76,15 +76,39 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* FDA Disclaimer */}
+        <div 
+          className="pt-6 lg:pt-8 text-center"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
+        >
+          <p 
+            className="text-[10px] lg:text-[11px] leading-relaxed max-w-3xl mx-auto"
+            style={{ color: "rgba(255, 255, 255, 0.4)" }}
+          >
+            <strong>Disclaimer:</strong> These statements have not been evaluated by the Food and Drug Administration. 
+            This product is not intended to diagnose, treat, cure, or prevent any disease. 
+            Consult your healthcare provider before use, especially if you are pregnant, nursing, taking medications, or have a medical condition.
+            Must be 21+ to purchase. Do not operate heavy machinery after consumption.
+          </p>
+        </div>
+
         {/* Bottom Bar - stack on mobile */}
         <div 
           className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 pt-4 lg:pt-5 text-center sm:text-left"
           style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
         >
-          {/* Copyright */}
-          <span className="text-[12px] lg:text-[13px] text-white order-3 sm:order-1">
-            © Drinkyum 2025.
-          </span>
+          {/* Copyright & Address */}
+          <div className="order-3 sm:order-1 text-center sm:text-left">
+            <span className="text-[12px] lg:text-[13px] text-white block">
+              © DrinkYUM 2025. All rights reserved.
+            </span>
+            <span 
+              className="text-[10px] lg:text-[11px] block mt-1"
+              style={{ color: "rgba(255, 255, 255, 0.5)" }}
+            >
+              Miami, FL, USA
+            </span>
+          </div>
 
           {/* Credits */}
           <span 
