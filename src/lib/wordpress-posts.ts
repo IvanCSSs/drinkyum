@@ -9,6 +9,40 @@ import { wpImageUrl, transformContentUrls } from './wordpress-images'
 
 const WP_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
 
+/**
+ * Decode HTML entities like &#8217; → '
+ * WordPress returns titles/excerpts with encoded entities
+ */
+function decodeHtmlEntities(text: string): string {
+  const entities: Record<string, string> = {
+    '&#8217;': "'",
+    '&#8216;': "'",
+    '&#8220;': '"',
+    '&#8221;': '"',
+    '&#8211;': '–',
+    '&#8212;': '—',
+    '&#8230;': '…',
+    '&#038;': '&',
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&apos;': "'",
+    '&nbsp;': ' ',
+  }
+  
+  let decoded = text
+  for (const [entity, char] of Object.entries(entities)) {
+    decoded = decoded.replace(new RegExp(entity, 'g'), char)
+  }
+  
+  // Handle numeric entities like &#39; &#34; etc.
+  decoded = decoded.replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)))
+  decoded = decoded.replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+  
+  return decoded
+}
+
 // Types
 
 export interface BlogAuthor {
@@ -193,11 +227,14 @@ class WordPressPostsClient {
    * Transform WP REST API post to our BlogPost format
    */
   private transformWPPost(wp: WPPost): BlogPost {
+    // Strip HTML and decode entities for excerpt
+    const rawExcerpt = wp.excerpt.rendered.replace(/<[^>]*>/g, '').trim()
+    
     return {
       id: String(wp.id),
       slug: wp.slug,
-      title: wp.title.rendered,
-      excerpt: wp.excerpt.rendered.replace(/<[^>]*>/g, '').trim(),
+      title: decodeHtmlEntities(wp.title.rendered),
+      excerpt: decodeHtmlEntities(rawExcerpt),
       content: wp.content.rendered,
       featured_image: wp.featured_media ? null : null, // TODO: Fetch featured image if needed
       status: wp.status === 'publish' ? 'published' : 'draft',
