@@ -7,13 +7,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
   const staticPages = [
     "",
-    "/shop",
+    "/collections",
     "/about",
     "/contact",
     "/faq",
     "/lab-results",
     "/blog",
-    "/collections",
     "/privacy-policy",
     "/terms-of-service",
     "/shipping-returns",
@@ -23,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}${path}`,
     lastModified: new Date(),
     changeFrequency: path === "" ? "daily" as const : "weekly" as const,
-    priority: path === "" ? 1 : path === "/shop" ? 0.9 : 0.7,
+    priority: path === "" ? 1 : path === "/collections" ? 0.9 : 0.7,
   }));
 
   // Blog posts

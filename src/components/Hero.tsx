@@ -54,38 +54,34 @@ export default function Hero() {
           transition={{ duration: 0.8 }}
         >
           {/* Mobile bottle */}
-          <img
+          <Image
             src="/images/hero-product.png"
             alt="YUM Kratom Extract Bottle"
+            width={350}
+            height={525}
             className="block md:hidden drop-shadow-2xl"
-            style={{ 
-              width: "350px", 
-              height: "auto", 
-              maxWidth: "none",
-            }}
+            style={{ maxWidth: "none" }}
+            priority
           />
           {/* Tablet bottle */}
-          <img
+          <Image
             src="/images/hero-product.png"
             alt="YUM Kratom Extract Bottle"
+            width={600}
+            height={900}
             className="hidden md:block lg:hidden drop-shadow-2xl"
-            style={{ 
-              width: "600px", 
-              height: "auto", 
-              maxWidth: "none",
-            }}
+            style={{ maxWidth: "none" }}
+            priority
           />
           {/* Desktop bottle */}
-          <img
+          <Image
             src="/images/hero-product.png"
             alt="YUM Kratom Extract Bottle"
+            width={1150}
+            height={1725}
             className="hidden lg:block drop-shadow-2xl"
-            style={{ 
-              width: "1150px", 
-              height: "auto", 
-              maxWidth: "none",
-              transform: "translateX(9%)",
-            }}
+            style={{ maxWidth: "none", transform: "translateX(9%)" }}
+            priority
           />
         </motion.div>
 
@@ -127,7 +123,7 @@ export default function Hero() {
               {/* Buttons - wrap on mobile */}
               <div className="flex flex-wrap gap-3 md:gap-[17px]">
                 <a 
-                  href="/shop" 
+                  href="/collections" 
                   className="flex items-center justify-center text-white text-[14px] md:text-[18px] font-normal transition-all hover:brightness-110"
                   style={{
                     width: "106px",
@@ -141,7 +137,7 @@ export default function Hero() {
                 </a>
                 
                 <a 
-                  href="/subscribe" 
+                  href="/collections#subscribe" 
                   className="flex items-center justify-center text-white text-[14px] md:text-[18px] font-normal transition-all hover:brightness-110"
                   style={{
                     width: "160px",
