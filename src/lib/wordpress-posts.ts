@@ -173,20 +173,37 @@ class WordPressPostsClient {
    * Uses standard WP REST API /wp/v2/posts
    */
   async getPosts(params?: GetPostsParams): Promise<PostsResponse> {
-    // Fetch posts from standard WP REST API
-    const wpPosts = await this.get<WPPost[]>('/wp/v2/posts', {
-      page: params?.page,
-      per_page: params?.per_page,
-      search: params?.search,
-      order: params?.order,
-      orderby: params?.orderby,
+    const url = new URL(this.wpUrl)
+    url.searchParams.set('rest_route', '/wp/v2/posts')
+    
+    // Add query params
+    if (params?.page) url.searchParams.set('page', String(params.page))
+    if (params?.per_page) url.searchParams.set('per_page', String(params.per_page))
+    if (params?.search) url.searchParams.set('search', params.search)
+    if (params?.order) url.searchParams.set('order', params.order)
+    if (params?.orderby) url.searchParams.set('orderby', params.orderby)
+    
+    // Cache buster
+    url.searchParams.set('_', String(Date.now()))
+
+    const res = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      next: { revalidate: 60 },
     })
 
-    // Transform WP posts to our format
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ message: 'Request failed' }))
+      throw new Error(error.message || `HTTP ${res.status}`)
+    }
+
+    // Get pagination from WordPress headers
+    const total = parseInt(res.headers.get('X-WP-Total') || '0', 10)
+    const totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '1', 10)
+    
+    const wpPosts: WPPost[] = await res.json()
     const posts: BlogPost[] = wpPosts.map(this.transformWPPost)
 
-    // WP REST API returns total in headers, but we'll estimate for now
-    const total = wpPosts.length
     const perPage = params?.per_page || 10
     const page = params?.page || 1
 
@@ -196,8 +213,8 @@ class WordPressPostsClient {
         page,
         per_page: perPage,
         total,
-        total_pages: Math.ceil(total / perPage),
-        has_next: wpPosts.length === perPage,
+        total_pages: totalPages,
+        has_next: page < totalPages,
         has_prev: page > 1,
       },
     }
