@@ -799,8 +799,9 @@ export async function getSubscriptionOptions(productId: string): Promise<Subscri
 
     // Fallback: fetch from dedicated subscribe-save REST endpoint
     // The Store API doesn't include subscribe_save data, so we need this
+    // Use ?rest_route= format because /wp-json/ pretty URLs may 404 on multisite subsites
     const wpUrl = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
-    const ssUrl = `${wpUrl}/wp-json/subscribe-save/v1/product/${product.id}`
+    const ssUrl = `${wpUrl}/?rest_route=/subscribe-save/v1/product/${product.id}`
     const ssRes = await fetch(ssUrl, { next: { revalidate: 300 } })
     if (ssRes.ok) {
       const ssData = await ssRes.json()
