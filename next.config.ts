@@ -95,6 +95,7 @@ const nextConfig: NextConfig = {
         hostname: 'wordpress-production-7c0a.up.railway.app',
       },
     ],
+    path: '/img',
   },
 };
 
