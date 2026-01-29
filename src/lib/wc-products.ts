@@ -797,6 +797,27 @@ export async function getSubscriptionOptions(productId: string): Promise<Subscri
       }))
     }
 
+    // Fallback: fetch from dedicated subscribe-save REST endpoint
+    // The Store API doesn't include subscribe_save data, so we need this
+    const wpUrl = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
+    const ssUrl = `${wpUrl}/wp-json/subscribe-save/v1/product/${product.id}`
+    const ssRes = await fetch(ssUrl, { next: { revalidate: 300 } })
+    if (ssRes.ok) {
+      const ssData = await ssRes.json()
+      if (ssData.subscribe_save_enabled && ssData.options?.length > 0) {
+        return ssData.options
+          .filter((opt: { type: string }) => opt.type === 'subscription')
+          .map((opt: { period: string; interval?: number; label: string; discount_percent: number; price: number; savings: number }) => ({
+            interval: opt.period,
+            interval_count: opt.interval || 1,
+            label: opt.label,
+            discount_percent: opt.discount_percent,
+            price: opt.price,
+            savings: opt.savings,
+          }))
+      }
+    }
+
     return []
   } catch {
     return []
