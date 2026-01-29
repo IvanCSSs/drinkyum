@@ -176,6 +176,9 @@ class WordPressPostsClient {
     const url = new URL(this.wpUrl)
     url.searchParams.set('rest_route', '/wp/v2/posts')
     
+    // Embed featured media data
+    url.searchParams.set('_embed', 'wp:featuredmedia')
+    
     // Add query params
     if (params?.page) url.searchParams.set('page', String(params.page))
     if (params?.per_page) url.searchParams.set('per_page', String(params.per_page))
@@ -202,7 +205,7 @@ class WordPressPostsClient {
     const totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '1', 10)
     
     const wpPosts: WPPost[] = await res.json()
-    const posts: BlogPost[] = wpPosts.map(this.transformWPPost)
+    const posts: BlogPost[] = wpPosts.map(wp => this.transformWPPost(wp))
 
     const perPage = params?.per_page || 10
     const page = params?.page || 1
@@ -226,6 +229,7 @@ class WordPressPostsClient {
   async getPost(slug: string): Promise<SinglePostResponse> {
     const wpPosts = await this.get<WPPost[]>('/wp/v2/posts', {
       slug: slug,
+      _embed: 'wp:featuredmedia',
     })
 
     if (!wpPosts.length) {
@@ -241,6 +245,21 @@ class WordPressPostsClient {
   }
 
   /**
+   * Extract featured image URL from embedded data
+   */
+  private extractFeaturedImage(wp: WPPost): string | null {
+    if (!wp.featured_media || !wp._embedded?.['wp:featuredmedia']?.length) {
+      return null
+    }
+    const media = wp._embedded['wp:featuredmedia'][0]
+    // Prefer large size, fall back to full, then source_url
+    return media.media_details?.sizes?.large?.source_url
+      || media.media_details?.sizes?.full?.source_url
+      || media.source_url
+      || null
+  }
+
+  /**
    * Transform WP REST API post to our BlogPost format
    */
   private transformWPPost(wp: WPPost): BlogPost {
@@ -253,7 +272,7 @@ class WordPressPostsClient {
       title: decodeHtmlEntities(wp.title.rendered),
       excerpt: decodeHtmlEntities(rawExcerpt),
       content: wp.content.rendered,
-      featured_image: wp.featured_media ? null : null, // TODO: Fetch featured image if needed
+      featured_image: this.extractFeaturedImage(wp),
       status: wp.status === 'publish' ? 'published' : 'draft',
       published_at: wp.date,
       updated_at: wp.modified,
@@ -315,6 +334,18 @@ interface WPPost {
   status: string
   featured_media: number
   author: number
+  _embedded?: {
+    'wp:featuredmedia'?: Array<{
+      source_url: string
+      media_details?: {
+        sizes?: {
+          full?: { source_url: string }
+          large?: { source_url: string }
+          medium_large?: { source_url: string }
+        }
+      }
+    }>
+  }
 }
 
 interface WPTag {
