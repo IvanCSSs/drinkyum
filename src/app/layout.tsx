@@ -4,6 +4,7 @@ import "./globals.css";
 import AgeVerification from "@/components/AgeVerification";
 import { ConsoleFilter } from "@/components/ConsoleFilter";
 import { Providers } from "@/contexts/Providers";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -90,6 +91,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={lato.variable}>
       <head>
+        <GoogleAnalytics />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
