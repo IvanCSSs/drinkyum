@@ -42,6 +42,11 @@ const nextConfig: NextConfig = {
     const wpBaseUrl = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum';
 
     return [
+      // Image optimization: /img → /_next/image (cleaner URLs)
+      {
+        source: '/img',
+        destination: '/_next/image',
+      },
       // WordPress REST API: /wp-json/* → Railway WordPress
       // This allows drinkyum.com/wp-json/wc/v3/products to work
       {
