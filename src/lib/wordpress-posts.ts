@@ -177,7 +177,7 @@ class WordPressPostsClient {
     url.searchParams.set('rest_route', '/wp/v2/posts')
     
     // Embed featured media data
-    url.searchParams.set('_embed', 'wp:featuredmedia')
+    url.searchParams.set('_embed', 'wp:featuredmedia,author')
     
     // Add query params
     if (params?.page) url.searchParams.set('page', String(params.page))
@@ -229,7 +229,7 @@ class WordPressPostsClient {
   async getPost(slug: string): Promise<SinglePostResponse> {
     const wpPosts = await this.get<WPPost[]>('/wp/v2/posts', {
       slug: slug,
-      _embed: 'wp:featuredmedia',
+      _embed: 'wp:featuredmedia,author',
     })
 
     if (!wpPosts.length) {
@@ -241,6 +241,19 @@ class WordPressPostsClient {
     return {
       post,
       related: [], // TODO: Fetch related posts if needed
+    }
+  }
+
+  /**
+   * Extract author from embedded data
+   */
+  private extractAuthor(wp: WPPost): BlogAuthor | null {
+    const authorData = wp._embedded?.['author']?.[0]
+    if (!authorData) return null
+    return {
+      id: String(authorData.id),
+      name: authorData.name,
+      avatar: authorData.avatar_urls?.['96'] || authorData.avatar_urls?.['48'] || null,
     }
   }
 
@@ -276,7 +289,7 @@ class WordPressPostsClient {
       status: wp.status === 'publish' ? 'published' : 'draft',
       published_at: wp.date,
       updated_at: wp.modified,
-      author: null, // TODO: Fetch author if needed
+      author: this.extractAuthor(wp),
       tags: [],
       categories: [],
     }
@@ -344,6 +357,12 @@ interface WPPost {
           medium_large?: { source_url: string }
         }
       }
+    }>
+    'author'?: Array<{
+      id: number
+      name: string
+      description?: string
+      avatar_urls?: Record<string, string>
     }>
   }
 }
