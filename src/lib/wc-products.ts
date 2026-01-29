@@ -302,8 +302,8 @@ function storeProductToWCProduct(sp: StoreProduct): WCProduct {
       options: attr.terms.map(t => t.name),
     })),
     variations: sp.variations.map(v => v.id),
-    meta_data: sp.extensions?.sections ? [
-      { id: 0, key: 'sections', value: sp.extensions.sections }
+    meta_data: sp.extensions?.drinkyum?.sections ? [
+      { id: 0, key: 'sections', value: sp.extensions.drinkyum.sections }
     ] : [],
     date_created: new Date().toISOString(),
     date_modified: new Date().toISOString(),

@@ -112,9 +112,11 @@ export interface StoreProduct {
     maximum: number
     multiple_of: number
   }
-  // DrinkYUM Product Sections plugin
+  // DrinkYUM Product Sections plugin (namespaced under 'drinkyum')
   extensions?: {
-    sections?: ProductSection[]
+    drinkyum?: {
+      sections?: ProductSection[]
+    }
   }
 }
 
