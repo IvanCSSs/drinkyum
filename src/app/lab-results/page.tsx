@@ -7,6 +7,7 @@ import { Shield, FileCheck, FlaskConical, CheckCircle, Download, ExternalLink, A
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileLogo from "@/components/MobileLogo";
+import LabLookupForm from "@/components/LabLookupForm";
 
 const testingPoints = [
   {
@@ -106,6 +107,16 @@ export default function LabResultsPage() {
                 className="object-contain"
               />
             </div>
+          </motion.div>
+
+          {/* Lab Results Lookup Form */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="max-w-md mx-auto mb-20"
+          >
+            <LabLookupForm />
           </motion.div>
 
           {/* What We Test For */}
