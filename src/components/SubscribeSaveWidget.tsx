@@ -81,32 +81,38 @@ export default function SubscribeSaveWidget({
         }`}
       >
         {/* Header Row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                isSubscribe ? "border-yum-pink" : "border-white/30"
-              }`}
-            >
-              {isSubscribe && (
-                <div className="w-2.5 h-2.5 rounded-full bg-yum-pink" />
-              )}
-            </div>
-            <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div
+            className={`w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${
+              isSubscribe ? "border-yum-pink" : "border-white/30"
+            }`}
+          >
+            {isSubscribe && (
+              <div className="w-2.5 h-2.5 rounded-full bg-yum-pink" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
               <span className="text-white font-medium">Subscribe & Save</span>
-              {maxDiscount > 0 && (
-                <span className="px-2 py-0.5 bg-yum-pink/20 text-yum-pink text-xs font-bold rounded-full flex items-center gap-1">
-                  <Sparkles size={10} />
-                  SAVE UP TO {maxDiscount}%
+              {!isSubscribe && (
+                <span className="text-white font-bold text-sm">
+                  from {formatPrice(basePrice * (1 - maxDiscount / 100))}
                 </span>
               )}
             </div>
+            {maxDiscount > 0 && !isSubscribe && (
+              <span className="mt-1 inline-flex px-2 py-0.5 bg-yum-pink/20 text-yum-pink text-xs font-bold rounded-full items-center gap-1">
+                <Sparkles size={10} />
+                SAVE UP TO {maxDiscount}%
+              </span>
+            )}
+            {maxDiscount > 0 && isSubscribe && (
+              <span className="mt-1 inline-flex px-2 py-0.5 bg-yum-pink/20 text-yum-pink text-xs font-bold rounded-full items-center gap-1">
+                <Sparkles size={10} />
+                SAVE UP TO {maxDiscount}%
+              </span>
+            )}
           </div>
-          {!isSubscribe && (
-            <span className="text-white/60 font-medium text-sm">
-              from {formatPrice(basePrice * (1 - maxDiscount / 100))}
-            </span>
-          )}
         </div>
 
         {/* Expanded Content */}

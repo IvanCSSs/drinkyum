@@ -81,28 +81,28 @@ export default function AgeVerification() {
             />
 
             {/* Content */}
-            <div className="relative px-8 py-10 text-center">
+            <div className="relative px-6 py-8 sm:px-8 sm:py-10 text-center">
               {/* Logo/Icon */}
               <motion.div
-                className="mb-6 flex justify-center"
+                className="mb-4 sm:mb-6 flex justify-center"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
               >
                 <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
                   style={{
                     background: "linear-gradient(135deg, rgba(220, 3, 135, 0.3) 0%, rgba(220, 3, 135, 0.1) 100%)",
                     border: "1px solid rgba(220, 3, 135, 0.4)",
                   }}
                 >
-                  <span className="text-3xl">🔞</span>
+                  <span className="text-2xl sm:text-3xl">🔞</span>
                 </div>
               </motion.div>
 
               {/* Title */}
               <motion.h2
-                className="text-2xl md:text-3xl font-bold italic mb-3"
+                className="text-xl sm:text-2xl md:text-3xl font-bold italic mb-2 sm:mb-3"
                 style={{
                   background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
                   WebkitBackgroundClip: "text",
@@ -118,25 +118,25 @@ export default function AgeVerification() {
 
               {/* Description */}
               <motion.p
-                className="text-white/60 text-sm md:text-base mb-8 max-w-xs mx-auto leading-relaxed"
+                className="text-white/60 text-sm mb-6 sm:mb-8 max-w-xs mx-auto leading-relaxed"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
                 You must be <span className="text-white font-semibold">21 years or older</span> to 
-                enter this site. Please verify your age to continue.
+                enter this site. Please verify your age.
               </motion.p>
 
               {/* Buttons */}
               <motion.div
-                className="flex flex-col sm:flex-row gap-3 justify-center"
+                className="flex flex-col gap-3 sm:flex-row sm:justify-center"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
                 <button
                   onClick={handleVerify}
-                  className="px-8 py-3.5 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105 active:scale-95"
                   style={{
                     background: "linear-gradient(135deg, rgba(220, 3, 135, 1) 0%, rgba(180, 3, 110, 1) 100%)",
                     boxShadow: "0 4px 20px rgba(220, 3, 135, 0.4)",
@@ -147,7 +147,7 @@ export default function AgeVerification() {
                 
                 <button
                   onClick={handleDecline}
-                  className="px-8 py-3.5 rounded-xl font-medium text-white/70 transition-all duration-300 hover:text-white hover:bg-white/10"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-medium text-white/70 transition-all duration-300 hover:text-white hover:bg-white/10 active:scale-95"
                   style={{
                     background: "rgba(255, 255, 255, 0.05)",
                     border: "1px solid rgba(255, 255, 255, 0.1)",
@@ -159,7 +159,7 @@ export default function AgeVerification() {
 
               {/* Legal text */}
               <motion.p
-                className="mt-6 text-xs text-white/40 max-w-sm mx-auto"
+                className="mt-5 sm:mt-6 text-[11px] sm:text-xs text-white/40 max-w-sm mx-auto"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
