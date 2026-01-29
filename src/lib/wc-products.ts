@@ -7,7 +7,7 @@
 
 import { woocommerce } from './wc-client'
 import { wpImageUrl } from './wordpress-images'
-import { fetchStoreProducts, fetchStoreProduct, fetchStoreCategories, StoreProduct } from './wc-store-api'
+import { fetchStoreProducts, fetchStoreProduct, fetchStoreCategories, StoreProduct, ProductSection as StoreProductSection } from './wc-store-api'
 
 /**
  * Decode HTML entities in strings from WooCommerce
@@ -302,7 +302,9 @@ function storeProductToWCProduct(sp: StoreProduct): WCProduct {
       options: attr.terms.map(t => t.name),
     })),
     variations: sp.variations.map(v => v.id),
-    meta_data: [],
+    meta_data: sp.extensions?.sections ? [
+      { id: 0, key: 'sections', value: sp.extensions.sections }
+    ] : [],
     date_created: new Date().toISOString(),
     date_modified: new Date().toISOString(),
     subscribe_save: undefined,

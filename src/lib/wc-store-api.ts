@@ -27,6 +27,14 @@ function buildStoreApiUrl(path: string, params?: Record<string, string | number 
   return url.toString()
 }
 
+export interface ProductSection {
+  id: string
+  title: string
+  type: 'text' | 'list' | 'table'
+  content: string | string[] | Array<{ label: string; value: string }>
+  order: number
+}
+
 export interface StoreProduct {
   id: number
   name: string
@@ -103,6 +111,10 @@ export interface StoreProduct {
     minimum: number
     maximum: number
     multiple_of: number
+  }
+  // DrinkYUM Product Sections plugin
+  extensions?: {
+    sections?: ProductSection[]
   }
 }
 
