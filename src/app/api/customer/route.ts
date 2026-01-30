@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Customer API route
  *
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await fetch(
-      `${WP_URL}/wp-json/auth/v1/me`,
+      buildWpApiUrl("/auth/v1/me"),
       {
         method: 'GET',
         headers: {
@@ -74,7 +75,7 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json()
 
     const response = await fetch(
-      `${WP_URL}/wp-json/auth/v1/me`,
+      buildWpApiUrl("/auth/v1/me"),
       {
         method: 'PATCH',
         headers: {

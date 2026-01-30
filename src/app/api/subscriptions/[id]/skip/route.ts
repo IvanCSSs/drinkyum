@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Skip Subscription Shipment API route
  *
@@ -34,7 +35,7 @@ export async function POST(
     }
 
     const response = await fetch(
-      `${WC_URL}/wp-json/wc/v3/subscriptions/${id}/skip`,
+      buildWpApiUrl(`/wc/v3/subscriptions/${id}/skip`),
       {
         method: 'POST',
         headers: {

@@ -25,14 +25,15 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get query params
+    // Get query params and convert to record for buildWpApiUrl
     const { searchParams } = new URL(request.url)
-    const queryString = searchParams.toString()
+    const params: Record<string, string> = {}
+    searchParams.forEach((value, key) => { params[key] = value })
 
     // Call our custom headless-orders.php endpoint which uses our own JWT implementation
-    // This bypasses the third-party JWT plugin that intercepts all Bearer tokens
+    // Uses ?rest_route= format because /wp-json/ pretty URLs 404 on multisite subsites
     const response = await fetch(
-      `${WP_URL}/wp-json/store/v1/orders${queryString ? `?${queryString}` : ''}`,
+      buildWpApiUrl('/store/v1/orders', params),
       {
         method: 'GET',
         headers: {

@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { buildWpApiUrl } from '@/lib/wp-api-url'
 
 const WP_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
 
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await fetch(
-      `${WP_URL}/wp-json/store/v1/addresses`,
+      buildWpApiUrl('/store/v1/addresses'),
       {
         method: 'GET',
         headers: {
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     const response = await fetch(
-      `${WP_URL}/wp-json/store/v1/addresses`,
+      buildWpApiUrl('/store/v1/addresses'),
       {
         method: 'POST',
         headers: {

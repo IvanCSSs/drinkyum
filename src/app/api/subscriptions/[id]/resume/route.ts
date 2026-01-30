@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Resume Subscription API route
  *
@@ -34,7 +35,7 @@ export async function POST(
     }
 
     const response = await fetch(
-      `${WC_URL}/wp-json/wc/v3/subscriptions/${id}/resume`,
+      buildWpApiUrl(`/wc/v3/subscriptions/${id}/resume`),
       {
         method: 'POST',
         headers: {

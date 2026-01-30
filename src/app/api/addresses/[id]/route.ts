@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Single Address API route
  *
@@ -27,7 +28,7 @@ export async function GET(
     }
 
     const response = await fetch(
-      `${WP_URL}/wp-json/store/v1/addresses/${id}`,
+      buildWpApiUrl(`/store/v1/addresses/${id}`),
       {
         method: 'GET',
         headers: {
@@ -74,7 +75,7 @@ export async function PATCH(
     const body = await request.json()
 
     const response = await fetch(
-      `${WP_URL}/wp-json/store/v1/addresses/${id}`,
+      buildWpApiUrl(`/store/v1/addresses/${id}`),
       {
         method: 'PATCH',
         headers: {
@@ -120,7 +121,7 @@ export async function DELETE(
     }
 
     const response = await fetch(
-      `${WP_URL}/wp-json/store/v1/addresses/${id}`,
+      buildWpApiUrl(`/store/v1/addresses/${id}`),
       {
         method: 'DELETE',
         headers: {

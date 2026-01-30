@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Cancel Subscription API route
  *
@@ -35,7 +36,7 @@ export async function POST(
     }
 
     const response = await fetch(
-      `${WC_URL}/wp-json/wc/v3/subscriptions/${id}/cancel`,
+      buildWpApiUrl(`/wc/v3/subscriptions/${id}/cancel`),
       {
         method: 'POST',
         headers: {

@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Change Subscription Frequency API route
  *
@@ -36,7 +37,7 @@ export async function POST(
 
     // Body should contain: { billing_period, billing_interval }
     const response = await fetch(
-      `${WC_URL}/wp-json/wc/v3/subscriptions/${id}/frequency`,
+      buildWpApiUrl(`/wc/v3/subscriptions/${id}/frequency`),
       {
         method: 'POST',
         headers: {

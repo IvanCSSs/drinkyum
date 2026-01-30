@@ -1,3 +1,4 @@
+import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Single Subscription API route
  *
@@ -34,7 +35,7 @@ export async function GET(
     }
 
     const response = await fetch(
-      `${WC_URL}/wp-json/wc/v3/subscriptions/${id}`,
+      buildWpApiUrl(`/wc/v3/subscriptions/${id}`),
       {
         method: 'GET',
         headers: {

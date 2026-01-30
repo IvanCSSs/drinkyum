@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { buildWpApiUrl } from '@/lib/wp-api-url'
 
 const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
 const WC_CONSUMER_KEY = process.env.WC_CONSUMER_KEY
@@ -16,7 +17,7 @@ export async function GET() {
     // Build auth header for WooCommerce REST API
     const auth = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64')
 
-    const response = await fetch(`${WC_URL}/wp-json/wc/v3/payment-config`, {
+    const response = await fetch(buildWpApiUrl('/wc/v3/payment-config'), {
       headers: {
         'Authorization': `Basic ${auth}`,
       },

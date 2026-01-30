@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { buildWpApiUrl } from '@/lib/wp-api-url'
 
 const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
 const WC_CONSUMER_KEY = process.env.WC_CONSUMER_KEY
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     // First, get customer info from WordPress auth endpoint using JWT
     const customerResponse = await fetch(
-      `${WC_URL}/wp-json/auth/v1/me`,
+      buildWpApiUrl('/auth/v1/me'),
       {
         method: 'GET',
         headers: {
@@ -123,7 +124,7 @@ export async function GET(request: NextRequest) {
 
     // First, look up the customer by email to get their ID
     const customersResponse = await fetch(
-      `${WC_URL}/wp-json/wc/v3/customers?email=${encodeURIComponent(customerEmail)}`,
+      buildWpApiUrl('/wc/v3/customers', { email: customerEmail }),
       {
         method: 'GET',
         headers: {
@@ -152,7 +153,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch subscriptions for this customer
     const subscriptionsResponse = await fetch(
-      `${WC_URL}/wp-json/wc/v3/subscriptions?customer=${customerId}`,
+      buildWpApiUrl('/wc/v3/subscriptions', { customer: customerId }),
       {
         method: 'GET',
         headers: {
