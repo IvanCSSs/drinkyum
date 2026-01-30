@@ -1,34 +1,50 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle, RefreshCw } from "lucide-react";
 import { requestPasswordReset } from "@/lib/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileLogo from "@/components/MobileLogo";
+
+const RESEND_COOLDOWN = 60; // seconds
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const sendReset = useCallback(async () => {
+    if (!email || cooldown > 0) return;
     setError(null);
     setIsSubmitting(true);
 
     try {
       await requestPasswordReset(email);
       setIsSuccess(true);
+      setCooldown(RESEND_COOLDOWN);
     } catch {
       // Always show success for security (don't reveal if email exists)
       setIsSuccess(true);
+      setCooldown(RESEND_COOLDOWN);
     } finally {
       setIsSubmitting(false);
     }
+  }, [email, cooldown]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendReset();
   };
 
   return (
@@ -94,19 +110,43 @@ export default function ForgotPasswordPage() {
                   <h2 className="text-xl font-semibold text-white mb-2">
                     Check Your Email
                   </h2>
-                  <p className="text-white/60 mb-6">
+                  <p className="text-white/60 mb-4">
                     If an account exists for <span className="text-white">{email}</span>,
                     you&apos;ll receive a password reset link shortly.
                   </p>
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all hover:scale-[1.02]"
-                    style={{
-                      background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
-                    }}
+                  <button
+                    onClick={sendReset}
+                    disabled={isSubmitting || cooldown > 0}
+                    className="inline-flex items-center gap-2 text-sm text-yum-pink hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4"
                   >
-                    Return to Login
-                  </Link>
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-yum-pink/30 border-t-yum-pink rounded-full animate-spin" />
+                        Sending...
+                      </>
+                    ) : cooldown > 0 ? (
+                      <>
+                        <RefreshCw size={16} />
+                        Resend in {cooldown}s
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw size={16} />
+                        Resend email
+                      </>
+                    )}
+                  </button>
+                  <div>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all hover:scale-[1.02]"
+                      style={{
+                        background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
+                      }}
+                    >
+                      Return to Login
+                    </Link>
+                  </div>
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">

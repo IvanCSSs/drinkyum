@@ -26,6 +26,7 @@ function ResetPasswordForm() {
   const [isTokenExpired, setIsTokenExpired] = useState(false);
   const [isResendingEmail, setIsResendingEmail] = useState(false);
   const [emailResent, setEmailResent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Password validation
   const passwordRequirements = [
@@ -37,6 +38,13 @@ function ResetPasswordForm() {
   const allRequirementsMet = passwordRequirements.every((req) => req.met);
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
 
+  // Cooldown timer for resend
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
   // Redirect if missing token or email (WordPress requires both)
   useEffect(() => {
     if (!token || !email) {
@@ -45,7 +53,7 @@ function ResetPasswordForm() {
   }, [token, email, router]);
 
   const handleResendEmail = async () => {
-    if (!email) return;
+    if (!email || resendCooldown > 0) return;
 
     setIsResendingEmail(true);
     try {
@@ -53,6 +61,7 @@ function ResetPasswordForm() {
       setEmailResent(true);
       setError(null);
       setIsTokenExpired(false);
+      setResendCooldown(60);
     } catch {
       setError("Failed to send reset email. Please try again.");
     } finally {
@@ -170,13 +179,18 @@ function ResetPasswordForm() {
                 <button
                   type="button"
                   onClick={handleResendEmail}
-                  disabled={isResendingEmail}
-                  className="inline-flex items-center gap-2 text-sm text-yum-pink hover:text-white transition-colors disabled:opacity-50"
+                  disabled={isResendingEmail || resendCooldown > 0}
+                  className="inline-flex items-center gap-2 text-sm text-yum-pink hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isResendingEmail ? (
                     <>
                       <div className="w-4 h-4 border-2 border-yum-pink/30 border-t-yum-pink rounded-full animate-spin" />
                       Sending...
+                    </>
+                  ) : resendCooldown > 0 ? (
+                    <>
+                      <RefreshCw size={16} />
+                      Resend in {resendCooldown}s
                     </>
                   ) : (
                     <>
