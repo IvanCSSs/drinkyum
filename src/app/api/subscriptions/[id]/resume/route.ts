@@ -1,23 +1,5 @@
 import { buildWpApiUrl } from "@/lib/wp-api-url"
-/**
- * Resume Subscription API route
- *
- * POST /api/subscriptions/[id]/resume - Resume a paused subscription
- */
-
 import { NextRequest, NextResponse } from 'next/server'
-
-const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
-const WC_CONSUMER_KEY = process.env.WC_CONSUMER_KEY
-const WC_CONSUMER_SECRET = process.env.WC_CONSUMER_SECRET
-
-function getAuthHeader(): string {
-  if (!WC_CONSUMER_KEY || !WC_CONSUMER_SECRET) {
-    throw new Error('WooCommerce credentials not configured')
-  }
-  const credentials = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64')
-  return `Basic ${credentials}`
-}
 
 export async function POST(
   request: NextRequest,
@@ -25,43 +7,35 @@ export async function POST(
 ) {
   try {
     const { id } = await params
+    const authHeader = request.headers.get('Authorization')
 
-    if (!WC_CONSUMER_KEY || !WC_CONSUMER_SECRET) {
-      console.error('[Subscription Resume API] WooCommerce credentials not configured')
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      )
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Authorization required' }, { status: 401 })
     }
 
     const response = await fetch(
-      buildWpApiUrl(`/wc/v3/subscriptions/${id}/resume`),
+      buildWpApiUrl(`/store/v1/subscriptions/${id}/resume`),
       {
         method: 'POST',
         headers: {
-          'Authorization': getAuthHeader(),
+          'Authorization': authHeader,
           'Content-Type': 'application/json',
         },
       }
     )
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('[Subscription Resume API] WooCommerce error:', errorText)
+      const errorData = await response.json().catch(() => ({ message: 'Action failed' }))
       return NextResponse.json(
-        { error: 'Failed to resume subscription' },
+        { error: errorData.message || 'Action failed' },
         { status: response.status }
       )
     }
 
-    const subscription = await response.json()
-
-    return NextResponse.json({ subscription })
+    const data = await response.json()
+    return NextResponse.json(data)
   } catch (error) {
-    console.error('[Subscription Resume API] Error:', error)
-    return NextResponse.json(
-      { error: 'Failed to resume subscription' },
-      { status: 500 }
-    )
+    console.error(`[Subscriptions API] Error:`, error)
+    return NextResponse.json({ error: 'Action failed' }, { status: 500 })
   }
 }

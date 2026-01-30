@@ -1,88 +1,18 @@
 /**
  * Subscriptions API route
  *
- * Fetches subscriptions from WooCommerce REST API
- * GET /api/subscriptions - Get all subscriptions (admin) or customer's subscriptions (by email)
- * GET /api/subscriptions?email=xxx - Get subscriptions for a specific customer email
+ * GET /api/subscriptions - Get customer's subscriptions
+ * Proxies to WordPress store/v1/subscriptions with JWT auth
+ * (Uses custom headless-subscriptions.php mu-plugin, NOT WC REST API)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { buildWpApiUrl } from '@/lib/wp-api-url'
-
-const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
-const WC_CONSUMER_KEY = process.env.WC_CONSUMER_KEY
-const WC_CONSUMER_SECRET = process.env.WC_CONSUMER_SECRET
-
-interface WCSubscription {
-  id: number
-  status: string
-  customer_id: number
-  billing_period: string
-  billing_interval: number
-  total: number
-  currency: string
-  date_created: string
-  date_next_payment: string | null
-  date_end: string | null
-  date_trial_end: string | null
-  payment_method: string
-  payment_method_title: string
-  parent_order_id: number | null
-  billing: {
-    first_name: string
-    last_name: string
-    email: string
-  }
-  shipping?: {
-    first_name: string
-    last_name: string
-    address_1: string
-    address_2?: string
-    city: string
-    state: string
-    postcode: string
-    country: string
-    phone?: string
-  }
-  line_items: Array<{
-    product_id: number
-    variation_id: number
-    name: string
-    quantity: number
-    subtotal: number
-    total: number
-  }>
-  related_orders: Array<{
-    id: number
-    type: string
-    date: string
-    status: string
-    total: number
-  }>
-  available_actions: string[]
-}
-
-function getAuthHeader(): string {
-  if (!WC_CONSUMER_KEY || !WC_CONSUMER_SECRET) {
-    throw new Error('WooCommerce credentials not configured')
-  }
-  const credentials = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64')
-  return `Basic ${credentials}`
-}
 
 export async function GET(request: NextRequest) {
   try {
-    if (!WC_CONSUMER_KEY || !WC_CONSUMER_SECRET) {
-      console.error('[Subscriptions API] WooCommerce credentials not configured')
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      )
-    }
-
-    // Get JWT token to fetch customer info
     const authHeader = request.headers.get('Authorization')
+
     if (!authHeader) {
       return NextResponse.json(
         { error: 'Authorization required' },
@@ -90,9 +20,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // First, get customer info from WordPress auth endpoint using JWT
-    const customerResponse = await fetch(
-      buildWpApiUrl('/auth/v1/me'),
+    // Call our custom store/v1/subscriptions endpoint (JWT auth, no WC consumer keys needed)
+    const response = await fetch(
+      buildWpApiUrl('/store/v1/subscriptions'),
       {
         method: 'GET',
         headers: {
@@ -102,84 +32,18 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    if (!customerResponse.ok) {
-      console.error('[Subscriptions API] Failed to get customer from JWT')
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Failed to fetch subscriptions' }))
+      console.error('[Subscriptions API] WordPress error:', response.status, errorData)
+
       return NextResponse.json(
-        { error: 'Authentication failed' },
-        { status: 401 }
+        { error: errorData.message || 'Failed to fetch subscriptions' },
+        { status: response.status }
       )
     }
 
-    const customerData = await customerResponse.json()
-    // The customer data is nested under 'customer' key
-    const customerEmail = customerData.customer?.email || customerData.email
-
-    console.log('[Subscriptions API] Customer email from JWT:', customerEmail)
-    console.log('[Subscriptions API] Full customer data:', JSON.stringify(customerData, null, 2))
-
-    if (!customerEmail) {
-      console.log('[Subscriptions API] No customer email found in JWT')
-      return NextResponse.json({ subscriptions: [], count: 0 })
-    }
-
-    // First, look up the customer by email to get their ID
-    const customersResponse = await fetch(
-      buildWpApiUrl('/wc/v3/customers', { email: customerEmail }),
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': getAuthHeader(),
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-
-    if (!customersResponse.ok) {
-      const errorText = await customersResponse.text()
-      console.error('[Subscriptions API] Failed to fetch customer:', errorText)
-      return NextResponse.json({ subscriptions: [], count: 0 })
-    }
-
-    const customers = await customersResponse.json()
-    console.log('[Subscriptions API] Found customers:', customers.length, 'for email:', customerEmail)
-
-    if (!customers || customers.length === 0) {
-      console.log('[Subscriptions API] No customer found with this email')
-      return NextResponse.json({ subscriptions: [], count: 0 })
-    }
-
-    const customerId = customers[0].id
-    console.log('[Subscriptions API] Using customer ID:', customerId)
-
-    // Fetch subscriptions for this customer
-    const subscriptionsResponse = await fetch(
-      buildWpApiUrl('/wc/v3/subscriptions', { customer: customerId }),
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': getAuthHeader(),
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-
-    if (!subscriptionsResponse.ok) {
-      const errorText = await subscriptionsResponse.text()
-      console.error('[Subscriptions API] WooCommerce error:', errorText)
-      return NextResponse.json(
-        { error: 'Failed to fetch subscriptions' },
-        { status: subscriptionsResponse.status }
-      )
-    }
-
-    const subscriptions: WCSubscription[] = await subscriptionsResponse.json()
-    console.log('[Subscriptions API] Found subscriptions:', subscriptions.length)
-    console.log('[Subscriptions API] Subscription details:', JSON.stringify(subscriptions, null, 2))
-
-    return NextResponse.json({
-      subscriptions,
-      count: subscriptions.length,
-    })
+    const data = await response.json()
+    return NextResponse.json(data)
   } catch (error) {
     console.error('[Subscriptions API] Error:', error)
     return NextResponse.json(
