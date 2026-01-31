@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { getProductPrice, type Product } from "@/lib/wc-products";
+import { trackViewItemList, type GtagItem } from "@/lib/gtag";
 
 // Fallback products when API is not available
 // Matches real WooCommerce products for DrinkYUM
@@ -80,6 +81,14 @@ export default function Products() {
         const data = await res.json();
         if (data.products && data.products.length > 0) {
           setProducts(data.products);
+          // GA4 view_item_list
+          const gtagItems: GtagItem[] = data.products.map((p: Product) => ({
+            item_id: p.id,
+            item_name: p.title,
+            price: getProductPrice(p),
+            currency: 'USD',
+          }));
+          trackViewItemList('homepage_products', 'Homepage Products', gtagItems);
         } else {
           setProducts(fallbackProducts as unknown as Product[]);
         }

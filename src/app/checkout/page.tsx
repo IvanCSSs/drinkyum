@@ -29,6 +29,7 @@ import {
   type Address
 } from "@/lib/wc-checkout";
 import { trackCheckoutStep } from "@/lib/analytics";
+import { trackBeginCheckout, type GtagItem } from "@/lib/gtag";
 
 // Payment configuration from WordPress REST API
 interface PaymentConfig {
@@ -837,9 +838,23 @@ export default function CheckoutPage() {
         // Track checkout started event
         trackCheckoutStep('started', {
           checkout_id: newSession.id,
-          cart_total: newSession.cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0),
+          cart_total: newSession.cartItems.reduce((sum: number, item: { priceNum: number; quantity: number }) => sum + item.priceNum * item.quantity, 0),
           item_count: newSession.cartItems.length,
         });
+
+        // GA4 begin_checkout event
+        const gtagItems: GtagItem[] = newSession.cartItems.map((item: { id: string; title: string; priceNum: number; quantity: number }) => ({
+          item_id: item.id,
+          item_name: item.title,
+          price: item.priceNum,
+          quantity: item.quantity,
+          currency: 'USD',
+        }));
+        trackBeginCheckout(
+          gtagItems,
+          newSession.cartItems.reduce((sum: number, item: { priceNum: number; quantity: number }) => sum + item.priceNum * item.quantity, 0),
+          'USD'
+        );
       }
 
       setIsInitialized(true);

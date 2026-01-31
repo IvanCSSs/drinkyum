@@ -9,6 +9,7 @@ import { Check, Package, Truck, Mail, ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
+import { trackPurchase, type GtagItem } from "@/lib/gtag";
 
 // Order type matching the WooCommerce API response
 interface Order {
@@ -80,6 +81,26 @@ export default function OrderConfirmationPage() {
       try {
         const response = await getOrder(orderId);
         setOrder(response.order);
+
+        // GA4 purchase event (fire once on load)
+        const ord = response.order;
+        const gtagItems: GtagItem[] = ord.items.map((item) => ({
+          item_id: item.id,
+          item_name: item.title,
+          price: item.unit_price,
+          quantity: item.quantity,
+          currency: ord.currency_code?.toUpperCase() || 'USD',
+        }));
+        trackPurchase(
+          String(ord.display_id || ord.id),
+          ord.total,
+          gtagItems,
+          {
+            currency: ord.currency_code?.toUpperCase() || 'USD',
+            tax: ord.tax_total,
+            shipping: ord.shipping_total,
+          }
+        );
       } catch (err) {
         console.error("Failed to fetch order:", err);
         setError("Unable to load order details");

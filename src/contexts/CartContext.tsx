@@ -19,6 +19,7 @@ import {
   type Address,
 } from "@/lib/wc-cart";
 import { trackAddToCart, trackRemoveFromCart, trackCartUpdate } from "@/lib/analytics";
+import { trackGtagAddToCart, trackGtagRemoveFromCart } from "@/lib/gtag";
 
 interface CartContextType {
   cart: Cart | null;
@@ -100,6 +101,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity,
           price: addedItem.unit_price,
         });
+        trackGtagAddToCart({
+          item_id: addedItem.variant?.product?.id || variantId,
+          item_name: addedItem.title,
+          price: addedItem.unit_price,
+          quantity,
+          currency: 'USD',
+        });
       }
     } catch (err) {
       console.error("Failed to add to cart:", err);
@@ -135,6 +143,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           price: addedItem.unit_price,
           isSubscription: true,
         });
+        trackGtagAddToCart({
+          item_id: addedItem.variant?.product?.id || variantId,
+          item_name: addedItem.title,
+          price: addedItem.unit_price,
+          quantity,
+          item_variant: 'subscription',
+          currency: 'USD',
+        });
       }
     } catch (err) {
       console.error("Failed to add subscription:", err);
@@ -163,9 +179,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeItem = useCallback(async (lineItemId: string) => {
     try {
       setError(null);
+      // Find item before removing for analytics
+      const removedItem = cart?.items.find(i => i.id === lineItemId);
       const updatedCart = await apiRemoveCartItem(lineItemId);
       setCart(updatedCart);
       trackRemoveFromCart(lineItemId);
+      if (removedItem) {
+        trackGtagRemoveFromCart({
+          item_id: removedItem.variant?.product?.id || removedItem.variant_id,
+          item_name: removedItem.title,
+          price: removedItem.unit_price,
+          quantity: removedItem.quantity,
+          currency: 'USD',
+        });
+      }
     } catch (err) {
       console.error("Failed to remove cart item:", err);
       setError("Failed to remove item");
