@@ -843,9 +843,9 @@ export default function CheckoutPage() {
         });
 
         // GA4 begin_checkout event
-        const gtagItems: GtagItem[] = newSession.cartItems.map((item: { id: string; title: string; priceNum: number; quantity: number }) => ({
-          item_id: item.id,
-          item_name: item.title,
+        const gtagItems: GtagItem[] = newSession.cartItems.map((item: { id: string | number; name: string; priceNum: number; quantity: number }) => ({
+          item_id: String(item.id),
+          item_name: item.name,
           price: item.priceNum,
           quantity: item.quantity,
           currency: 'USD',
