@@ -20,6 +20,7 @@ import {
 } from "@/lib/wc-cart";
 import { trackAddToCart, trackRemoveFromCart, trackCartUpdate } from "@/lib/analytics";
 import { trackGtagAddToCart, trackGtagRemoveFromCart } from "@/lib/gtag";
+import { tracker } from "@/lib/tracker";
 
 interface CartContextType {
   cart: Cart | null;
@@ -108,6 +109,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity,
           currency: 'USD',
         });
+        // First-party tracker (ad-blocker resistant)
+        tracker.addToCart({
+          id: addedItem.variant?.product?.id || variantId,
+          name: addedItem.title,
+          price: addedItem.unit_price,
+          quantity,
+          currency: 'USD',
+        });
       }
     } catch (err) {
       console.error("Failed to add to cart:", err);
@@ -149,6 +158,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           price: addedItem.unit_price,
           quantity,
           item_variant: 'subscription',
+          currency: 'USD',
+        });
+        // First-party tracker (ad-blocker resistant)
+        tracker.addToCart({
+          id: addedItem.variant?.product?.id || variantId,
+          name: addedItem.title,
+          price: addedItem.unit_price,
+          quantity,
           currency: 'USD',
         });
       }

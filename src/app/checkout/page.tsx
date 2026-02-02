@@ -30,6 +30,7 @@ import {
 } from "@/lib/wc-checkout";
 import { trackCheckoutStep } from "@/lib/analytics";
 import { trackBeginCheckout, type GtagItem } from "@/lib/gtag";
+import { tracker } from "@/lib/tracker";
 
 // Payment configuration from WordPress REST API
 interface PaymentConfig {
@@ -853,6 +854,18 @@ export default function CheckoutPage() {
         trackBeginCheckout(
           gtagItems,
           newSession.cartItems.reduce((sum: number, item: { priceNum: number; quantity: number }) => sum + item.priceNum * item.quantity, 0),
+          'USD'
+        );
+        // First-party tracker (ad-blocker resistant)
+        const checkoutValue = newSession.cartItems.reduce((sum: number, item: { priceNum: number; quantity: number }) => sum + item.priceNum * item.quantity, 0);
+        tracker.beginCheckout(
+          newSession.cartItems.map((item: { id: string | number; name: string; priceNum: number; quantity: number }) => ({
+            id: String(item.id),
+            name: item.name,
+            price: item.priceNum,
+            quantity: item.quantity,
+          })),
+          checkoutValue,
           'USD'
         );
       }
