@@ -92,8 +92,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Open cart drawer after adding item
       setIsDrawerOpen(true);
 
-      // Track analytics
-      const addedItem = updatedCart.items.find(i => i.variant_id === variantId);
+      // Track analytics — find added item, fall back to last item if variant_id doesn't match
+      const addedItem = updatedCart.items.find(i => i.variant_id === variantId)
+        || updatedCart.items[updatedCart.items.length - 1];
       if (addedItem) {
         trackAddToCart({
           productId: addedItem.variant?.product?.id || variantId,
@@ -109,15 +110,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity,
           currency: 'USD',
         });
-        // First-party tracker (ad-blocker resistant)
-        tracker.addToCart({
-          id: addedItem.variant?.product?.id || variantId,
-          name: addedItem.title,
-          price: addedItem.unit_price,
-          quantity,
-          currency: 'USD',
-        });
       }
+      // First-party tracker (ad-blocker resistant) — always fire
+      tracker.addToCart({
+        id: addedItem?.variant?.product?.id || variantId,
+        name: addedItem?.title || 'Unknown',
+        price: addedItem?.unit_price || 0,
+        quantity,
+        currency: 'USD',
+      });
     } catch (err) {
       console.error("Failed to add to cart:", err);
       setError("Failed to add item to cart");
@@ -141,8 +142,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Open cart drawer after adding item
       setIsDrawerOpen(true);
 
-      // Track analytics
-      const addedItem = updatedCart.items.find(i => i.variant_id === variantId);
+      // Track analytics — find added item, fall back to last item
+      const addedItem = updatedCart.items.find(i => i.variant_id === variantId)
+        || updatedCart.items[updatedCart.items.length - 1];
       if (addedItem) {
         trackAddToCart({
           productId: addedItem.variant?.product?.id || variantId,
@@ -160,15 +162,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
           item_variant: 'subscription',
           currency: 'USD',
         });
-        // First-party tracker (ad-blocker resistant)
-        tracker.addToCart({
-          id: addedItem.variant?.product?.id || variantId,
-          name: addedItem.title,
-          price: addedItem.unit_price,
-          quantity,
-          currency: 'USD',
-        });
       }
+      // First-party tracker (ad-blocker resistant) — always fire
+      tracker.addToCart({
+        id: addedItem?.variant?.product?.id || variantId,
+        name: addedItem?.title || 'Unknown',
+        price: addedItem?.unit_price || 0,
+        quantity,
+        currency: 'USD',
+      });
     } catch (err) {
       console.error("Failed to add subscription:", err);
       setError("Failed to add subscription to cart");
