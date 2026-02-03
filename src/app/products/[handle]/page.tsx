@@ -299,7 +299,7 @@ export default function ProductPage({
                       src={images[selectedImage]}
                       alt={product.title}
                       fill
-                      className="object-cover"
+                      className="object-contain"
                       priority
                     />
                   </motion.div>
