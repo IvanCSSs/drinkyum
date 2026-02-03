@@ -293,7 +293,8 @@ export default function Products() {
                           src={image}
                           alt={product.title}
                           fill
-                          className="object-contain transition-transform duration-300 hover:scale-105"
+                          className="object-cover transition-transform duration-300 hover:scale-110"
+                          style={{ transform: "scale(1.1)" }}
                         />
                       </Link>
 
