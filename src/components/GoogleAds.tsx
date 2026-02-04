@@ -14,13 +14,13 @@ import Script from 'next/script';
  */
 
 const AW_CONVERSION_ID = 'AW-17931720610';
-const SGTM_URL = 'https://t.drinkyum.com';
+// TODO: Switch back to sGTM (https://t.drinkyum.com) once Railway services are redeployed
 
 export default function GoogleAds() {
   return (
     <>
       <Script
-        src={`${SGTM_URL}/gtag/js?id=${AW_CONVERSION_ID}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${AW_CONVERSION_ID}`}
         strategy="afterInteractive"
       />
       <Script id="google-ads-config" strategy="afterInteractive">
@@ -28,9 +28,7 @@ export default function GoogleAds() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${AW_CONVERSION_ID}', {
-            server_container_url: '${SGTM_URL}'
-          });
+          gtag('config', '${AW_CONVERSION_ID}');
         `}
       </Script>
     </>
