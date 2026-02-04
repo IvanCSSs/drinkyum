@@ -62,7 +62,7 @@ const organizationSchema = {
   url: "https://www.drinkyum.com",
   logo: "https://www.drinkyum.com/logo.png",
   description: "Premium kratom extract beverages and mocktails. Lab-tested, high-quality kratom shots.",
-  sameAs: [],
+  sameAs: ["https://www.instagram.com/drink.yum"],
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "customer service",
@@ -91,6 +91,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={lato.variable}>
       <head>
+        {/* Awin verification */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
