@@ -14,8 +14,8 @@ import { trackViewItemList, type GtagItem } from "@/lib/gtag";
 const fallbackProducts = [
   {
     id: "54",
-    handle: "333-yum-bubble-gum-30ml-single",
-    title: "333 – YUM Bubble Gum 30ml Single",
+    handle: "yum-bubble-gum-30ml-single",
+    title: "YUM Bubble Gum 30ml Single",
     subtitle: "Premium kratom extract with bubble gum flavor",
     description: "Start with one capful. Feel the difference in 20-30 minutes — clean focus, elevated mood, and sustained energy for 3-4 hours. No crash. No hangover feeling the next morning.",
     thumbnail: "/images/bg-single-30ml.png",
@@ -44,8 +44,8 @@ const fallbackProducts = [
   },
   {
     id: "64",
-    handle: "333-bubble-gum-tropical-breeze-sampler-pack",
-    title: "333 – Bubble Gum & Tropical Breeze Sampler Pack",
+    handle: "bubble-gum-tropical-breeze-sampler-pack",
+    title: "Bubble Gum & Tropical Breeze Sampler Pack",
     subtitle: "Try both flavors – 1 Bubble Gum + 1 Tropical Breeze (30ml each)",
     description: "Can't decide? Try both. One bottle of each flavor so you can discover which one fits your taste. Start with one capful. 3-4 hours of clean, focused energy.",
     thumbnail: "/images/sampler-pack-30ml.png",
@@ -54,8 +54,8 @@ const fallbackProducts = [
   },
   {
     id: "66",
-    handle: "333-holiday-bundle-6-units",
-    title: "333 – Holiday Bundle (6 Units)",
+    handle: "holiday-bundle-6-units",
+    title: "Holiday Bundle (6 Units)",
     subtitle: "Best value 6-pack bundle – mix of Bubble Gum & Tropical Breeze",
     description: "Six bottles of premium YUM extract — our biggest bundle and best overall value. Perfect for sharing, gifting, or stocking up. Mix of both flavors included.",
     thumbnail: "/images/holiday-bundle-30ml.png",

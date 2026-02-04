@@ -11,7 +11,7 @@ import { fetchStoreProducts, fetchStoreProduct, fetchStoreCategories, StoreProdu
 
 /**
  * Decode HTML entities in strings from WooCommerce
- * e.g., "333 &#8211; Product" → "333 – Product"
+ * e.g., "YUM &#8211; Product" → "YUM – Product"
  */
 function decodeHtmlEntities(text: string | undefined | null): string {
   if (!text) return ''
