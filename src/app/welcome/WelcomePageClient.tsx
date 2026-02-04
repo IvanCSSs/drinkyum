@@ -232,7 +232,7 @@ export default function WelcomePageClient() {
 
                       <div className="flex items-center justify-between">
                         <span className="text-xl font-bold text-white">
-                          ${price ? Number(price).toFixed(2) : "—"}
+                          {price || "—"}
                         </span>
 
                         {cartQty > 0 ? (
