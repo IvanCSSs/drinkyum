@@ -5,6 +5,7 @@ import AgeVerification from "@/components/AgeVerification";
 import { ConsoleFilter } from "@/components/ConsoleFilter";
 import { Providers } from "@/contexts/Providers";
 import TrackingProvider from "@/components/TrackingProvider";
+import GoogleAds from "@/components/GoogleAds";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -103,6 +104,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ConsoleFilter />
+        <GoogleAds />
         <Providers>
           <TrackingProvider>
             <AgeVerification />
