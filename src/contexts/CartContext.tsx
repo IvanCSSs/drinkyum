@@ -185,21 +185,56 @@ export function CartProvider({ children }: { children: ReactNode }) {
         await removeItem(lineItemId);
         return;
       }
+      
+      // Optimistic update: update UI immediately
+      const previousCart = cart;
+      if (cart) {
+        const optimisticCart = {
+          ...cart,
+          items: cart.items.map(item => 
+            item.id === lineItemId 
+              ? { ...item, quantity, total: item.unit_price * quantity, subtotal: item.unit_price * quantity }
+              : item
+          ),
+        };
+        // Recalculate totals
+        optimisticCart.subtotal = optimisticCart.items.reduce((sum, item) => sum + item.subtotal, 0);
+        optimisticCart.total = optimisticCart.subtotal - optimisticCart.discount_total + optimisticCart.shipping_total;
+        setCart(optimisticCart);
+      }
+      
+      // Then sync with server
       const updatedCart = await apiUpdateCartItem(lineItemId, quantity);
       setCart(updatedCart);
       trackCartUpdate(lineItemId, quantity);
     } catch (err) {
       console.error("Failed to update cart item:", err);
       setError("Failed to update quantity");
+      // Revert on error - refresh from server
+      refreshCart();
       throw err;
     }
-  }, []);
+  }, [cart, refreshCart]);
 
   const removeItem = useCallback(async (lineItemId: string) => {
     try {
       setError(null);
       // Find item before removing for analytics
       const removedItem = cart?.items.find(i => i.id === lineItemId);
+      
+      // Optimistic update: remove from UI immediately
+      if (cart) {
+        const optimisticCart = {
+          ...cart,
+          items: cart.items.filter(item => item.id !== lineItemId),
+        };
+        // Recalculate totals
+        optimisticCart.subtotal = optimisticCart.items.reduce((sum, item) => sum + item.subtotal, 0);
+        optimisticCart.total = optimisticCart.subtotal - optimisticCart.discount_total + optimisticCart.shipping_total;
+        setCart(optimisticCart);
+      }
+      
+      // Then sync with server
       const updatedCart = await apiRemoveCartItem(lineItemId);
       setCart(updatedCart);
       trackRemoveFromCart(lineItemId);
@@ -215,9 +250,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error("Failed to remove cart item:", err);
       setError("Failed to remove item");
+      // Revert on error - refresh from server
+      refreshCart();
       throw err;
     }
-  }, []);
+  }, [cart, refreshCart]);
 
   const applyCoupon = useCallback(async (code: string) => {
     try {
