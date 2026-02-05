@@ -34,13 +34,21 @@ function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartForma
   const items = coCartData.items || []
   
   return {
-    items: items.map((item: CoCartItem) => ({
+    items: items.map((item: CoCartItem) => {
+      // Handle quantity being either a number or an object
+      const qty = typeof item.quantity === 'number' 
+        ? item.quantity 
+        : (item.quantity?.value || 1)
+      const qtyMin = typeof item.quantity === 'object' ? (item.quantity?.min_purchase || 1) : 1
+      const qtyMax = typeof item.quantity === 'object' ? (item.quantity?.max_purchase || -1) : -1
+      
+      return {
       key: item.item_key,
       id: item.id,
-      quantity: item.quantity?.value || item.quantity || 1,
+      quantity: qty,
       quantity_limits: {
-        minimum: item.quantity?.min_purchase || 1,
-        maximum: item.quantity?.max_purchase || -1,
+        minimum: qtyMin,
+        maximum: qtyMax,
         multiple_of: 1,
         editable: true,
       },
@@ -101,7 +109,7 @@ function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartForma
       },
       catalog_visibility: 'visible',
       extensions: item.cart_item_data || {},
-    })),
+    }}),
     coupons: (coCartData.coupons || []).map((coupon: CoCartCoupon) => ({
       code: coupon.coupon,
       discount_type: coupon.discount_type || 'fixed_cart',
@@ -163,7 +171,7 @@ function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartForma
     has_calculated_shipping: !!coCartData.shipping?.has_calculated_shipping,
     shipping_rates: [],
     items_count: (coCartData.items || []).reduce((sum: number, item: CoCartItem) => 
-      sum + (item.quantity?.value || item.quantity || 1), 0),
+      sum + (typeof item.quantity === 'number' ? item.quantity : (item.quantity?.value || 1)), 0),
     items_weight: 0,
     cross_sells: [],
     errors: [],
