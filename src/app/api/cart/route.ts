@@ -2,8 +2,8 @@ import { buildWpApiUrl } from "@/lib/wp-api-url"
 /**
  * Cart API proxy route
  *
- * Proxies cart requests to WooCommerce Store API
- * This avoids CORS issues by making server-to-server requests
+ * Proxies cart requests to CoCart API (not WC Store API)
+ * Uses cookies for session persistence (CoCart ignores Cart-Token headers)
  *
  * GET /api/cart - Get current cart
  * POST /api/cart - Various cart operations (add, update, remove)
@@ -11,68 +11,285 @@ import { buildWpApiUrl } from "@/lib/wp-api-url"
 
 import { NextRequest, NextResponse } from 'next/server'
 
-const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
 // Using buildWpApiUrl for compatibility
-function getStoreApiUrl(path: string) { return buildWpApiUrl(`/wc/store/v1${path}`) }
+function getCoCartUrl(path: string) { return buildWpApiUrl(`/cocart/v2${path}`) }
 
-// Forward headers from client to WooCommerce
+// Forward cookies from client to WooCommerce
 function getForwardHeaders(request: NextRequest): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   }
 
-  // Forward cart token if present
-  const cartToken = request.headers.get('Cart-Token')
-  if (cartToken) {
-    headers['Cart-Token'] = cartToken
-  }
-
-  // Forward nonce if present
-  const nonce = request.headers.get('Nonce')
-  if (nonce) {
-    headers['Nonce'] = nonce
+  // Forward cookies for session persistence (this is what CoCart actually uses)
+  const cookie = request.headers.get('Cookie')
+  if (cookie) {
+    headers['Cookie'] = cookie
   }
 
   return headers
 }
 
-// Copy response headers from WooCommerce to our response
+// Transform CoCart response to WC Store API format (so wc-cart.ts doesn't need changes)
+function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartFormat {
+  const items = coCartData.items || []
+  
+  return {
+    items: items.map((item: CoCartItem) => ({
+      key: item.item_key,
+      id: item.id,
+      quantity: item.quantity?.value || item.quantity || 1,
+      quantity_limits: {
+        minimum: item.quantity?.min_purchase || 1,
+        maximum: item.quantity?.max_purchase || -1,
+        multiple_of: 1,
+        editable: true,
+      },
+      name: item.name || item.title || '',
+      short_description: '',
+      description: '',
+      sku: item.meta?.sku || '',
+      low_stock_remaining: null,
+      backorders_allowed: false,
+      show_backorder_badge: false,
+      sold_individually: false,
+      permalink: `/products/${item.slug || ''}`,
+      images: item.featured_image ? [{
+        id: 0,
+        src: item.featured_image,
+        thumbnail: item.featured_image,
+        srcset: '',
+        sizes: '',
+        name: item.name || '',
+        alt: item.name || '',
+      }] : [],
+      variation: [],
+      item_data: Object.entries(item.cart_item_data || {}).map(([key, value]) => ({
+        key,
+        value: String(value),
+      })),
+      prices: {
+        price: String(Math.round(parseFloat(item.price || '0') * 100)),
+        regular_price: String(Math.round(parseFloat(item.price || '0') * 100)),
+        sale_price: String(Math.round(parseFloat(item.price || '0') * 100)),
+        price_range: null,
+        currency_code: coCartData.currency?.currency_code || 'USD',
+        currency_symbol: coCartData.currency?.currency_symbol || '$',
+        currency_minor_unit: 2,
+        currency_decimal_separator: '.',
+        currency_thousand_separator: ',',
+        currency_prefix: '$',
+        currency_suffix: '',
+        raw_prices: {
+          precision: 2,
+          price: String(Math.round(parseFloat(item.price || '0') * 100)),
+          regular_price: String(Math.round(parseFloat(item.price || '0') * 100)),
+          sale_price: String(Math.round(parseFloat(item.price || '0') * 100)),
+        },
+      },
+      totals: {
+        line_subtotal: String(item.totals?.subtotal || 0),
+        line_subtotal_tax: String(item.totals?.subtotal_tax || 0),
+        line_total: String(Math.round((item.totals?.total || 0) * 100)),
+        line_total_tax: String(item.totals?.tax || 0),
+        currency_code: coCartData.currency?.currency_code || 'USD',
+        currency_symbol: coCartData.currency?.currency_symbol || '$',
+        currency_minor_unit: 2,
+        currency_decimal_separator: '.',
+        currency_thousand_separator: ',',
+        currency_prefix: '$',
+        currency_suffix: '',
+      },
+      catalog_visibility: 'visible',
+      extensions: item.cart_item_data || {},
+    })),
+    coupons: (coCartData.coupons || []).map((coupon: CoCartCoupon) => ({
+      code: coupon.coupon,
+      discount_type: coupon.discount_type || 'fixed_cart',
+      totals: {
+        total_discount: String(Math.round((coupon.saving || 0) * 100)),
+        total_discount_tax: '0',
+        currency_code: coCartData.currency?.currency_code || 'USD',
+      },
+    })),
+    fees: [],
+    totals: {
+      total_items: String(Math.round(parseFloat(coCartData.totals?.subtotal || '0'))),
+      total_items_tax: '0',
+      total_fees: '0',
+      total_fees_tax: '0',
+      total_discount: String(Math.round(parseFloat(coCartData.totals?.discount_total || '0'))),
+      total_discount_tax: '0',
+      total_shipping: coCartData.totals?.shipping_total || '0',
+      total_shipping_tax: '0',
+      total_price: String(Math.round(parseFloat(coCartData.totals?.total || '0'))),
+      total_tax: '0',
+      tax_lines: [],
+      currency_code: coCartData.currency?.currency_code || 'USD',
+      currency_symbol: coCartData.currency?.currency_symbol || '$',
+      currency_minor_unit: 2,
+      currency_decimal_separator: '.',
+      currency_thousand_separator: ',',
+      currency_prefix: '$',
+      currency_suffix: '',
+    },
+    shipping_address: {
+      first_name: coCartData.customer?.shipping_address?.shipping_first_name || '',
+      last_name: coCartData.customer?.shipping_address?.shipping_last_name || '',
+      company: '',
+      address_1: coCartData.customer?.shipping_address?.shipping_address_1 || '',
+      address_2: coCartData.customer?.shipping_address?.shipping_address_2 || '',
+      city: coCartData.customer?.shipping_address?.shipping_city || '',
+      state: coCartData.customer?.shipping_address?.shipping_state || '',
+      postcode: coCartData.customer?.shipping_address?.shipping_postcode || '',
+      country: coCartData.customer?.shipping_address?.shipping_country || 'US',
+      phone: '',
+    },
+    billing_address: {
+      first_name: coCartData.customer?.billing_address?.billing_first_name || '',
+      last_name: coCartData.customer?.billing_address?.billing_last_name || '',
+      company: '',
+      address_1: coCartData.customer?.billing_address?.billing_address_1 || '',
+      address_2: coCartData.customer?.billing_address?.billing_address_2 || '',
+      city: coCartData.customer?.billing_address?.billing_city || '',
+      state: coCartData.customer?.billing_address?.billing_state || '',
+      postcode: coCartData.customer?.billing_address?.billing_postcode || '',
+      country: coCartData.customer?.billing_address?.billing_country || 'US',
+      phone: coCartData.customer?.billing_address?.billing_phone || '',
+      email: coCartData.customer?.billing_address?.billing_email || '',
+    },
+    needs_payment: parseFloat(coCartData.totals?.total || '0') > 0,
+    needs_shipping: (coCartData.items || []).length > 0,
+    payment_requirements: ['products'],
+    has_calculated_shipping: !!coCartData.shipping?.has_calculated_shipping,
+    shipping_rates: [],
+    items_count: (coCartData.items || []).reduce((sum: number, item: CoCartItem) => 
+      sum + (item.quantity?.value || item.quantity || 1), 0),
+    items_weight: 0,
+    cross_sells: [],
+    errors: [],
+    payment_methods: [],
+    extensions: {},
+  }
+}
+
+// Copy response headers from WooCommerce to our response (especially Set-Cookie)
 function buildResponse(wcResponse: Response, data: unknown, status: number = 200): NextResponse {
   const response = NextResponse.json(data, { status })
 
-  // Forward Cart-Token and Nonce headers
+  // Forward Set-Cookie headers from WooCommerce (critical for session persistence!)
+  const setCookieHeaders = wcResponse.headers.getSetCookie()
+  setCookieHeaders.forEach(cookie => {
+    // Modify cookie to work with the frontend domain
+    // Remove Domain attribute to let browser set it automatically
+    const modifiedCookie = cookie
+      .replace(/Domain=[^;]+;?\s*/gi, '')
+      .replace(/Path=[^;]+/gi, 'Path=/')
+    response.headers.append('Set-Cookie', modifiedCookie)
+  })
+
+  // Also keep Cart-Token and Nonce for backwards compatibility
   const cartToken = wcResponse.headers.get('Cart-Token')
   if (cartToken) {
     response.headers.set('Cart-Token', cartToken)
   }
-
   const nonce = wcResponse.headers.get('Nonce')
   if (nonce) {
     response.headers.set('Nonce', nonce)
   }
 
-  // Expose headers to client-side JavaScript
-  response.headers.set('Access-Control-Expose-Headers', 'Cart-Token, Nonce')
+  response.headers.set('Access-Control-Expose-Headers', 'Cart-Token, Nonce, Set-Cookie')
 
   return response
 }
 
+// CoCart types (simplified)
+interface CoCartItem {
+  item_key: string
+  id: number
+  name?: string
+  title?: string
+  slug?: string
+  price?: string
+  quantity?: { value: number; min_purchase?: number; max_purchase?: number } | number
+  totals?: { subtotal?: number; subtotal_tax?: number; total?: number; tax?: number }
+  meta?: { sku?: string }
+  featured_image?: string
+  cart_item_data?: Record<string, unknown>
+}
+
+interface CoCartCoupon {
+  coupon: string
+  discount_type?: string
+  saving?: number
+}
+
+interface CoCartResponse {
+  cart_key?: string
+  items?: CoCartItem[]
+  coupons?: CoCartCoupon[]
+  totals?: {
+    subtotal?: string
+    discount_total?: string
+    shipping_total?: string
+    total?: string
+  }
+  currency?: {
+    currency_code?: string
+    currency_symbol?: string
+  }
+  customer?: {
+    billing_address?: Record<string, string>
+    shipping_address?: Record<string, string>
+  }
+  shipping?: {
+    has_calculated_shipping?: boolean
+  }
+}
+
+interface WCStoreCartFormat {
+  items: unknown[]
+  coupons: unknown[]
+  fees: unknown[]
+  totals: unknown
+  shipping_address: unknown
+  billing_address: unknown
+  needs_payment: boolean
+  needs_shipping: boolean
+  payment_requirements: string[]
+  has_calculated_shipping: boolean
+  shipping_rates: unknown[]
+  items_count: number
+  items_weight: number
+  cross_sells: unknown[]
+  errors: unknown[]
+  payment_methods: string[]
+  extensions: Record<string, unknown>
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const incomingToken = request.headers.get('Cart-Token')
-    console.log('[Cart API] GET cart, incoming Cart-Token:', incomingToken ? `${incomingToken.slice(0, 20)}...` : 'none')
+    console.log('[Cart API] GET cart via CoCart')
 
-    const wcResponse = await fetch(getStoreApiUrl("/cart"), {
+    const wcResponse = await fetch(getCoCartUrl("/cart"), {
       method: 'GET',
       headers: getForwardHeaders(request),
+      credentials: 'include',
     })
 
-    const data = await wcResponse.json()
-    const responseToken = wcResponse.headers.get('Cart-Token')
-    console.log('[Cart API] GET cart response, Cart-Token:', responseToken ? `${responseToken.slice(0, 20)}...` : 'none', 'status:', wcResponse.status)
+    const coCartData = await wcResponse.json()
+    
+    // Check if it's an error response
+    if (coCartData.code) {
+      console.log('[Cart API] CoCart error:', coCartData)
+      return buildResponse(wcResponse, coCartData, wcResponse.status)
+    }
 
-    // Always use buildResponse to ensure headers are forwarded
-    return buildResponse(wcResponse, data, wcResponse.status)
+    // Transform CoCart response to WC Store API format
+    const wcFormatData = transformCoCartToWCFormat(coCartData)
+    
+    console.log('[Cart API] GET cart response, items:', wcFormatData.items_count)
+
+    return buildResponse(wcResponse, wcFormatData, wcResponse.status)
   } catch (error) {
     console.error('[Cart API] Error fetching cart:', error)
     return NextResponse.json(
@@ -88,35 +305,68 @@ export async function POST(request: NextRequest) {
     const { action, ...payload } = body
 
     let endpoint = '/cart'
+    let method = 'POST'
+    let requestBody: Record<string, unknown> = payload
 
     switch (action) {
       case 'add-item':
-        endpoint = '/cart/add-item'
-        break
       case 'add-subscription':
-        // Use the standard add-item endpoint - the Subscribe & Save plugin's
-        // woocommerce_add_cart_item_data filter will pick up subscribe_save_period
-        // and subscribe_save_interval from the request body
         endpoint = '/cart/add-item'
+        // CoCart uses 'id' and 'quantity' directly
+        requestBody = {
+          id: String(payload.id),
+          quantity: String(payload.quantity || 1),
+        }
+        // Include subscription data in cart_item_data if present
+        if (payload.subscribe_save_period) {
+          requestBody.cart_item_data = {
+            subscribe_save_period: payload.subscribe_save_period,
+            subscribe_save_interval: payload.subscribe_save_interval || 1,
+          }
+        }
         break
+        
       case 'update-item':
-        endpoint = '/cart/update-item'
+        // CoCart uses POST to /cart/item/{item_key} with quantity param
+        endpoint = `/cart/item/${payload.key}`
+        requestBody = { quantity: String(payload.quantity) }
         break
+        
       case 'remove-item':
-        endpoint = '/cart/remove-item'
+        // CoCart uses DELETE to /cart/item/{item_key}
+        endpoint = `/cart/item/${payload.key}`
+        method = 'DELETE'
+        requestBody = {}
         break
+        
       case 'update-customer':
-        endpoint = '/cart/update-customer'
+        // CoCart uses /cart/update for customer data
+        endpoint = '/cart/update'
+        requestBody = {
+          billing_address: payload.billing_address,
+          shipping_address: payload.shipping_address,
+        }
         break
+        
       case 'apply-coupon':
-        endpoint = '/cart/apply-coupon'
+        endpoint = '/cart/coupon'
+        requestBody = { code: payload.code }
         break
+        
       case 'remove-coupon':
-        endpoint = '/cart/remove-coupon'
+        endpoint = `/cart/coupon/${payload.code}`
+        method = 'DELETE'
+        requestBody = {}
         break
+        
       case 'select-shipping-rate':
-        endpoint = '/cart/select-shipping-rate'
+        endpoint = '/cart/shipping-method'
+        requestBody = {
+          rate_id: payload.rate_id,
+          package_id: payload.package_id || 0,
+        }
         break
+        
       default:
         return NextResponse.json(
           { error: `Unknown action: ${action}` },
@@ -124,29 +374,33 @@ export async function POST(request: NextRequest) {
         )
     }
 
-    const incomingToken = request.headers.get('Cart-Token')
-    console.log(`[Cart API] ${action} request to ${endpoint}`, { 
-      payload,
-      incomingToken: incomingToken ? `${incomingToken.slice(0, 20)}...` : 'none'
-    })
+    console.log(`[Cart API] ${action} request to ${endpoint}`, { method, payload: requestBody })
 
-    const wcResponse = await fetch(getStoreApiUrl(endpoint), {
-      method: 'POST',
+    const wcResponse = await fetch(getCoCartUrl(endpoint), {
+      method,
       headers: getForwardHeaders(request),
-      body: JSON.stringify(payload),
+      credentials: 'include',
+      body: method !== 'DELETE' || Object.keys(requestBody).length > 0 
+        ? JSON.stringify(requestBody) 
+        : undefined,
     })
 
-    const data = await wcResponse.json()
-    const responseToken = wcResponse.headers.get('Cart-Token')
+    const coCartData = await wcResponse.json()
 
     console.log(`[Cart API] ${action} response:`, { 
-      status: wcResponse.status, 
-      responseToken: responseToken ? `${responseToken.slice(0, 20)}...` : 'none',
-      data 
+      status: wcResponse.status,
+      hasItems: !!coCartData.items,
     })
 
-    // Always use buildResponse to ensure headers are forwarded (even on errors)
-    return buildResponse(wcResponse, data, wcResponse.status)
+    // Check if it's an error response
+    if (coCartData.code) {
+      return buildResponse(wcResponse, coCartData, wcResponse.status)
+    }
+
+    // Transform CoCart response to WC Store API format
+    const wcFormatData = transformCoCartToWCFormat(coCartData)
+
+    return buildResponse(wcResponse, wcFormatData, wcResponse.status)
   } catch (error) {
     console.error('[Cart API] Error:', error)
     return NextResponse.json(

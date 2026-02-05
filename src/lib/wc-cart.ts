@@ -42,7 +42,9 @@ function decodeHtmlEntities(text: string): string {
   return doc.documentElement.textContent || text
 }
 
-const CART_TOKEN_KEY = 'wc_cart_token'
+// Note: Cart sessions are now managed via cookies (not localStorage)
+// The API route forwards cookies to/from CoCart
+const CART_TOKEN_KEY = 'wc_cart_token' // kept for backwards compat, but cookies are primary
 const CART_NONCE_KEY = 'wc_cart_nonce'
 
 // Types matching WooCommerce Store API response
@@ -547,6 +549,7 @@ async function cartApiRequest<T>(
   const response = await fetch(CART_API_BASE, {
     method,
     headers: getHeaders(),
+    credentials: 'include', // Include cookies for session persistence
     body: requestBody ? JSON.stringify(requestBody) : undefined,
   })
 
