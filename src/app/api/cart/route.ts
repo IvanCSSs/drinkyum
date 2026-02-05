@@ -37,8 +37,8 @@ function getForwardHeaders(request: NextRequest): HeadersInit {
 }
 
 // Copy response headers from WooCommerce to our response
-function buildResponse(wcResponse: Response, data: unknown): NextResponse {
-  const response = NextResponse.json(data)
+function buildResponse(wcResponse: Response, data: unknown, status: number = 200): NextResponse {
+  const response = NextResponse.json(data, { status })
 
   // Forward Cart-Token and Nonce headers
   const cartToken = wcResponse.headers.get('Cart-Token')
@@ -51,23 +51,28 @@ function buildResponse(wcResponse: Response, data: unknown): NextResponse {
     response.headers.set('Nonce', nonce)
   }
 
+  // Expose headers to client-side JavaScript
+  response.headers.set('Access-Control-Expose-Headers', 'Cart-Token, Nonce')
+
   return response
 }
 
 export async function GET(request: NextRequest) {
   try {
+    const incomingToken = request.headers.get('Cart-Token')
+    console.log('[Cart API] GET cart, incoming Cart-Token:', incomingToken ? `${incomingToken.slice(0, 20)}...` : 'none')
+
     const wcResponse = await fetch(getStoreApiUrl("/cart"), {
       method: 'GET',
       headers: getForwardHeaders(request),
     })
 
     const data = await wcResponse.json()
+    const responseToken = wcResponse.headers.get('Cart-Token')
+    console.log('[Cart API] GET cart response, Cart-Token:', responseToken ? `${responseToken.slice(0, 20)}...` : 'none', 'status:', wcResponse.status)
 
-    if (!wcResponse.ok) {
-      return NextResponse.json(data, { status: wcResponse.status })
-    }
-
-    return buildResponse(wcResponse, data)
+    // Always use buildResponse to ensure headers are forwarded
+    return buildResponse(wcResponse, data, wcResponse.status)
   } catch (error) {
     console.error('[Cart API] Error fetching cart:', error)
     return NextResponse.json(
@@ -119,7 +124,11 @@ export async function POST(request: NextRequest) {
         )
     }
 
-    console.log(`[Cart API] ${action} request to ${endpoint}`, { payload })
+    const incomingToken = request.headers.get('Cart-Token')
+    console.log(`[Cart API] ${action} request to ${endpoint}`, { 
+      payload,
+      incomingToken: incomingToken ? `${incomingToken.slice(0, 20)}...` : 'none'
+    })
 
     const wcResponse = await fetch(getStoreApiUrl(endpoint), {
       method: 'POST',
@@ -128,14 +137,16 @@ export async function POST(request: NextRequest) {
     })
 
     const data = await wcResponse.json()
+    const responseToken = wcResponse.headers.get('Cart-Token')
 
-    console.log(`[Cart API] ${action} response:`, { status: wcResponse.status, data })
+    console.log(`[Cart API] ${action} response:`, { 
+      status: wcResponse.status, 
+      responseToken: responseToken ? `${responseToken.slice(0, 20)}...` : 'none',
+      data 
+    })
 
-    if (!wcResponse.ok) {
-      return NextResponse.json(data, { status: wcResponse.status })
-    }
-
-    return buildResponse(wcResponse, data)
+    // Always use buildResponse to ensure headers are forwarded (even on errors)
+    return buildResponse(wcResponse, data, wcResponse.status)
   } catch (error) {
     console.error('[Cart API] Error:', error)
     return NextResponse.json(
