@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import WelcomePageClient from "./WelcomePageClient";
+import { getProducts } from "@/lib/wc-products";
 
 export const metadata: Metadata = {
   title: "DrinkYUM | Premium Botanical Extract Shots",
@@ -22,6 +23,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function WelcomePage() {
-  return <WelcomePageClient />;
+export default async function WelcomePage() {
+  // Fetch products at build/request time (SSR)
+  const { products } = await getProducts({ limit: 10 });
+  
+  return <WelcomePageClient initialProducts={products} />;
 }

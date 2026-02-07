@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag, Star, Shield, Zap, FlaskConical, Minus, Plus } from "lucide-react";
@@ -13,7 +13,13 @@ import Footer from "@/components/Footer";
  * Clean landing page for Google Ads — no restricted terminology.
  * Fully functional: products load from WC API, ATC works, cart works.
  * Positioned as "premium botanical extract shots."
+ * 
+ * Products are SSR'd in page.tsx and passed as props.
  */
+
+interface WelcomePageClientProps {
+  initialProducts: Product[];
+}
 
 function sanitizeText(text: string): string {
   // Replace any restricted terminology that might come from WC
@@ -23,29 +29,10 @@ function sanitizeText(text: string): string {
     .replace(/mitragyna speciosa/gi, "botanical plant");
 }
 
-export default function WelcomePageClient() {
+export default function WelcomePageClient({ initialProducts }: WelcomePageClientProps) {
   const { addToCart, items, updateQuantity, openDrawer } = useCart();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [products] = useState<Product[]>(initialProducts);
   const [addingId, setAddingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadProducts() {
-      try {
-        const res = await fetch("/api/products?limit=10");
-        if (!res.ok) throw new Error("Failed to fetch");
-        const data = await res.json();
-        if (data.products?.length > 0) {
-          setProducts(data.products);
-        }
-      } catch {
-        console.error("Failed to load products");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadProducts();
-  }, []);
 
   const getCartQuantity = (variantId: string) => {
     const item = items.find((i) => i.variant_id === variantId);
@@ -158,15 +145,8 @@ export default function WelcomePageClient() {
             Two incredible flavors. Multiple sizes. All backed by real lab data.
           </p>
 
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="rounded-2xl bg-white/5 h-[400px] animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => {
                 const price = getProductPrice(product);
                 const variant = product.variants[0];
                 const cartQty = variant ? getCartQuantity(variant.id) : 0;
@@ -258,8 +238,7 @@ export default function WelcomePageClient() {
                   </div>
                 );
               })}
-            </div>
-          )}
+          </div>
         </div>
       </section>
 
