@@ -81,6 +81,7 @@ export function trackPurchase(
   items: GtagItem[],
   opts?: { currency?: string; tax?: number; shipping?: number; coupon?: string }
 ): void {
+  // GA4 purchase event
   gtag('event', 'purchase', {
     transaction_id: transactionId,
     value,
@@ -89,6 +90,14 @@ export function trackPurchase(
     shipping: opts?.shipping ?? 0,
     items,
     ...(opts?.coupon ? { coupon: opts.coupon } : {}),
+  });
+
+  // Google Ads conversion event
+  gtag('event', 'conversion', {
+    send_to: 'AW-17931720610/7h_sCMHB1vIbEKKvweZC',
+    value,
+    currency: opts?.currency ?? 'USD',
+    transaction_id: transactionId,
   });
 }
 
