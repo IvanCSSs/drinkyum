@@ -180,6 +180,21 @@ function getHeaders(): HeadersInit {
     headers['Nonce'] = nonce
   }
 
+  // Add tracking headers for server-side analytics (GA4 MP + Meta CAPI)
+  if (typeof window !== 'undefined') {
+    // Import tracker dynamically to avoid SSR issues
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { tracker } = require('@/lib/tracker')
+      const trackingHeaders = tracker.getTrackingHeaders()
+      Object.assign(headers, trackingHeaders)
+      // Generate event ID for dedup
+      headers['X-Event-ID'] = crypto.randomUUID()
+    } catch {
+      // Tracker not available, continue without tracking headers
+    }
+  }
+
   return headers
 }
 

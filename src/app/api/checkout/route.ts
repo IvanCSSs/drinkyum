@@ -32,6 +32,15 @@ function getForwardHeaders(request: NextRequest): HeadersInit {
     headers['Nonce'] = nonce
   }
 
+  // Forward tracking headers for server-side analytics (GA4 MP + Meta CAPI)
+  const trackingHeaders = ['X-Client-ID', 'X-Session-ID', 'X-FBP', 'X-FBC', 'X-Event-ID']
+  for (const header of trackingHeaders) {
+    const value = request.headers.get(header)
+    if (value) {
+      headers[header] = value
+    }
+  }
+
   return headers
 }
 
