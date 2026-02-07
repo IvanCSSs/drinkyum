@@ -18,10 +18,13 @@ import Footer from "@/components/Footer";
 // Clean product descriptions (no restricted words)
 const cleanDescriptions: Record<string, string> = {
   "54": "A single 30ml bottle of our signature Bubble Gum flavor. Start with one capful — clean focus, elevated mood, and sustained energy for 3-4 hours. No crash.",
+  "56": "Two bottles of our signature Bubble Gum flavor. Perfect for trying out or keeping one at home and one on the go.",
+  "58": "Two bottles of refreshing Tropical Breeze. Share with a friend or keep a backup ready.",
   "60": "Three bottles of our best-selling Bubble Gum flavor at the best per-unit price. Perfect for your daily routine.",
   "62": "Three bottles of refreshing Tropical Breeze at the best per-unit price. Smooth, sustained energy every day.",
   "64": "Can't decide? One Bubble Gum + one Tropical Breeze. Discover your favorite flavor.",
   "66": "Six bottles — our biggest bundle and best overall value. Mix of both flavors. Perfect for sharing or stocking up.",
+  "748": "A single 30ml bottle of our refreshing Tropical Breeze flavor. Clean focus, elevated mood, and sustained energy for 3-4 hours.",
   "749": "Pocket-sized power. Same 75% extract formula in a TSA-friendly 14ml shot. Take it anywhere.",
   "750": "Tropical Breeze in a pocket-sized 14ml format. Same potency, half the size. Perfect on the go.",
 };
@@ -29,10 +32,13 @@ const cleanDescriptions: Record<string, string> = {
 // Clean subtitles
 const cleanSubtitles: Record<string, string> = {
   "54": "Premium botanical extract — Bubble Gum flavor",
+  "56": "2-pack — Bubble Gum flavor",
+  "58": "2-pack — Tropical Breeze flavor",
   "60": "Best-selling 3-pack — Bubble Gum flavor",
   "62": "Best-selling 3-pack — Tropical Breeze flavor",
   "64": "Try both flavors — 1 Bubble Gum + 1 Tropical Breeze",
   "66": "Best value 6-pack bundle — both flavors included",
+  "748": "Premium botanical extract — Tropical Breeze flavor",
   "749": "14ml pocket shot — Bubble Gum flavor",
   "750": "14ml pocket shot — Tropical Breeze flavor",
 };
