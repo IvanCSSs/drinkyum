@@ -206,27 +206,31 @@ export default function WelcomePageClient() {
                     }}
                   >
                     {/* Product Image */}
-                    <div className="relative aspect-square bg-black/20 overflow-hidden">
-                      {thumbnail ? (
-                        <Image
-                          src={thumbnail}
-                          alt={sanitizeText(product.title)}
-                          fill
-                          className="object-contain p-6 group-hover:scale-105 transition-transform duration-300"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/20">
-                          No image
-                        </div>
-                      )}
-                    </div>
+                    <Link href={`/products/${product.handle}`} className="block">
+                      <div className="relative aspect-square bg-black/20 overflow-hidden">
+                        {thumbnail ? (
+                          <Image
+                            src={thumbnail}
+                            alt={sanitizeText(product.title)}
+                            fill
+                            className="object-contain p-6 group-hover:scale-105 transition-transform duration-300"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/20">
+                            No image
+                          </div>
+                        )}
+                      </div>
+                    </Link>
 
                     {/* Product Info */}
                     <div className="p-5">
-                      <h3 className="text-lg font-bold text-white mb-1">
-                        {sanitizeText(product.title)}
-                      </h3>
+                      <Link href={`/products/${product.handle}`}>
+                        <h3 className="text-lg font-bold text-white mb-1 hover:text-[#E1258F] transition-colors">
+                          {sanitizeText(product.title)}
+                        </h3>
+                      </Link>
                       <p className="text-sm text-[#E1258F] mb-2">{subtitle}</p>
                       <p className="text-sm text-white/40 mb-4 line-clamp-2">{description}</p>
 
