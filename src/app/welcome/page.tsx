@@ -28,13 +28,11 @@ export default async function WelcomePage() {
   const { products: allProducts } = await getProducts({ limit: 50 });
   
   // Sort by price ascending (cheapest first) for better ad conversions
-  const products = allProducts
-    .sort((a, b) => {
-      const priceA = a.variants?.[0]?.prices?.[0]?.amount || 0;
-      const priceB = b.variants?.[0]?.prices?.[0]?.amount || 0;
-      return priceA - priceB;
-    })
-    .slice(0, 10);
+  const products = allProducts.sort((a, b) => {
+    const priceA = a.variants?.[0]?.prices?.[0]?.amount || 0;
+    const priceB = b.variants?.[0]?.prices?.[0]?.amount || 0;
+    return priceA - priceB;
+  });
   
   return <WelcomePageClient initialProducts={products} />;
 }
