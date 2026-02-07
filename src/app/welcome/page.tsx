@@ -25,7 +25,12 @@ export const metadata: Metadata = {
 
 export default async function WelcomePage() {
   // Fetch products at build/request time (SSR)
-  const { products } = await getProducts({ limit: 10 });
+  // Order by price ascending (cheapest first) for better ad conversions
+  const { products } = await getProducts({ 
+    limit: 10, 
+    orderby: 'price', 
+    order: 'asc' 
+  });
   
   return <WelcomePageClient initialProducts={products} />;
 }

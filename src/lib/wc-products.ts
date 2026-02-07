@@ -631,7 +631,8 @@ export interface ProductListParams {
   collection_id?: string
   limit?: number
   offset?: number
-  order?: string
+  order?: 'asc' | 'desc'
+  orderby?: 'date' | 'id' | 'title' | 'slug' | 'price' | 'popularity' | 'rating'
   q?: string
   tags?: string[]
 }
@@ -732,6 +733,8 @@ export async function getProducts(params?: ProductListParams): Promise<{
   const wcParams: WCProductListParams = {
     per_page: params?.limit || 10,
     search: params?.q,
+    orderby: params?.orderby,
+    order: params?.order,
   }
 
   // Handle collection_id - need to convert string to number
