@@ -14,7 +14,7 @@ import Script from 'next/script';
  */
 
 const AW_CONVERSION_ID = 'AW-17931720610';
-// TODO: Switch back to sGTM (https://t.drinkyum.com) once Railway services are redeployed
+const GA4_MEASUREMENT_ID = 'G-Z8KSEBTTJR';
 
 export default function GoogleAds() {
   return (
@@ -29,6 +29,7 @@ export default function GoogleAds() {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', '${AW_CONVERSION_ID}');
+          gtag('config', '${GA4_MEASUREMENT_ID}');
         `}
       </Script>
     </>
