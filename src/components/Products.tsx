@@ -80,7 +80,13 @@ export default function Products() {
 
         const data = await res.json();
         if (data.products && data.products.length > 0) {
-          setProducts(data.products);
+          // Sort by price ascending (lowest first)
+          const sortedProducts = [...data.products].sort((a: Product, b: Product) => {
+            const priceA = a.variants?.[0]?.prices?.[0]?.amount ?? Infinity;
+            const priceB = b.variants?.[0]?.prices?.[0]?.amount ?? Infinity;
+            return priceA - priceB;
+          });
+          setProducts(sortedProducts);
           // GA4 view_item_list
           const gtagItems: GtagItem[] = data.products.map((p: Product) => ({
             item_id: p.id,
@@ -90,11 +96,23 @@ export default function Products() {
           }));
           trackViewItemList('homepage_products', 'Homepage Products', gtagItems);
         } else {
-          setProducts(fallbackProducts as unknown as Product[]);
+          // Sort fallback products by price ascending
+          const sortedFallback = [...fallbackProducts].sort((a, b) => {
+            const priceA = a.variants[0]?.prices[0]?.amount ?? Infinity;
+            const priceB = b.variants[0]?.prices[0]?.amount ?? Infinity;
+            return priceA - priceB;
+          });
+          setProducts(sortedFallback as unknown as Product[]);
         }
       } catch (err) {
         console.error("Failed to load products:", err);
-        setProducts(fallbackProducts as unknown as Product[]);
+        // Sort fallback products by price ascending
+        const sortedFallback = [...fallbackProducts].sort((a, b) => {
+          const priceA = a.variants[0]?.prices[0]?.amount ?? Infinity;
+          const priceB = b.variants[0]?.prices[0]?.amount ?? Infinity;
+          return priceA - priceB;
+        });
+        setProducts(sortedFallback as unknown as Product[]);
       } finally {
         setIsLoading(false);
       }
