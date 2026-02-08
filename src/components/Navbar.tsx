@@ -27,7 +27,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   // Use contexts for cart and auth
-  const { items, itemCount, updateQuantity, removeItem, isDrawerOpen, openDrawer, closeDrawer, coupons, discountTotal, applyCoupon, removeCoupon } = useCart();
+  const { items, itemCount, updateQuantity, removeItem, isDrawerOpen, openDrawer, closeDrawer, coupons, discountTotal, applyCoupon, removeCoupon, isAddingToCart } = useCart();
   const { isAuthenticated } = useAuth();
 
   const hasItems = itemCount > 0;
@@ -391,6 +391,7 @@ export default function Navbar() {
         onRemoveItem={handleRemoveItem}
         onApplyCoupon={applyCoupon}
         onRemoveCoupon={removeCoupon}
+        isAddingToCart={isAddingToCart}
       />
     </>
   );

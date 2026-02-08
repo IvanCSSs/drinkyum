@@ -36,6 +36,7 @@ interface CartDrawerProps {
   onRemoveItem: (id: string | number) => void;
   onApplyCoupon?: (code: string) => Promise<void>;
   onRemoveCoupon?: (code: string) => Promise<void>;
+  isAddingToCart?: boolean;
 }
 
 export default function CartDrawer({
@@ -48,6 +49,7 @@ export default function CartDrawer({
   onRemoveItem,
   onApplyCoupon,
   onRemoveCoupon,
+  isAddingToCart = false,
 }: CartDrawerProps) {
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState("");
@@ -141,7 +143,22 @@ export default function CartDrawer({
 
             {/* Cart Items */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
-              {items.length === 0 ? (
+              {/* Adding to cart loading state */}
+              {isAddingToCart && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-3 p-3 mb-4 rounded-xl"
+                  style={{
+                    background: "rgba(225, 37, 143, 0.1)",
+                    border: "1px solid rgba(225, 37, 143, 0.3)",
+                  }}
+                >
+                  <div className="w-5 h-5 border-2 border-yum-pink border-t-transparent rounded-full animate-spin" />
+                  <span className="text-yum-pink text-sm font-medium">Adding to cart...</span>
+                </motion.div>
+              )}
+              {items.length === 0 && !isAddingToCart ? (
                 <motion.div
                   className="flex flex-col items-center justify-center h-full text-center"
                   initial={{ opacity: 0, y: 20 }}

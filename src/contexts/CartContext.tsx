@@ -34,6 +34,7 @@ interface CartContextType {
   availableShippingRates: ShippingRate[];
   hasCalculatedShipping: boolean;
   isLoading: boolean;
+  isAddingToCart: boolean;
   error: string | null;
   isDrawerOpen: boolean;
   openDrawer: () => void;
@@ -55,6 +56,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -87,11 +89,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   ) => {
     try {
       setError(null);
+      // Open drawer and show loading state immediately
+      setIsAddingToCart(true);
+      setIsDrawerOpen(true);
+      
       const updatedCart = await apiAddToCart(variantId, quantity, metadata);
       setCart(updatedCart);
-
-      // Open cart drawer after adding item
-      setIsDrawerOpen(true);
 
       // Track analytics — find added item, fall back to last item if variant_id doesn't match
       const addedItem = updatedCart.items.find(i => i.variant_id === variantId)
@@ -134,6 +137,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       console.error("Failed to add to cart:", err);
       setError("Failed to add item to cart");
       throw err;
+    } finally {
+      setIsAddingToCart(false);
     }
   }, []);
 
@@ -366,6 +371,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         availableShippingRates,
         hasCalculatedShipping,
         isLoading,
+        isAddingToCart,
         error,
         isDrawerOpen,
         openDrawer,
