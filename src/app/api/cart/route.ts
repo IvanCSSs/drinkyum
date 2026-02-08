@@ -76,9 +76,10 @@ function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartForma
         value: String(value),
       })),
       prices: {
-        price: String(Math.round(parseFloat(item.price || '0') * 100)),
-        regular_price: String(Math.round(parseFloat(item.price || '0') * 100)),
-        sale_price: String(Math.round(parseFloat(item.price || '0') * 100)),
+        // CoCart v2 returns prices in cents (3699 = $36.99), no conversion needed
+        price: String(item.price || '0'),
+        regular_price: String(item.price || '0'),
+        sale_price: String(item.price || '0'),
         price_range: null,
         currency_code: coCartData.currency?.currency_code || 'USD',
         currency_symbol: coCartData.currency?.currency_symbol || '$',
@@ -89,15 +90,17 @@ function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartForma
         currency_suffix: '',
         raw_prices: {
           precision: 2,
-          price: String(Math.round(parseFloat(item.price || '0') * 100)),
-          regular_price: String(Math.round(parseFloat(item.price || '0') * 100)),
-          sale_price: String(Math.round(parseFloat(item.price || '0') * 100)),
+          // CoCart v2 returns prices in cents already (3699 = $36.99)
+          price: String(item.price || '0'),
+          regular_price: String(item.price || '0'),
+          sale_price: String(item.price || '0'),
         },
       },
       totals: {
         line_subtotal: String(item.totals?.subtotal || 0),
         line_subtotal_tax: String(item.totals?.subtotal_tax || 0),
-        line_total: String(Math.round((item.totals?.total || 0) * 100)),
+        // CoCart v2 returns totals in cents already
+        line_total: String(item.totals?.total || 0),
         line_total_tax: String(item.totals?.tax || 0),
         currency_code: coCartData.currency?.currency_code || 'USD',
         currency_symbol: coCartData.currency?.currency_symbol || '$',
@@ -114,7 +117,8 @@ function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartForma
       code: coupon.coupon,
       discount_type: coupon.discount_type || 'fixed_cart',
       totals: {
-        total_discount: String(Math.round((coupon.saving || 0) * 100)),
+        // CoCart v2 returns discount in cents already
+        total_discount: String(coupon.saving || 0),
         total_discount_tax: '0',
         currency_code: coCartData.currency?.currency_code || 'USD',
       },
