@@ -400,7 +400,9 @@ function updateTokensFromResponse(response: Response): void {
  */
 function parsePrice(priceString: string, minorUnit: number = 2): number {
   const value = parseInt(priceString, 10)
-  return value / Math.pow(10, minorUnit)
+  // Ensure minorUnit is valid (default to 2 for USD cents if 0/undefined)
+  const effectiveMinorUnit = minorUnit || 2
+  return value / Math.pow(10, effectiveMinorUnit)
 }
 
 /**
