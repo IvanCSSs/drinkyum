@@ -68,6 +68,11 @@ const nextConfig: NextConfig = {
         source: '/wc-auth/:path*',
         destination: `${wpBaseUrl}/wc-auth/:path*`,
       },
+      // WooCommerce OAuth with subsite prefix (WordPress redirects include /drinkyum/)
+      {
+        source: '/drinkyum/wc-auth/:path*',
+        destination: `${wpBaseUrl}/wc-auth/:path*`,
+      },
       // Medusa product images: /cdn/products/abc.jpg → s3://bucket/drinkyum/products/abc.jpg
       {
         source: '/cdn/:path*',
