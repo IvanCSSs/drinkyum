@@ -65,6 +65,48 @@ export function getFbc(): string {
   return match ? match[1] : '';
 }
 
+/**
+ * Get Google Click ID (gclid) for Google Ads attribution.
+ * Captures from URL on landing, stores in cookie for 90 days.
+ */
+export function getGclid(): string {
+  if (typeof document === 'undefined') return '';
+  
+  // Check URL for gclid first (landing from Google Ads)
+  const url = new URL(window.location.href);
+  const gclid = url.searchParams.get('gclid');
+  
+  if (gclid) {
+    // Store in cookie for 90 days (Google's attribution window)
+    const expires = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `_gcl_aw=GCL.${Math.floor(Date.now() / 1000)}.${gclid}; expires=${expires}; path=/; SameSite=Lax`;
+    return gclid;
+  }
+  
+  // Fall back to stored cookie
+  const match = document.cookie.match(/_gcl_aw=GCL\.\d+\.([^;]+)/);
+  return match ? match[1] : '';
+}
+
+/**
+ * Get Google Ads wbraid (iOS 14.5+ click tracking)
+ */
+export function getWbraid(): string {
+  if (typeof document === 'undefined') return '';
+  
+  const url = new URL(window.location.href);
+  const wbraid = url.searchParams.get('wbraid');
+  
+  if (wbraid) {
+    const expires = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `_gcl_aw_wbraid=${wbraid}; expires=${expires}; path=/; SameSite=Lax`;
+    return wbraid;
+  }
+  
+  const match = document.cookie.match(/_gcl_aw_wbraid=([^;]+)/);
+  return match ? match[1] : '';
+}
+
 // --- Event Sending ---
 
 interface TrackEvent {
@@ -105,6 +147,8 @@ function send(event: TrackEvent) {
     sid: getSessionId(),
     fbp: getFbp(),
     fbc: getFbc(),
+    gclid: getGclid(),
+    wbraid: getWbraid(),
     ts: Date.now(),
     url: window.location.href,
     ua: navigator.userAgent,

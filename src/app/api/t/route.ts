@@ -50,6 +50,8 @@ export async function POST(request: NextRequest) {
       eid: eventId,
       fbp,
       fbc,
+      gclid,
+      wbraid,
       url: pageUrl,
       ua: userAgent,
       sr: screenRes,
@@ -94,6 +96,20 @@ export async function POST(request: NextRequest) {
         client_id: clientId,
         events: [ga4Event],
       };
+
+      // Pass gclid for Google Ads attribution
+      // Note: GA4 MP doesn't support gclid directly, but we can pass it as a user property
+      // The primary gclid attribution happens via the _gcl_aw cookie + client-side gtag
+      if (gclid) {
+        ga4Event.params.gclid = gclid;
+        ga4Event.params.campaign_source = 'google';
+        ga4Event.params.campaign_medium = 'cpc';
+      }
+      if (wbraid) {
+        ga4Event.params.wbraid = wbraid;
+        ga4Event.params.campaign_source = 'google';
+        ga4Event.params.campaign_medium = 'cpc';
+      }
 
       // Pass client IP for geo attribution
       const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
