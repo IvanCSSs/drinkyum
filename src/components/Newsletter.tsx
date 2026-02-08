@@ -3,17 +3,44 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { klaviyoIdentify, klaviyoTrack } from "@/components/Klaviyo";
+
+const KLAVIYO_LIST_ID = "XumC9D"; // Your Klaviyo company ID
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (!email) return;
+    
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      // Identify user in Klaviyo
+      klaviyoIdentify(email, {
+        $source: 'Newsletter Signup',
+        $consent: ['email'],
+      });
+      
+      // Track the signup event
+      klaviyoTrack('Newsletter Signup', {
+        email,
+        source: 'homepage',
+      });
+      
       setIsSubmitted(true);
       setEmail("");
-      setTimeout(() => setIsSubmitted(false), 3000);
+      setTimeout(() => setIsSubmitted(false), 5000);
+    } catch (err) {
+      console.error("Newsletter signup failed:", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

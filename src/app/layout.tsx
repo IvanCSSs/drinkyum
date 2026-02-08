@@ -6,6 +6,7 @@ import { ConsoleFilter } from "@/components/ConsoleFilter";
 import { Providers } from "@/contexts/Providers";
 import TrackingProvider from "@/components/TrackingProvider";
 import GoogleAds from "@/components/GoogleAds";
+import Klaviyo from "@/components/Klaviyo";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -105,6 +106,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ConsoleFilter />
         <GoogleAds />
+        <Klaviyo />
         <Providers>
           <TrackingProvider>
             <AgeVerification />

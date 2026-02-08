@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import { trackPurchase, type GtagItem } from "@/lib/gtag";
+import { klaviyoPlacedOrder, klaviyoIdentify } from "@/components/Klaviyo";
 
 // Order type matching the WooCommerce API response
 interface Order {
@@ -101,6 +102,23 @@ export default function OrderConfirmationPage() {
             shipping: ord.shipping_total,
           }
         );
+        // Klaviyo purchase tracking
+        if (ord.email) {
+          klaviyoIdentify(ord.email, {
+            $first_name: ord.shipping_address?.first_name,
+            $last_name: ord.shipping_address?.last_name,
+          });
+        }
+        klaviyoPlacedOrder({
+          $value: ord.total,
+          OrderId: String(ord.display_id || ord.id),
+          Items: ord.items.map((item) => ({
+            ProductID: item.id,
+            ProductName: item.title,
+            Quantity: item.quantity,
+            Price: item.unit_price,
+          })),
+        });
       } catch (err) {
         console.error("Failed to fetch order:", err);
         setError("Unable to load order details");

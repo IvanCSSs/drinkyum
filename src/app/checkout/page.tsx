@@ -31,6 +31,7 @@ import {
 import { trackCheckoutStep } from "@/lib/analytics";
 import { trackBeginCheckout, type GtagItem } from "@/lib/gtag";
 import { tracker } from "@/lib/tracker";
+import { klaviyoStartedCheckout, klaviyoIdentify } from "@/components/Klaviyo";
 
 // Payment configuration from WordPress REST API
 interface PaymentConfig {
@@ -868,6 +869,17 @@ export default function CheckoutPage() {
           checkoutValue,
           'USD'
         );
+        // Klaviyo started checkout
+        klaviyoStartedCheckout({
+          $value: checkoutValue,
+          CheckoutURL: window.location.href,
+          Items: newSession.cartItems.map((item: { id: string | number; name: string; priceNum: number; quantity: number }) => ({
+            ProductID: String(item.id),
+            ProductName: item.name,
+            Quantity: item.quantity,
+            Price: item.priceNum,
+          })),
+        });
       }
 
       setIsInitialized(true);

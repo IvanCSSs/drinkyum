@@ -20,6 +20,7 @@ import {
 } from "@/lib/wc-cart";
 import { trackAddToCart, trackRemoveFromCart, trackCartUpdate } from "@/lib/analytics";
 import { trackGtagAddToCart, trackGtagRemoveFromCart } from "@/lib/gtag";
+import { klaviyoAddedToCart } from "@/components/Klaviyo";
 import { tracker } from "@/lib/tracker";
 
 interface CartContextType {
@@ -110,6 +111,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity,
           currency: 'USD',
         });
+        // Klaviyo tracking
+        klaviyoAddedToCart({
+          ProductID: addedItem.variant?.product?.id || variantId,
+          ProductName: addedItem.title,
+          ProductURL: `https://www.drinkyum.com/products/${addedItem.variant?.product?.handle || variantId}`,
+          ImageURL: addedItem.thumbnail || '',
+          Price: addedItem.unit_price,
+          Quantity: quantity,
+          CartTotal: updatedCart.total,
+        });
       }
       // First-party tracker (ad-blocker resistant) — always fire
       tracker.addToCart({
@@ -161,6 +172,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity,
           item_variant: 'subscription',
           currency: 'USD',
+        });
+        // Klaviyo tracking
+        klaviyoAddedToCart({
+          ProductID: addedItem.variant?.product?.id || variantId,
+          ProductName: addedItem.title,
+          ProductURL: `https://www.drinkyum.com/products/${addedItem.variant?.product?.handle || variantId}`,
+          ImageURL: addedItem.thumbnail || '',
+          Price: addedItem.unit_price,
+          Quantity: quantity,
+          CartTotal: updatedCart.total,
         });
       }
       // First-party tracker (ad-blocker resistant) — always fire
