@@ -19,8 +19,9 @@ const GA4_MEASUREMENT_ID = 'G-Z8KSEBTTJR';
 export default function GoogleAds() {
   return (
     <>
+      {/* Load gtag.js with GA4 ID to enable Enhanced Measurement (scroll, clicks, etc.) */}
       <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${AW_CONVERSION_ID}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
         strategy="afterInteractive"
       />
       <Script id="google-ads-config" strategy="afterInteractive">
@@ -28,8 +29,8 @@ export default function GoogleAds() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${AW_CONVERSION_ID}');
           gtag('config', '${GA4_MEASUREMENT_ID}');
+          gtag('config', '${AW_CONVERSION_ID}');
         `}
       </Script>
     </>
