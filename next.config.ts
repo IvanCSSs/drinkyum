@@ -63,6 +63,11 @@ const nextConfig: NextConfig = {
         source: '/wp-login.php',
         destination: `${wpBaseUrl}/wp-login.php`,
       },
+      // WooCommerce OAuth (for Klaviyo, etc.)
+      {
+        source: '/wc-auth/:path*',
+        destination: `${wpBaseUrl}/wc-auth/:path*`,
+      },
       // Medusa product images: /cdn/products/abc.jpg → s3://bucket/drinkyum/products/abc.jpg
       {
         source: '/cdn/:path*',
