@@ -68,6 +68,11 @@ const nextConfig: NextConfig = {
         source: '/wc-auth/:path*',
         destination: `${wpBaseUrl}/wc-auth/:path*`,
       },
+      // WooCommerce Legacy API (Klaviyo validation uses /wc-api/v1/orders/count)
+      {
+        source: '/wc-api/:path*',
+        destination: `${wpBaseUrl}/wc-api/:path*`,
+      },
       // WooCommerce OAuth with subsite prefix (WordPress redirects include /drinkyum/)
       {
         source: '/drinkyum/wc-auth/:path*',
