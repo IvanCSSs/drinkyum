@@ -14,6 +14,8 @@ import {
   type Product,
   type Collection,
 } from "@/lib/wc-products";
+import { trackViewItemList } from "@/lib/gtag";
+import tracker from "@/lib/tracker";
 
 // Fallback collections for when API data isn't available yet
 const fallbackCollections: Record<string, {
@@ -114,6 +116,34 @@ export default function CollectionPage({
 
     loadData();
   }, [handle]);
+
+  // Track collection/list view (GA4 + first-party tracker)
+  useEffect(() => {
+    if (!collection || products.length === 0) return;
+    
+    // GA4 view_item_list
+    trackViewItemList(
+      handle,
+      collection.title || handle,
+      products.slice(0, 10).map(p => ({
+        item_id: String(p.id),
+        item_name: p.name,
+        price: p.variants?.[0]?.prices?.[0]?.amount || 0,
+        item_category: p.categories?.[0]?.name,
+      }))
+    );
+    
+    // First-party tracker
+    tracker.viewItemList(
+      products.slice(0, 10).map(p => ({
+        id: String(p.id),
+        name: p.name,
+        price: p.variants?.[0]?.prices?.[0]?.amount || 0,
+        category: p.categories?.[0]?.name,
+      })),
+      collection.title || handle
+    );
+  }, [collection, products, handle]);
 
   const handleAddToCart = async (product: Product) => {
     const variant = product.variants[0];

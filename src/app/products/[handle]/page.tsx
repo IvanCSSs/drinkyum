@@ -30,6 +30,9 @@ import {
   type SubscriptionOption,
   type ProductSection,
 } from "@/lib/wc-products";
+import { klaviyoViewedProduct } from "@/components/Klaviyo";
+import { trackViewItem } from "@/lib/gtag";
+import tracker from "@/lib/tracker";
 
 // Default benefits for all products
 const defaultBenefits = [
@@ -94,6 +97,40 @@ export default function ProductPage({
 
     loadProduct();
   }, [handle]);
+
+  // Track product view (Klaviyo + GA4 + first-party tracker)
+  useEffect(() => {
+    if (!product) return;
+    
+    const price = product.variants?.[0]?.prices?.[0]?.amount || 0;
+    const imageUrl = product.images?.[0]?.src || '';
+    
+    // Klaviyo - enables browse abandonment
+    klaviyoViewedProduct({
+      ProductID: String(product.id),
+      ProductName: product.name,
+      ProductURL: typeof window !== 'undefined' ? window.location.href : '',
+      ImageURL: imageUrl,
+      Price: price,
+      Categories: product.categories?.map(c => c.name) || [],
+    });
+    
+    // GA4
+    trackViewItem({
+      item_id: String(product.id),
+      item_name: product.name,
+      price: price,
+      item_category: product.categories?.[0]?.name,
+    }, price, 'USD');
+    
+    // First-party tracker
+    tracker.viewItem({
+      id: String(product.id),
+      name: product.name,
+      price: price,
+      category: product.categories?.[0]?.name,
+    });
+  }, [product]);
 
   // Get cart quantity for current product
   const variant = product?.variants?.[0];
