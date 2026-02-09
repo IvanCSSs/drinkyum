@@ -1,9 +1,8 @@
 'use client';
 
 import Script from 'next/script';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { getFbp, getFbc, getClientId, getSessionId } from '@/lib/tracker';
 
 /**
  * Meta Pixel — loads fbevents.js for browser-side tracking.
@@ -49,7 +48,10 @@ export function trackMetaEvent(
   return eid; // Return so caller can pass to server
 }
 
-export default function MetaPixel() {
+/**
+ * Inner component that uses useSearchParams (needs Suspense boundary)
+ */
+function MetaPixelTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -73,6 +75,10 @@ export default function MetaPixel() {
     }
   }, [searchParams]);
 
+  return null; // This component only runs effects
+}
+
+export default function MetaPixel() {
   return (
     <>
       {/* Meta Pixel Base Code */}
@@ -103,6 +109,10 @@ export default function MetaPixel() {
           alt=""
         />
       </noscript>
+      {/* Tracker component wrapped in Suspense */}
+      <Suspense fallback={null}>
+        <MetaPixelTracker />
+      </Suspense>
     </>
   );
 }
