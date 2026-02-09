@@ -127,9 +127,9 @@ export default function CollectionPage({
       collection.title || handle,
       products.slice(0, 10).map(p => ({
         item_id: String(p.id),
-        item_name: p.name,
+        item_name: p.title,
         price: p.variants?.[0]?.prices?.[0]?.amount || 0,
-        item_category: p.categories?.[0]?.name,
+        item_category: p.collection?.title,
       }))
     );
     
@@ -137,9 +137,9 @@ export default function CollectionPage({
     tracker.viewItemList(
       products.slice(0, 10).map(p => ({
         id: String(p.id),
-        name: p.name,
+        name: p.title,
         price: p.variants?.[0]?.prices?.[0]?.amount || 0,
-        category: p.categories?.[0]?.name,
+        category: p.collection?.title,
       })),
       collection.title || handle
     );

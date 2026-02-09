@@ -103,32 +103,32 @@ export default function ProductPage({
     if (!product) return;
     
     const price = product.variants?.[0]?.prices?.[0]?.amount || 0;
-    const imageUrl = product.images?.[0]?.src || '';
+    const imageUrl = product.images?.[0]?.url || '';
     
     // Klaviyo - enables browse abandonment
     klaviyoViewedProduct({
       ProductID: String(product.id),
-      ProductName: product.name,
+      ProductName: product.title,
       ProductURL: typeof window !== 'undefined' ? window.location.href : '',
       ImageURL: imageUrl,
       Price: price,
-      Categories: product.categories?.map(c => c.name) || [],
+      Categories: product.collection ? [product.collection.title] : [],
     });
     
     // GA4
     trackViewItem({
       item_id: String(product.id),
-      item_name: product.name,
+      item_name: product.title,
       price: price,
-      item_category: product.categories?.[0]?.name,
+      item_category: product.collection?.title,
     }, price, 'USD');
     
     // First-party tracker
     tracker.viewItem({
       id: String(product.id),
-      name: product.name,
+      name: product.title,
       price: price,
-      category: product.categories?.[0]?.name,
+      category: product.collection?.title,
     });
   }, [product]);
 
