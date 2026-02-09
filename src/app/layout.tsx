@@ -6,6 +6,7 @@ import { ConsoleFilter } from "@/components/ConsoleFilter";
 import { Providers } from "@/contexts/Providers";
 import TrackingProvider from "@/components/TrackingProvider";
 import GoogleAds from "@/components/GoogleAds";
+import MetaPixel from "@/components/MetaPixel";
 import Klaviyo from "@/components/Klaviyo";
 
 const lato = Lato({
@@ -106,6 +107,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ConsoleFilter />
         <GoogleAds />
+        <MetaPixel />
         <Klaviyo />
         <Providers>
           <TrackingProvider>
