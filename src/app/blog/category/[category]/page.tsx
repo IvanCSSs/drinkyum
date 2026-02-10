@@ -25,6 +25,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   return {
     title: `${formattedName} | YUM Blog`,
     description: `Browse all posts in the ${formattedName} category on the YUM blog.`,
+    alternates: {
+      canonical: `/blog/category/${category}`,
+    },
   };
 }
 

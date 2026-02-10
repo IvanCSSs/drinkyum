@@ -10,6 +10,9 @@ import { getBlogPosts, getBlogCategories, getBlogTags } from "@/lib/wordpress-po
 export const metadata: Metadata = {
   title: "Blog | YUM",
   description: "Latest news, tips, and insights from YUM. Stay updated on kratom products, wellness tips, and company updates.",
+  alternates: {
+    canonical: "/blog",
+  },
 };
 
 interface BlogPageProps {

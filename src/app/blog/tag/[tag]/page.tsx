@@ -24,6 +24,9 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
   return {
     title: `#${tagName} | YUM Blog`,
     description: `Browse all posts tagged with #${tagName} on the YUM blog.`,
+    alternates: {
+      canonical: `/blog/tag/${tag}`,
+    },
   };
 }
 
