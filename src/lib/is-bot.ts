@@ -22,9 +22,9 @@ const BOT_USER_AGENTS = [
   'bytespider',
 ];
 
-export function isBot(): boolean {
+export async function isBot(): Promise<boolean> {
   try {
-    const headersList = headers();
+    const headersList = await headers();
     const userAgent = headersList.get('user-agent')?.toLowerCase() || '';
     
     return BOT_USER_AGENTS.some(bot => userAgent.includes(bot));

@@ -87,13 +87,13 @@ const websiteSchema = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   // Skip age verification for search engine bots (SEO fix)
-  const skipAgeGate = isBot();
+  const skipAgeGate = await isBot();
   
   return (
     <html lang="en" className={lato.variable}>
