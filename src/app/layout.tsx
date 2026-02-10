@@ -8,6 +8,7 @@ import TrackingProvider from "@/components/TrackingProvider";
 import GoogleAds from "@/components/GoogleAds";
 import MetaPixel from "@/components/MetaPixel";
 import Klaviyo from "@/components/Klaviyo";
+import { isBot } from "@/lib/is-bot";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -91,6 +92,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Skip age verification for search engine bots (SEO fix)
+  const skipAgeGate = isBot();
+  
   return (
     <html lang="en" className={lato.variable}>
       <head>
@@ -111,7 +115,7 @@ export default function RootLayout({
         <Klaviyo />
         <Providers>
           <TrackingProvider>
-            <AgeVerification />
+            {!skipAgeGate && <AgeVerification />}
             {children}
           </TrackingProvider>
         </Providers>
