@@ -32,6 +32,7 @@ import { trackCheckoutStep } from "@/lib/analytics";
 import { trackBeginCheckout, type GtagItem } from "@/lib/gtag";
 import { tracker } from "@/lib/tracker";
 import { klaviyoStartedCheckout, klaviyoIdentify } from "@/components/Klaviyo";
+import { saveAbandonedCart } from "@/lib/abandoned-cart";
 
 // Payment configuration from WordPress REST API
 interface PaymentConfig {
@@ -738,6 +739,30 @@ export default function CheckoutPage() {
   // FIELD-LEVEL SAVE HANDLERS (for abandoned checkout recovery)
   // =============================================================================
 
+  // Save cart to abandoned cart system (for Klaviyo recovery emails)
+  const saveToAbandonedCart = useCallback(async (customerInfo?: {
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+  }) => {
+    if (!cartItems.length) return;
+
+    const cartTotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
+    await saveAbandonedCart({
+      cart: cartItems.map(item => ({
+        product_id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.priceNum,
+        image: item.image,
+        permalink: `https://www.drinkyum.com/products/${item.id}`,
+      })),
+      cart_total: cartTotal,
+      ...customerInfo,
+    });
+  }, [cartItems]);
+
   // EMAIL - Most critical field for abandoned cart recovery
   const handleEmailBlur = useCallback(async () => {
     if (!email) return;
@@ -746,6 +771,14 @@ export default function CheckoutPage() {
     await saveEmailToCart(email);
     saveCheckoutSession();
 
+    // Save to abandoned cart system with email (enables Klaviyo recovery)
+    await saveToAbandonedCart({
+      email,
+      first_name: firstName || undefined,
+      last_name: lastName || undefined,
+      phone: phone || undefined,
+    });
+
     // Track email entered event for customer tracking/abandoned cart
     const cartTotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
     trackCheckoutStep('email_entered', {
@@ -753,7 +786,7 @@ export default function CheckoutPage() {
       cart_total: cartTotal,
       item_count: cartItems.length,
     });
-  }, [email, saveCheckoutSession, cartItems]);
+  }, [email, firstName, lastName, phone, saveCheckoutSession, cartItems, saveToAbandonedCart]);
 
   // PHONE - Secondary contact for SMS recovery
   const handlePhoneBlur = useCallback(async () => {
@@ -783,8 +816,18 @@ export default function CheckoutPage() {
       await saveShippingAddressToCart(addressData);
     }
 
+    // Update abandoned cart with customer info
+    if (email) {
+      await saveToAbandonedCart({
+        email,
+        first_name: firstName || undefined,
+        last_name: lastName || undefined,
+        phone: phone || undefined,
+      });
+    }
+
     saveCheckoutSession();
-  }, [firstName, lastName, address, apartment, city, state, zipCode, phone, saveCheckoutSession]);
+  }, [firstName, lastName, address, apartment, city, state, zipCode, phone, email, saveCheckoutSession, saveToAbandonedCart]);
 
   // SHIPPING METHOD - Save on selection change (for fallback options)
   const handleShippingMethodChange = useCallback(async (method: "standard" | "express") => {
@@ -879,6 +922,18 @@ export default function CheckoutPage() {
             Quantity: item.quantity,
             Price: item.priceNum,
           })),
+        });
+
+        // Save to abandoned cart system (initial save without email)
+        saveAbandonedCart({
+          cart: newSession.cartItems.map((item: { id: string | number; name: string; priceNum: number; quantity: number; image: string }) => ({
+            product_id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.priceNum,
+            image: item.image,
+          })),
+          cart_total: checkoutValue,
         });
       }
 
