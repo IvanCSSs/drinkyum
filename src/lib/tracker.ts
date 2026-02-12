@@ -189,7 +189,7 @@ export const tracker = {
     send({
       e: 'vi',
       items: [{ id: item.id, name: item.name, price: item.price, category: item.category }],
-      v: item.price,
+      v: 2,
       c: item.currency || 'USD',
     });
   },

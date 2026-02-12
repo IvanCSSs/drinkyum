@@ -41,7 +41,7 @@ export function trackViewItemList(listId: string, listName: string, items: GtagI
 export function trackViewItem(item: GtagItem, value?: number, currency = 'USD'): void {
   gtag('event', 'view_item', {
     currency,
-    value: value ?? item.price ?? 0,
+    value: 2,
     items: [item],
   });
 }
