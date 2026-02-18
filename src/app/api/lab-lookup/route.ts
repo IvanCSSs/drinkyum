@@ -50,7 +50,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      match: data.match || 'exact',
       message: data.message || 'Lab results sent to your email',
+      fallback_lab_id: data.fallback_lab_id || null,
     })
 
   } catch (error) {

@@ -4,13 +4,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Mail, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
-type Status = "idle" | "loading" | "success" | "error" | "notfound";
+type Status = "idle" | "loading" | "success" | "fallback" | "error" | "notfound";
 
 export default function LabLookupForm() {
   const [labId, setLabId] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [fallbackLabId, setFallbackLabId] = useState("");
 
   // Format Lab ID as user types (XXXX-XXXX)
   const handleLabIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,7 +49,10 @@ export default function LabLookupForm() {
 
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.match === "fallback") {
+        setStatus("fallback");
+        setFallbackLabId(data.fallback_lab_id || "");
+      } else if (data.success) {
         setStatus("success");
         setLabId("");
         setEmail("");
@@ -107,6 +111,30 @@ export default function LabLookupForm() {
               className="text-yum-pink text-sm hover:underline"
             >
               Look up another result
+            </button>
+          </motion.div>
+        ) : status === "fallback" ? (
+          <motion.div
+            key="fallback"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="text-center py-6"
+          >
+            <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
+            <h4 className="text-white font-semibold mb-2">Lab ID Not Found</h4>
+            <p className="text-white/60 text-sm mb-2">
+              We couldn&apos;t find a report matching <span className="font-mono text-white/80">{labId}</span>.
+            </p>
+            <p className="text-white/60 text-sm mb-4">
+              We&apos;ve sent you our latest available lab report{fallbackLabId ? ` (${fallbackLabId})` : ""} so you can still review our testing standards.
+            </p>
+            <p className="text-white/40 text-xs mb-4">Check your email for the PDF.</p>
+            <button
+              onClick={resetForm}
+              className="text-yum-pink text-sm hover:underline"
+            >
+              Try a different Lab ID
             </button>
           </motion.div>
         ) : (
