@@ -9,6 +9,7 @@ import GoogleAds from "@/components/GoogleAds";
 import MetaPixel from "@/components/MetaPixel";
 import Klaviyo from "@/components/Klaviyo";
 import { isBot } from "@/lib/is-bot";
+import Script from "next/script";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -113,6 +114,10 @@ export default async function RootLayout({
         <GoogleAds />
         <MetaPixel />
         <Klaviyo />
+        <Script
+          src="https://api.goaffpro.com/loader.js?shop=yaSrxzhUuxMx"
+          strategy="afterInteractive"
+        />
         <Providers>
           <TrackingProvider>
             {!skipAgeGate && <AgeVerification />}
