@@ -11,6 +11,7 @@ import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import { trackPurchase, type GtagItem } from "@/lib/gtag";
 import { klaviyoPlacedOrder, klaviyoIdentify } from "@/components/Klaviyo";
+import { useCart } from "@/contexts/CartContext";
 
 // Order type matching the WooCommerce API response
 interface Order {
@@ -70,6 +71,7 @@ async function getOrder(orderId: string): Promise<{ order: Order }> {
 export default function OrderConfirmationPage() {
   const params = useParams();
   const orderId = params.orderId as string;
+  const { clearCart } = useCart();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +84,9 @@ export default function OrderConfirmationPage() {
       try {
         const response = await getOrder(orderId);
         setOrder(response.order);
+
+        // Clear cart in React context after successful order
+        clearCart();
 
         // GA4 purchase event (fire once on load)
         const ord = response.order;

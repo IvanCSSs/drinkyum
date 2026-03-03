@@ -18,7 +18,6 @@ import crypto from 'crypto'
 function verifySignature(payload: string, signature: string | null): boolean {
   const secret = process.env.WORDPRESS_WEBHOOK_SECRET
   if (!secret) {
-    console.warn('WORDPRESS_WEBHOOK_SECRET not set - skipping signature verification')
     return true // Allow in development
   }
 
@@ -91,8 +90,6 @@ export async function POST(request: NextRequest) {
     const data: WPWebhookPayload = JSON.parse(payload)
     const action = data.action || data.webhook_name || 'unknown'
 
-    console.log(`[WordPress Webhook] Received: ${action}`)
-
     // Handle different webhook types
     switch (action) {
       // Product created/updated/deleted
@@ -111,7 +108,6 @@ export async function POST(request: NextRequest) {
         if (slug) {
           // Revalidate specific product page
           revalidatePath(`/products/${slug}`)
-          console.log(`[Revalidate] /products/${slug}`)
         }
 
         // Revalidate product listing pages
@@ -122,7 +118,6 @@ export async function POST(request: NextRequest) {
         if (data.product?.categories) {
           for (const cat of data.product.categories) {
             revalidatePath(`/collections/${cat.slug}`)
-            console.log(`[Revalidate] /collections/${cat.slug}`)
           }
         }
 
@@ -205,8 +200,6 @@ export async function POST(request: NextRequest) {
         revalidatePath('/blog')
         revalidateTag('blog-posts', 'max')
 
-        console.log('[Revalidate] /blog (post created)')
-
         return NextResponse.json({
           success: true,
           revalidated: ['/blog'],
@@ -227,7 +220,6 @@ export async function POST(request: NextRequest) {
         // Revalidate specific post page if we have slug
         if (slug) {
           revalidatePath(`/blog/${slug}`)
-          console.log(`[Revalidate] /blog/${slug}`)
         }
 
         // Revalidate blog listing
@@ -254,8 +246,6 @@ export async function POST(request: NextRequest) {
         revalidatePath('/blog')
         revalidateTag('blog-posts', 'max')
 
-        console.log('[Revalidate] /blog (post deleted)')
-
         return NextResponse.json({
           success: true,
           revalidated: ['/blog'],
@@ -263,7 +253,6 @@ export async function POST(request: NextRequest) {
       }
 
       default:
-        console.log(`[WordPress Webhook] Unhandled action: ${action}`)
         return NextResponse.json({
           message: `Unhandled webhook action: ${action}`,
         })

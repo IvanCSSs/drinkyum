@@ -61,30 +61,95 @@ const WP_API_URL = process.env.NEXT_PUBLIC_WP_URL
 // Auth token storage key
 const AUTH_TOKEN_KEY = 'wp_auth_token'
 
+// Token expiry check - JWTs typically expire in 24 hours (86400 seconds)
+// If the backend returns a different exp, we use that
+const DEFAULT_TOKEN_EXPIRY_SECONDS = 86400
+
 /**
- * Get auth token from localStorage
+ * Decode JWT payload (base64url decode)
+ * Note: We don't verify signature - we trust the backend
  */
-function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem(AUTH_TOKEN_KEY)
+function decodeJWTpayload(token: string): { exp?: number; iat?: number } | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = parts[1]
+    // Replace URL-safe chars and pad if needed
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const json = atob(base64)
+    return JSON.parse(json)
+  } catch {
+    return null
+  }
 }
 
 /**
- * Set auth token in localStorage
+ * Check if auth token is expired
+ */
+function isTokenExpired(token: string): boolean {
+  const payload = decodeJWTpayload(token)
+  if (!payload || !payload.exp) {
+    // No expiry in token - assume it's valid but check localStorage age as fallback
+    const stored = localStorage.getItem(`${AUTH_TOKEN_KEY}_stored_at`)
+    if (stored) {
+      const storedAt = parseInt(stored, 10)
+      const ageSeconds = (Date.now() - storedAt) / 1000
+      return ageSeconds > DEFAULT_TOKEN_EXPIRY_SECONDS
+    }
+    // No expiry info - assume valid
+    return false
+  }
+  // Check if exp claim is in the past
+  return payload.exp * 1000 < Date.now()
+}
+
+/**
+ * Store token with timestamp for expiry checking
  */
 function setAuthToken(token: string | null): void {
   if (typeof window === 'undefined') return
   if (token) {
     localStorage.setItem(AUTH_TOKEN_KEY, token)
+    localStorage.setItem(`${AUTH_TOKEN_KEY}_stored_at`, Date.now().toString())
   } else {
     localStorage.removeItem(AUTH_TOKEN_KEY)
+    localStorage.removeItem(`${AUTH_TOKEN_KEY}_stored_at`)
   }
 }
 
 /**
- * Get headers with auth token
+ * Clear auth token completely and redirect to login
+ * Used when token is invalid/expired or on 401 response
  */
-function getAuthHeaders(): HeadersInit {
+export function clearAuthToken(): void {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem(AUTH_TOKEN_KEY)
+  localStorage.removeItem(`${AUTH_TOKEN_KEY}_stored_at`)
+}
+
+/**
+ * Get auth token from localStorage (with expiry check)
+ * Returns null if token is expired
+ */
+function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null
+  const token = localStorage.getItem(AUTH_TOKEN_KEY)
+  if (!token) return null
+  
+  // Check if token is expired
+  if (isTokenExpired(token)) {
+    clearAuthToken()
+    return null
+  }
+  
+  return token
+}
+
+/**
+ * Get headers with auth token
+ * IMPORTANT: Do NOT log or expose tokens
+ */
+export function getAuthHeaders(): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   }
@@ -93,6 +158,39 @@ function getAuthHeaders(): HeadersInit {
     headers['Authorization'] = `Bearer ${token}`
   }
   return headers
+}
+
+/**
+ * Handle 401 Unauthorized response
+ * Clears auth token and redirects to login
+ * Call this after any API response that's not ok
+ */
+export function handleUnauthorizedResponse(): void {
+  const token = getAuthToken()
+  if (token) {
+    // Token exists but server rejected it - clear it
+    clearAuthToken()
+  }
+  // Redirect to login if on client side
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+    // Only redirect if not already on login/register page
+    const currentPath = window.location.pathname
+    if (!currentPath.startsWith('/login') && !currentPath.startsWith('/register')) {
+      window.location.href = '/login?reason=session_expired'
+    }
+  }
+}
+
+/**
+ * Check if fetch response is 401 and handle it
+ * Returns true if handled (token was cleared, redirect initiated)
+ */
+export async function checkAndHandleUnauthorized(response: Response): Promise<boolean> {
+  if (response.status === 401) {
+    handleUnauthorizedResponse()
+    return true
+  }
+  return false
 }
 
 /**
@@ -156,7 +254,7 @@ export async function logoutCustomer(): Promise<void> {
       })
     }
   } finally {
-    setAuthToken(null)
+    clearAuthToken()
   }
 }
 
@@ -170,6 +268,7 @@ export async function getCustomer(): Promise<{ customer: Customer }> {
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to get customer' }))
     throw new Error(error.message || 'Not authenticated')
   }
@@ -192,6 +291,7 @@ export async function updateCustomer(data: {
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Update failed' }))
     throw new Error(error.message || 'Failed to update profile')
   }
@@ -216,6 +316,7 @@ export async function changePassword(
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Password change failed' }))
     throw new Error(error.message || 'Failed to change password')
   }
@@ -270,7 +371,8 @@ export async function refreshToken(): Promise<AuthResponse> {
   })
 
   if (!response.ok) {
-    setAuthToken(null)
+    await checkAndHandleUnauthorized(response)
+    clearAuthToken()
     throw new Error('Session expired')
   }
 
@@ -332,6 +434,11 @@ export async function getAccountSummary(): Promise<AccountSummary> {
         headers: getAuthHeaders(),
       }),
     ])
+
+    // Check for 401 on either response
+    if (ordersResponse.status === 401 || subscriptionsResponse.status === 401) {
+      handleUnauthorizedResponse()
+    }
 
     // Parse responses
     const ordersData = ordersResponse.ok ? await ordersResponse.json() : { orders: [] }

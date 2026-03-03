@@ -5,7 +5,7 @@ import { buildWpApiUrl } from "./wp-api-url"
  * Handles fetching customer orders from WooCommerce backend.
  */
 
-import { getCurrentAuthToken } from './auth'
+import { getAuthHeaders, checkAndHandleUnauthorized } from './auth'
 import type { Address } from './addresses'
 
 // WordPress API URL
@@ -84,20 +84,6 @@ export interface OrderListParams {
 }
 
 /**
- * Get headers with auth token
- */
-function getAuthHeaders(): HeadersInit {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  }
-  const token = getCurrentAuthToken()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-  return headers
-}
-
-/**
  * Get customer order history
  */
 export async function getOrders(params?: OrderListParams): Promise<{
@@ -121,6 +107,7 @@ export async function getOrders(params?: OrderListParams): Promise<{
   )
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to fetch orders' }))
     throw new Error(error.message || 'Failed to fetch orders')
   }
@@ -143,6 +130,7 @@ export async function getOrder(orderId: string): Promise<{
   )
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Order not found' }))
     throw new Error(error.message || 'Order not found')
   }

@@ -137,19 +137,13 @@ function parseNewPlaceAddress(place: google.maps.places.Place): AddressComponent
   };
 
   // Debug: log what we received
-  console.log("parseNewPlaceAddress - place object:", place);
-  console.log("parseNewPlaceAddress - addressComponents:", place.addressComponents);
 
   if (!place.addressComponents) {
-    console.warn("No addressComponents found on place object");
     return components;
   }
 
   for (const component of place.addressComponents) {
     const types = component.types;
-
-    // Debug: log each component
-    console.log("Component:", { types, longText: component.longText, shortText: component.shortText });
 
     if (types.includes("street_number")) {
       components.streetNumber = component.longText || "";
@@ -170,7 +164,6 @@ function parseNewPlaceAddress(place: google.maps.places.Place): AddressComponent
     }
   }
 
-  console.log("parseNewPlaceAddress - final components:", components);
   return components;
 }
 
@@ -191,17 +184,13 @@ export default function AddressAutocomplete({
   const [useNewApi, setUseNewApi] = useState(false);
 
   const handlePlaceSelect = useCallback((components: AddressComponents) => {
-    console.log("handlePlaceSelect called with components:", components);
-
     // Build the street address
     const streetAddress = components.streetNumber
       ? `${components.streetNumber} ${components.street}`
       : components.street;
 
-    console.log("Setting street address to:", streetAddress);
     onChange(streetAddress);
 
-    console.log("Calling onAddressSelect with:", components);
     onAddressSelect(components);
   }, [onChange, onAddressSelect]);
 
@@ -215,14 +204,12 @@ export default function AddressAutocomplete({
     // Also check if container already has an autocomplete element
     const existingElement = containerRef.current.querySelector('gmp-place-autocomplete');
     if (existingElement) {
-      console.warn("Autocomplete element already exists, skipping initialization");
       return;
     }
 
     try {
       // Check if PlaceAutocompleteElement is available
       if (!window.google.maps.places.PlaceAutocompleteElement) {
-        console.warn("PlaceAutocompleteElement not available, falling back to legacy API");
         setUseNewApi(false);
         return;
       }
@@ -250,9 +237,6 @@ export default function AddressAutocomplete({
           const placeEvent = event as CustomEvent<{ place: google.maps.places.Place }>;
           const place = placeEvent.detail.place;
 
-          console.log("gmp-placeselect event fired, place:", place);
-          console.log("place.id:", place.id);
-
           // Fetch full place details - must await this
           // Note: The new API uses different field names
           try {
@@ -264,23 +248,13 @@ export default function AddressAutocomplete({
             // Try alternative approach - the place object might already have the data
           }
 
-          console.log("After fetchFields, place.addressComponents:", place.addressComponents);
-          console.log("After fetchFields, place.formattedAddress:", place.formattedAddress);
-          console.log("After fetchFields, place.displayName:", place.displayName);
-
           // If addressComponents is available, parse it
           if (place.addressComponents && place.addressComponents.length > 0) {
             const components = parseNewPlaceAddress(place);
 
-            // If parsing failed (no city/zip), log a warning
-            if (!components.city || !components.zipCode) {
-              console.warn("Address parsing incomplete:", components);
-            }
-
             handlePlaceSelect(components);
           } else {
             // Fallback: try to extract from formattedAddress string
-            console.warn("No addressComponents, attempting to parse from formattedAddress");
             const formattedAddress = place.formattedAddress || "";
 
             if (formattedAddress) {
@@ -311,7 +285,6 @@ export default function AddressAutocomplete({
                 components.country = parts[3];
               }
 
-              console.log("Parsed from formattedAddress:", components);
               onAddressSelect(components);
             }
           }
@@ -334,8 +307,6 @@ export default function AddressAutocomplete({
   const initLegacyAutocomplete = useCallback(() => {
     if (!inputRef.current || !window.google?.maps?.places) return;
 
-    console.log("[AddressAutocomplete] Initializing legacy autocomplete...");
-
     try {
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
         componentRestrictions: { country: "us" },
@@ -345,24 +316,19 @@ export default function AddressAutocomplete({
 
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
-        console.log("[AddressAutocomplete] place_changed event, place:", place);
 
         if (!place) {
-          console.warn("[AddressAutocomplete] No place returned");
           return;
         }
 
         if (!place.address_components) {
-          console.warn("[AddressAutocomplete] No address_components on place");
           return;
         }
 
         const components = parseAddressComponents(place);
-        console.log("[AddressAutocomplete] Parsed components:", components);
         handlePlaceSelect(components);
       });
 
-      console.log("[AddressAutocomplete] Legacy autocomplete initialized successfully");
       setIsLoaded(true);
     } catch (err) {
       console.error("Failed to initialize legacy autocomplete:", err);
@@ -383,15 +349,11 @@ export default function AddressAutocomplete({
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
 
     if (!apiKey) {
-      console.warn("[AddressAutocomplete] Google Places API key not configured. Address autocomplete disabled.");
       return;
     }
 
-    console.log("[AddressAutocomplete] Loading Google Places script...", { useNewApi });
-
     loadGooglePlacesScript(apiKey)
       .then(() => {
-        console.log("[AddressAutocomplete] Google Places script loaded successfully");
         if (useNewApi) {
           initNewAutocomplete();
         } else {

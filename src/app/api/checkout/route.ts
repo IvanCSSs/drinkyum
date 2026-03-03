@@ -141,15 +141,6 @@ export async function POST(request: NextRequest) {
 
     const forwardHeaders = getForwardHeaders(request) as Record<string, string>
     const fullUrl = getStoreApiUrl(endpoint)
-    console.log('[Checkout API] Request to WooCommerce:', {
-      endpoint: fullUrl,
-      method,
-      headers: {
-        'Cart-Token': forwardHeaders['Cart-Token'] ? 'present' : 'missing',
-        'Nonce': forwardHeaders['Nonce'] ? forwardHeaders['Nonce'] : 'missing',
-      },
-      payload: JSON.stringify(payload).substring(0, 1000),
-    })
 
     const wcResponse = await fetch(fullUrl, {
       method,

@@ -69,7 +69,7 @@ async function createStripePaymentIntent(_params: {
   description?: string
 }): Promise<PaymentResult> {
   // WooCommerce Stripe gateway handles this
-  console.warn("[Checkout] Stripe payment intent via WooCommerce not yet configured");
+
   return {
     success: false,
     error: "Stripe gateway not configured in WooCommerce"
@@ -190,7 +190,7 @@ const US_STATES = [
 
 async function createCheckoutSession(cartItems: CartItem[]): Promise<CheckoutSession> {
   // Use existing cart from CartContext - no need to create new one
-  console.log("[Checkout] Initializing checkout session with cart items:", cartItems.length);
+
 
   const session: CheckoutSession = {
     id: generateCheckoutId(),
@@ -206,7 +206,7 @@ async function createCheckoutSession(cartItems: CartItem[]): Promise<CheckoutSes
 async function saveEmailToCart(email: string): Promise<void> {
   try {
     await updateCheckoutEmail(email);
-    console.log("[Checkout] Email saved to cart:", email);
+
   } catch (err) {
     console.error("[Checkout] Failed to save email:", err);
   }
@@ -214,7 +214,7 @@ async function saveEmailToCart(email: string): Promise<void> {
 
 async function savePhoneToCart(phone: string): Promise<void> {
   // Phone is stored in cart metadata or shipping address
-  console.log("[Checkout] Phone saved:", phone);
+
 }
 
 async function saveShippingAddressToCart(address: {
@@ -240,7 +240,7 @@ async function saveShippingAddressToCart(address: {
       phone: address.phone,
     };
     await updateShippingAddress(medusaAddress);
-    console.log("[Checkout] Shipping address saved to cart");
+
   } catch (err) {
     console.error("[Checkout] Failed to save shipping address:", err);
   }
@@ -267,7 +267,7 @@ async function saveBillingAddressToCart(address: {
       country_code: "us",
     };
     await updateBillingAddress(medusaAddress);
-    console.log("[Checkout] Billing address saved to cart");
+
   } catch (err) {
     console.error("[Checkout] Failed to save billing address:", err);
   }
@@ -368,7 +368,7 @@ export default function CheckoutPage() {
   const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
   
   // reCAPTCHA v3 Site Key
-  const RECAPTCHA_SITE_KEY = "6Lef7TUsAAAAANALvxWg6MERR4J_O6i2evG9bd91";
+  const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
   
   // Load reCAPTCHA script
   useEffect(() => {
@@ -396,7 +396,7 @@ export default function CheckoutPage() {
         setPaymentConfig(config);
       } catch (err) {
         // Endpoint not deployed yet - fall back to manual mode
-        console.warn("[Checkout] Payment config endpoint not available, using manual fallback");
+
         config = {
           configured: true,
           enabledProviders: ["manual"],
@@ -407,7 +407,7 @@ export default function CheckoutPage() {
       }
 
       if (!config.configured) {
-        console.log("[Checkout] No payment provider configured");
+
         return;
       }
 
@@ -448,7 +448,7 @@ export default function CheckoutPage() {
         }
       } else if (config.provider === "manual") {
         // Manual provider doesn't need any SDK
-        console.log("[Checkout] Manual payment mode - no SDK needed");
+
       }
     };
 
@@ -634,7 +634,7 @@ export default function CheckoutPage() {
     // Check for suspicious bot patterns
     if (checkSuspiciousPattern(emailValue)) {
       // Don't show warning to user (they might be legit), but flag internally
-      console.log("[Bot Detection] Suspicious email pattern:", emailValue);
+
     }
   };
   
@@ -719,7 +719,7 @@ export default function CheckoutPage() {
 
     try {
       localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(session));
-      console.log("[Checkout] Session saved locally:", session.id);
+
     } catch (e) {
       console.error("Failed to save checkout session:", e);
     }
@@ -854,7 +854,7 @@ export default function CheckoutPage() {
 
       // If we have a valid existing session, restore form fields
       if (existingSession && existingSession.id) {
-        console.log("[Checkout] Recovering session:", existingSession.id);
+
 
         setCheckoutId(existingSession.id);
         setCurrentStep(existingSession.step || 1);
@@ -878,7 +878,7 @@ export default function CheckoutPage() {
         // Create new checkout session
         const newSession = await createCheckoutSession(cartItems);
         setCheckoutId(newSession.id);
-        console.log("[Checkout] Created new session:", newSession.id);
+
 
         // Track checkout started event
         trackCheckoutStep('started', {
@@ -1079,7 +1079,7 @@ export default function CheckoutPage() {
   // Save customer info for next time
   // TODO: Replace with backend API call to Medusa customer endpoint
   const saveCustomerInfo = async (info: SavedCustomerInfo): Promise<void> => {
-    console.log("[Customer Info] Saving for next time:", info);
+
     
     // Placeholder: In production, this would be an API call like:
     // await fetch('/api/customer/save-info', {
@@ -1094,13 +1094,13 @@ export default function CheckoutPage() {
     // });
     
     // For now, just log it
-    console.log("[Customer Info] Ready to save to backend:", JSON.stringify(info, null, 2));
+
   };
   
   // Load saved customer info
   // TODO: Replace with backend API call to fetch saved customer data
   const loadCustomerInfo = async (): Promise<SavedCustomerInfo | null> => {
-    console.log("[Customer Info] Loading saved info...");
+
     
     // Placeholder: In production, this would be an API call like:
     // const response = await fetch('/api/customer/get-info');
@@ -1119,7 +1119,7 @@ export default function CheckoutPage() {
     const loadSavedInfo = async () => {
       const savedInfo = await loadCustomerInfo();
       if (savedInfo) {
-        console.log("[Customer Info] Found saved info, pre-filling form");
+
         setEmail(savedInfo.email || "");
         setPhone(savedInfo.phone || "");
         setFirstName(savedInfo.firstName || "");
@@ -1143,24 +1143,24 @@ export default function CheckoutPage() {
     
     // Bot detection checks
     if (honeypot) {
-      console.log("[Bot Detection] Honeypot filled - blocking submission");
+
       // Silently fail for bots (don't tell them why)
       return;
     }
     
     if (isFormFilledTooFast()) {
-      console.log("[Bot Detection] Form filled too fast - blocking submission");
+
       // Silently fail for bots
       return;
     }
     
     // Only trigger reCAPTCHA for suspicious users
     if (isSuspiciousUser()) {
-      console.log("[Bot Detection] Suspicious activity detected - verifying with reCAPTCHA");
+
       
       const recaptchaToken = await executeRecaptcha();
       if (recaptchaToken) {
-        console.log("[reCAPTCHA] Token obtained for suspicious user, length:", recaptchaToken.length);
+
         // TODO: Send this token to backend for verification
         // Backend should call Google's API: POST https://www.google.com/recaptcha/api/siteverify
         // with secret key: 6Lef7TUsAAAAAE9Rvra5rkPkZ5D7RCDUaeg-Yfme
@@ -1168,12 +1168,12 @@ export default function CheckoutPage() {
         
         // For now, just log and continue (backend will do actual verification)
       } else {
-        console.log("[reCAPTCHA] Failed to get token for suspicious user - blocking");
+
         // Block suspicious users who can't complete reCAPTCHA
         return;
       }
     } else {
-      console.log("[Bot Detection] User appears legitimate - skipping reCAPTCHA");
+
     }
     
     setProcessingPayment(true);
@@ -1231,7 +1231,7 @@ export default function CheckoutPage() {
           throw new Error("Invalid expiry date format");
         }
 
-        console.log("[Checkout] Tokenizing card with Accept.js...");
+
 
         const opaqueData = await new Promise<{ dataDescriptor: string; dataValue: string }>((resolve, reject) => {
           const secureData = {
@@ -1257,7 +1257,7 @@ export default function CheckoutPage() {
           });
         });
 
-        console.log("[Checkout] Card tokenized, completing checkout with WooCommerce...");
+
 
         // WooCommerce handles payment processing in completeCheckout
         // Pass opaque data via payment_data array (WooCommerce Store API format)
@@ -1316,7 +1316,7 @@ export default function CheckoutPage() {
 
         if (result.type === "order") {
           const order = result.data as { id: string; display_id: number };
-          console.log("[Checkout] Order created successfully:", order.id);
+
 
           // Track checkout completed event
           trackCheckoutStep('completed', {
@@ -1340,7 +1340,7 @@ export default function CheckoutPage() {
           throw new Error("Stripe is still loading. Please wait and try again.");
         }
 
-        console.log("[Checkout] Creating Stripe payment intent...");
+
 
         // First create a payment intent on our backend
         const intentResult = await createStripePaymentIntent({
@@ -1352,7 +1352,7 @@ export default function CheckoutPage() {
           throw new Error(intentResult.error || "Failed to create payment intent");
         }
 
-        console.log("[Checkout] Confirming payment with Stripe...");
+
 
         // Confirm payment with Stripe.js
         const { error, paymentIntent } = await stripeInstance.confirmCardPayment(
@@ -1383,7 +1383,7 @@ export default function CheckoutPage() {
           throw new Error("Payment was not successful");
         }
 
-        console.log("[Checkout] Stripe payment successful, completing checkout...");
+
 
         // Complete checkout via WooCommerce with Stripe payment data
         const result = await completeCheckoutAPI({
@@ -1439,7 +1439,7 @@ export default function CheckoutPage() {
 
         if (result.type === "order") {
           const order = result.data as { id: string; display_id: number };
-          console.log("[Checkout] Order created successfully:", order.id);
+
 
           // Track checkout completed event
           trackCheckoutStep('completed', {
@@ -1458,7 +1458,7 @@ export default function CheckoutPage() {
 
       } else if (provider === "manual" || provider === "cod" || provider === "bacs") {
         // MANUAL/COD/BACS: No card processing needed
-        console.log(`[Checkout] ${provider} payment mode - completing checkout...`);
+
 
         const result = await completeCheckoutAPI({
           payment_method: provider,
@@ -1510,7 +1510,7 @@ export default function CheckoutPage() {
 
         if (result.type === "order") {
           const order = result.data as { id: string; display_id: number };
-          console.log("[Checkout] Order created successfully:", order.id);
+
 
           // Track checkout completed event
           trackCheckoutStep('completed', {

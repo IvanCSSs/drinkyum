@@ -5,7 +5,7 @@
  * and billing addresses using WooCommerce backend.
  */
 
-import { getCurrentAuthToken } from './auth'
+import { getAuthHeaders, checkAndHandleUnauthorized } from './auth'
 
 // WordPress API URL
 const WP_API_URL = process.env.NEXT_PUBLIC_WP_URL
@@ -48,20 +48,6 @@ export interface AddressInput {
 }
 
 /**
- * Get headers with auth token
- */
-function getAuthHeaders(): HeadersInit {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  }
-  const token = getCurrentAuthToken()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-  return headers
-}
-
-/**
  * Get all addresses for the current customer
  */
 export async function getAddresses(): Promise<{
@@ -73,6 +59,7 @@ export async function getAddresses(): Promise<{
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to fetch addresses' }))
     throw new Error(error.message || 'Failed to fetch addresses')
   }
@@ -92,6 +79,7 @@ export async function getAddress(addressId: string): Promise<{
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Address not found' }))
     throw new Error(error.message || 'Address not found')
   }
@@ -112,6 +100,7 @@ export async function addAddress(address: AddressInput): Promise<{
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to add address' }))
     throw new Error(error.message || 'Failed to add address')
   }
@@ -135,6 +124,7 @@ export async function updateAddress(
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to update address' }))
     throw new Error(error.message || 'Failed to update address')
   }
@@ -152,6 +142,7 @@ export async function deleteAddress(addressId: string): Promise<void> {
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to delete address' }))
     throw new Error(error.message || 'Failed to delete address')
   }

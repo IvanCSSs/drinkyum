@@ -8,20 +8,7 @@
  */
 
 import { woocommerce } from './wc-client'
-
-// Import getAuthHeaders from auth.ts - need to export it first
-function getAuthHeaders(): HeadersInit {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  }
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('wp_auth_token')
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`
-    }
-  }
-  return headers
-}
+import { getAuthHeaders, checkAndHandleUnauthorized } from './auth'
 
 // Types
 export type SubscriptionPeriod = 'day' | 'week' | 'month' | 'year'
@@ -109,6 +96,7 @@ export async function getMySubscriptions(email?: string): Promise<{
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     throw new Error('Failed to fetch subscriptions')
   }
 

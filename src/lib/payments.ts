@@ -5,7 +5,7 @@ import { buildWpApiUrl } from "./wp-api-url"
  * Handles saved payment methods for customers using WooCommerce/Stripe.
  */
 
-import { getCurrentAuthToken } from './auth'
+import { getAuthHeaders, checkAndHandleUnauthorized } from './auth'
 
 // WordPress API URL
 const WP_API_URL = process.env.NEXT_PUBLIC_WP_URL
@@ -34,20 +34,6 @@ export interface SetupIntent {
 }
 
 /**
- * Get headers with auth token
- */
-function getAuthHeaders(): HeadersInit {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  }
-  const token = getCurrentAuthToken()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-  return headers
-}
-
-/**
  * Get all saved payment methods for the current customer
  */
 export async function getPaymentMethods(): Promise<{
@@ -59,6 +45,7 @@ export async function getPaymentMethods(): Promise<{
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to fetch payment methods' }))
     throw new Error(error.message || 'Failed to fetch payment methods')
   }
@@ -76,6 +63,7 @@ export async function getSetupIntent(): Promise<SetupIntent> {
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to create setup intent' }))
     throw new Error(error.message || 'Failed to create setup intent')
   }
@@ -97,6 +85,7 @@ export async function addPaymentMethod(paymentMethodId: string): Promise<{
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to add payment method' }))
     throw new Error(error.message || 'Failed to add payment method')
   }
@@ -116,6 +105,7 @@ export async function setDefaultPaymentMethod(paymentMethodId: string): Promise<
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to set default payment method' }))
     throw new Error(error.message || 'Failed to set default payment method')
   }
@@ -133,6 +123,7 @@ export async function removePaymentMethod(paymentMethodId: string): Promise<void
   })
 
   if (!response.ok) {
+    await checkAndHandleUnauthorized(response)
     const error = await response.json().catch(() => ({ message: 'Failed to remove payment method' }))
     throw new Error(error.message || 'Failed to remove payment method')
   }

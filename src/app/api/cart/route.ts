@@ -280,8 +280,6 @@ interface WCStoreCartFormat {
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('[Cart API] GET cart via CoCart')
-
     const wcResponse = await fetch(getCoCartUrl("/cart"), {
       method: 'GET',
       headers: getForwardHeaders(request),
@@ -292,15 +290,12 @@ export async function GET(request: NextRequest) {
     
     // Check if it's an error response
     if (coCartData.code) {
-      console.log('[Cart API] CoCart error:', coCartData)
       return buildResponse(wcResponse, coCartData, wcResponse.status)
     }
 
     // Transform CoCart response to WC Store API format
     const wcFormatData = transformCoCartToWCFormat(coCartData)
     
-    console.log('[Cart API] GET cart response, items:', wcFormatData.items_count)
-
     return buildResponse(wcResponse, wcFormatData, wcResponse.status)
   } catch (error) {
     console.error('[Cart API] Error fetching cart:', error)
@@ -386,8 +381,6 @@ export async function POST(request: NextRequest) {
         )
     }
 
-    console.log(`[Cart API] ${action} request to ${endpoint}`, { method, payload: requestBody })
-
     const wcResponse = await fetch(getCoCartUrl(endpoint), {
       method,
       headers: getForwardHeaders(request),
@@ -398,11 +391,6 @@ export async function POST(request: NextRequest) {
     })
 
     const coCartData = await wcResponse.json()
-
-    console.log(`[Cart API] ${action} response:`, { 
-      status: wcResponse.status,
-      hasItems: !!coCartData.items,
-    })
 
     // Check if it's an error response
     if (coCartData.code) {
