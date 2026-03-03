@@ -2,32 +2,29 @@
  * Payment Config API proxy route
  *
  * Proxies payment configuration requests to WooCommerce
- * This avoids CORS issues by making server-to-server requests
+ * The /wc/v3/payment-config endpoint is public (no auth required)
+ * - only exposes public keys (API Login ID, Client Key)
+ * - never exposes transaction key
  */
 
 import { NextResponse } from 'next/server'
 import { buildWpApiUrl } from '@/lib/wp-api-url'
 
-const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
-const WC_CONSUMER_KEY = process.env.WC_CONSUMER_KEY
-const WC_CONSUMER_SECRET = process.env.WC_CONSUMER_SECRET
-
 export async function GET() {
   try {
-    // Build auth header for WooCommerce REST API
-    const auth = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64')
-
-    const response = await fetch(buildWpApiUrl('/wc/v3/payment-config'), {
+    const url = buildWpApiUrl('/wc/v3/payment-config')
+    const response = await fetch(url, {
       headers: {
-        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json',
       },
+      next: { revalidate: 300 }, // Cache for 5 minutes
     })
 
     if (!response.ok) {
-      console.error('[Payment Config API] WooCommerce error:', response.status)
+      console.error('[Payment Config API] WooCommerce error:', response.status, await response.text().catch(() => ''))
       return NextResponse.json(
         { configured: false, enabledProviders: [] },
-        { status: response.status }
+        { status: 200 } // Return 200 with configured:false so frontend handles gracefully
       )
     }
 
@@ -37,7 +34,7 @@ export async function GET() {
     console.error('[Payment Config API] Error:', error)
     return NextResponse.json(
       { configured: false, enabledProviders: [] },
-      { status: 500 }
+      { status: 200 }
     )
   }
 }
