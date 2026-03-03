@@ -972,11 +972,30 @@ export default function CheckoutPage() {
     }
   }, [firstName, lastName, address, apartment, city, state, zipCode, phone, updateShippingAddress]);
 
+  // Debounce timer ref for shipping address calculation
+  const shippingAddressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Fetch rates when address is complete (even on Step 1 for accurate sidebar)
+  // Debounced to prevent API calls on every keystroke
   useEffect(() => {
-    if (firstName && lastName && address && city && state && zipCode && !hasCalculatedShipping) {
-      updateCartShippingAddress();
+    // Clear any pending debounce
+    if (shippingAddressTimerRef.current) {
+      clearTimeout(shippingAddressTimerRef.current);
     }
+
+    // Only trigger if all required fields are filled
+    if (firstName && lastName && address && city && state && zipCode && !hasCalculatedShipping) {
+      // Debounce the API call by 500ms
+      shippingAddressTimerRef.current = setTimeout(() => {
+        updateCartShippingAddress();
+      }, 500);
+    }
+
+    return () => {
+      if (shippingAddressTimerRef.current) {
+        clearTimeout(shippingAddressTimerRef.current);
+      }
+    };
   }, [firstName, lastName, address, city, state, zipCode, hasCalculatedShipping, updateCartShippingAddress]);
 
   // Calculations

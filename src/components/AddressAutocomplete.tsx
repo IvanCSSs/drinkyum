@@ -370,7 +370,16 @@ export default function AddressAutocomplete({
     }
   }, [handlePlaceSelect]);
 
+  // Track if we've already initialized to prevent re-initialization on every render
+  const hasInitializedRef = useRef(false);
+
   useEffect(() => {
+    // Prevent re-initialization on every parent re-render
+    // This fixes the freeze issue caused by inline callbacks changing on every keystroke
+    if (hasInitializedRef.current) {
+      return;
+    }
+
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
 
     if (!apiKey) {
@@ -388,19 +397,14 @@ export default function AddressAutocomplete({
         } else {
           initLegacyAutocomplete();
         }
+        // Mark as initialized after first successful load
+        hasInitializedRef.current = true;
       })
       .catch((err) => {
         console.error("[AddressAutocomplete] Failed to load Google Places:", err);
         setError("Failed to load address service");
       });
   }, [initNewAutocomplete, initLegacyAutocomplete, useNewApi]);
-
-  // If new API init failed, try legacy
-  useEffect(() => {
-    if (!useNewApi && isScriptLoaded) {
-      initLegacyAutocomplete();
-    }
-  }, [useNewApi, initLegacyAutocomplete]);
 
   // Cleanup on unmount
   useEffect(() => {
