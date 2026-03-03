@@ -344,7 +344,11 @@ export interface PaymentResult {
  * Returns provider-specific public keys (never secret keys)
  */
 export async function getPaymentConfig(): Promise<PaymentConfig> {
-  return medusa.get('/store/checkout/payment')
+  const res = await fetch('/api/payment-config')
+  if (!res.ok) {
+    throw new Error(`Payment config fetch failed: HTTP ${res.status}`)
+  }
+  return res.json()
 }
 
 /**
