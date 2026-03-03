@@ -116,6 +116,7 @@ const nextConfig: NextConfig = {
       },
     ],
     path: '/img',
+    unoptimized: process.env.DISABLE_IMAGE_OPTIMIZATION === 'true',
   },
 };
 
