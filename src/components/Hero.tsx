@@ -47,8 +47,7 @@ export default function Hero() {
 
         {/* Product Bottle - responsive sizing */}
         <motion.div
-          className="absolute left-1/2 z-10"
-          style={{ top: "60px" }}
+          className="absolute left-1/2 z-10 top-[20px] md:top-[60px]"
           initial={{ opacity: 0, scale: 0.95, x: "-50%", y: "0" }}
           animate={{ opacity: 1, scale: 1, x: "-50%", y: "0" }}
           transition={{ duration: 0.8 }}
@@ -57,8 +56,8 @@ export default function Hero() {
           <Image
             src="/images/hero-product.png"
             alt="YUM Kratom Extract Bottle"
-            width={180}
-            height={547}
+            width={140}
+            height={425}
             className="block md:hidden drop-shadow-2xl"
             style={{ maxWidth: "none", transform: "rotate(27deg)" }}
             priority
@@ -97,7 +96,7 @@ export default function Hero() {
             
             {/* Headline with buttons */}
             <motion.div
-              className="mt-[280px] md:mt-[100px] px-0 md:px-[75px] lg:px-[100px]"
+              className="mt-[220px] md:mt-[100px] px-0 md:px-[75px] lg:px-[100px]"
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
