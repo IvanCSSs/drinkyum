@@ -47,7 +47,7 @@ export default function Hero() {
 
         {/* Product Bottle - responsive sizing */}
         <motion.div
-          className="absolute left-1/2 z-10 top-[20px] md:top-[60px]"
+          className="absolute left-[60%] md:left-1/2 z-10 top-[20px] md:top-[60px]"
           initial={{ opacity: 0, scale: 0.95, x: "-50%", y: "0" }}
           animate={{ opacity: 1, scale: 1, x: "-50%", y: "0" }}
           transition={{ duration: 0.8 }}
