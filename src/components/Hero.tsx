@@ -60,7 +60,7 @@ export default function Hero() {
             width={180}
             height={547}
             className="block md:hidden drop-shadow-2xl"
-            style={{ maxWidth: "none" }}
+            style={{ maxWidth: "none", transform: "rotate(27deg)" }}
             priority
           />
           {/* Tablet bottle */}
@@ -70,7 +70,7 @@ export default function Hero() {
             width={230}
             height={699}
             className="hidden md:block lg:hidden drop-shadow-2xl"
-            style={{ maxWidth: "none" }}
+            style={{ maxWidth: "none", transform: "rotate(27deg)" }}
             priority
           />
           {/* Desktop bottle */}
@@ -80,7 +80,7 @@ export default function Hero() {
             width={330}
             height={1003}
             className="hidden lg:block drop-shadow-2xl"
-            style={{ maxWidth: "none", transform: "translateX(9%)" }}
+            style={{ maxWidth: "none", transform: "translateX(9%) rotate(27deg)" }}
             priority
           />
         </motion.div>
