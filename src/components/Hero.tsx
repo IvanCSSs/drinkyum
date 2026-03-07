@@ -57,8 +57,8 @@ export default function Hero() {
           <Image
             src="/images/hero-product.png"
             alt="YUM Kratom Extract Bottle"
-            width={350}
-            height={525}
+            width={180}
+            height={547}
             className="block md:hidden drop-shadow-2xl"
             style={{ maxWidth: "none" }}
             priority
@@ -67,8 +67,8 @@ export default function Hero() {
           <Image
             src="/images/hero-product.png"
             alt="YUM Kratom Extract Bottle"
-            width={600}
-            height={900}
+            width={230}
+            height={699}
             className="hidden md:block lg:hidden drop-shadow-2xl"
             style={{ maxWidth: "none" }}
             priority
@@ -77,8 +77,8 @@ export default function Hero() {
           <Image
             src="/images/hero-product.png"
             alt="YUM Kratom Extract Bottle"
-            width={1150}
-            height={1725}
+            width={330}
+            height={1003}
             className="hidden lg:block drop-shadow-2xl"
             style={{ maxWidth: "none", transform: "translateX(9%)" }}
             priority
