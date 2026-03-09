@@ -29,7 +29,7 @@ export default function Hero() {
 
       {/* Hero Container */}
       <div 
-        className="relative w-full max-w-[1348px] min-h-[600px] md:h-[789px] rounded-[20px] md:rounded-[30px] overflow-hidden"
+        className="relative w-full max-w-[1348px] min-h-[680px] md:h-[789px] rounded-[20px] md:rounded-[30px] overflow-hidden"
         style={{
           border: "1px solid rgba(220, 3, 135, 1)",
         }}
@@ -96,7 +96,7 @@ export default function Hero() {
             
             {/* Headline with buttons */}
             <motion.div
-              className="mt-[220px] md:mt-[100px] px-0 md:px-[75px] lg:px-[100px]"
+              className="mt-[300px] md:mt-[100px] px-0 md:px-[75px] lg:px-[100px]"
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
