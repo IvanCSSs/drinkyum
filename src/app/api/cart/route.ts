@@ -278,13 +278,34 @@ interface WCStoreCartFormat {
   extensions: Record<string, unknown>
 }
 
-export async function GET(request: NextRequest) {
+// Fetch a WC Store API nonce+cart-token (needed for checkout)
+async function fetchStoreApiNonce(request: NextRequest): Promise<{ nonce?: string; cartToken?: string }> {
   try {
-    const wcResponse = await fetch(getCoCartUrl("/cart"), {
+    const storeCartUrl = buildWpApiUrl('/wc/store/v1/cart')
+    const resp = await fetch(storeCartUrl, {
       method: 'GET',
       headers: getForwardHeaders(request),
-      credentials: 'include',
     })
+    return {
+      nonce: resp.headers.get('Nonce') || undefined,
+      cartToken: resp.headers.get('Cart-Token') || undefined,
+    }
+  } catch {
+    return {}
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // Fetch CoCart data and WC Store API nonce in parallel
+    const [wcResponse, storeNonce] = await Promise.all([
+      fetch(getCoCartUrl("/cart"), {
+        method: 'GET',
+        headers: getForwardHeaders(request),
+        credentials: 'include',
+      }),
+      fetchStoreApiNonce(request),
+    ])
 
     const coCartData = await wcResponse.json()
     
@@ -296,7 +317,15 @@ export async function GET(request: NextRequest) {
     // Transform CoCart response to WC Store API format
     const wcFormatData = transformCoCartToWCFormat(coCartData)
     
-    return buildResponse(wcResponse, wcFormatData, wcResponse.status)
+    // Build response and inject WC Store API nonce so checkout works
+    const response = buildResponse(wcResponse, wcFormatData, wcResponse.status)
+    if (storeNonce.nonce) {
+      response.headers.set('Nonce', storeNonce.nonce)
+    }
+    if (storeNonce.cartToken) {
+      response.headers.set('Cart-Token', storeNonce.cartToken)
+    }
+    return response
   } catch (error) {
     console.error('[Cart API] Error fetching cart:', error)
     return NextResponse.json(
