@@ -102,6 +102,7 @@ export interface WCCheckoutResponse {
 export interface CheckoutOrder {
   id: string
   display_id: number
+  order_key: string
   status: string
   email: string
   currency_code: string
@@ -220,7 +221,8 @@ function parsePrice(priceString: string, minorUnit: number = 2): number {
  */
 async function checkoutApiRequest<T>(
   action: string | null,
-  body?: Record<string, unknown>
+  body?: Record<string, unknown>,
+  _retry = false
 ): Promise<{ data: T; response: Response }> {
   const method = action ? 'POST' : 'GET'
   const requestBody = action ? { action, ...body } : undefined
@@ -232,6 +234,20 @@ async function checkoutApiRequest<T>(
   })
 
   updateTokensFromResponse(response)
+
+  // If nonce expired (401), refresh it by hitting cart and retry once
+  if (response.status === 401 && !_retry) {
+    try {
+      const cartResp = await fetch('/api/cart', { method: 'GET', credentials: 'include' })
+      const newNonce = cartResp.headers.get('Nonce')
+      if (newNonce) setStoredNonce(newNonce)
+      const newToken = cartResp.headers.get('Cart-Token')
+      if (newToken) setStoredCartToken(newToken)
+      return checkoutApiRequest<T>(action, body, true)
+    } catch {
+      // Fall through to original error
+    }
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Request failed' }))
@@ -444,6 +460,7 @@ export async function completeCheckout(params: {
   const order: CheckoutOrder = {
     id: String(data.order_id),
     display_id: data.order_id,
+    order_key: data.order_key,
     status: data.status,
     email: data.billing_address.email,
     currency_code: 'usd', // WC response doesn't include this directly

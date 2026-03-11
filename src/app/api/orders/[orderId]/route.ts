@@ -42,7 +42,8 @@ export async function GET(
     }
 
     // Unauthenticated: use WC Store API order endpoint (for order confirmation)
-    // WC Store API /order/{id} works with the order's cart token or key
+    // Pass order key if available (from checkout redirect URL)
+    const orderKey = request.nextUrl.searchParams.get('key')
     const cookie = request.headers.get('Cookie')
     const nonce = request.headers.get('Nonce')
     const cartToken = request.headers.get('Cart-Token')
@@ -52,7 +53,10 @@ export async function GET(
     if (nonce) headers['Nonce'] = nonce
     if (cartToken) headers['Cart-Token'] = cartToken
 
-    const wcResponse = await fetch(buildWpApiUrl(`/wc/store/v1/order/${orderId}`), {
+    const storeApiParams: Record<string, string> = {}
+    if (orderKey) storeApiParams['key'] = orderKey
+
+    const wcResponse = await fetch(buildWpApiUrl(`/wc/store/v1/order/${orderId}`, storeApiParams), {
       method: 'GET',
       headers,
     })

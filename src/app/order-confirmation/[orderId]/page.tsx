@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -60,8 +60,11 @@ interface Order {
 }
 
 // Fetch order from our WooCommerce API proxy
-async function getOrder(orderId: string): Promise<{ order: Order }> {
-  const response = await fetch(`/api/orders/${orderId}`);
+async function getOrder(orderId: string, orderKey?: string): Promise<{ order: Order }> {
+  const url = orderKey 
+    ? `/api/orders/${orderId}?key=${orderKey}`
+    : `/api/orders/${orderId}`;
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error('Failed to fetch order');
   }
@@ -70,7 +73,9 @@ async function getOrder(orderId: string): Promise<{ order: Order }> {
 
 export default function OrderConfirmationPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const orderId = params.orderId as string;
+  const orderKey = searchParams.get('key') || undefined;
   const { clearCart } = useCart();
 
   const [order, setOrder] = useState<Order | null>(null);
@@ -82,7 +87,7 @@ export default function OrderConfirmationPage() {
       if (!orderId) return;
 
       try {
-        const response = await getOrder(orderId);
+        const response = await getOrder(orderId, orderKey);
         setOrder(response.order);
 
         // Clear cart in React context after successful order

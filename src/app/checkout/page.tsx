@@ -1315,7 +1315,7 @@ export default function CheckoutPage() {
         }
 
         if (result.type === "order") {
-          const order = result.data as { id: string; display_id: number };
+          const order = result.data as { id: string; display_id: number; order_key: string };
 
 
           // Track checkout completed event
@@ -1327,7 +1327,7 @@ export default function CheckoutPage() {
             payment_method: 'authorizenet',
           });
 
-          window.location.href = `/order-confirmation/${order.id}`;
+          window.location.href = `/order-confirmation/${order.id}?key=${order.order_key}`;
           return;
         } else {
           throw new Error("Checkout failed - order not created");
@@ -1438,7 +1438,7 @@ export default function CheckoutPage() {
         }
 
         if (result.type === "order") {
-          const order = result.data as { id: string; display_id: number };
+          const order = result.data as { id: string; display_id: number; order_key: string };
 
 
           // Track checkout completed event
@@ -1450,7 +1450,7 @@ export default function CheckoutPage() {
             payment_method: 'stripe',
           });
 
-          window.location.href = `/order-confirmation/${order.id}`;
+          window.location.href = `/order-confirmation/${order.id}?key=${order.order_key}`;
           return;
         } else {
           throw new Error("Checkout failed - order not created");
@@ -1509,7 +1509,7 @@ export default function CheckoutPage() {
         }
 
         if (result.type === "order") {
-          const order = result.data as { id: string; display_id: number };
+          const order = result.data as { id: string; display_id: number; order_key: string };
 
 
           // Track checkout completed event
@@ -1521,7 +1521,7 @@ export default function CheckoutPage() {
             payment_method: provider,
           });
 
-          window.location.href = `/order-confirmation/${order.id}`;
+          window.location.href = `/order-confirmation/${order.id}?key=${order.order_key}`;
           return;
         } else {
           throw new Error("Checkout failed - order not created");
