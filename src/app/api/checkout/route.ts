@@ -20,6 +20,12 @@ function getForwardHeaders(request: NextRequest): HeadersInit {
     'Content-Type': 'application/json',
   }
 
+  // Forward cookies for session persistence (CoCart uses WC session cookies)
+  const cookie = request.headers.get('Cookie')
+  if (cookie) {
+    headers['Cookie'] = cookie
+  }
+
   // Forward cart token if present
   const cartToken = request.headers.get('Cart-Token')
   if (cartToken) {

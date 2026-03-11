@@ -322,9 +322,9 @@ export async function GET(request: NextRequest) {
     if (storeNonce.nonce) {
       response.headers.set('Nonce', storeNonce.nonce)
     }
-    if (storeNonce.cartToken) {
-      response.headers.set('Cart-Token', storeNonce.cartToken)
-    }
+    // Do NOT set Cart-Token from WC Store API — it's a different session than CoCart
+    // CoCart uses cookies for session, WC Store API uses Cart-Token JWT
+    // Setting a Store API Cart-Token would create an empty cart session
     return response
   } catch (error) {
     console.error('[Cart API] Error fetching cart:', error)
