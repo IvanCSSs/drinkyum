@@ -355,16 +355,36 @@ export async function POST(request: NextRequest) {
         }
         break
         
-      case 'apply-coupon':
-        endpoint = '/cart/coupon'
-        requestBody = { code: payload.code }
-        break
+      case 'apply-coupon': {
+        // Use custom mu-plugin endpoint (CoCart has no coupon support)
+        const applyUrl = buildWpApiUrl('/store/v1/cart/coupon')
+        const applyResp = await fetch(applyUrl, {
+          method: 'POST',
+          headers: getForwardHeaders(request),
+          credentials: 'include',
+          body: JSON.stringify({ code: payload.code }),
+        })
+        const applyData = await applyResp.json()
+        if (applyData.code) {
+          return buildResponse(applyResp, applyData, applyResp.status)
+        }
+        return buildResponse(applyResp, applyData, applyResp.status)
+      }
         
-      case 'remove-coupon':
-        endpoint = `/cart/coupon/${payload.code}`
-        method = 'DELETE'
-        requestBody = {}
-        break
+      case 'remove-coupon': {
+        // Use custom mu-plugin endpoint
+        const removeUrl = buildWpApiUrl(`/store/v1/cart/coupon/${payload.code}`)
+        const removeResp = await fetch(removeUrl, {
+          method: 'DELETE',
+          headers: getForwardHeaders(request),
+          credentials: 'include',
+        })
+        const removeData = await removeResp.json()
+        if (removeData.code) {
+          return buildResponse(removeResp, removeData, removeResp.status)
+        }
+        return buildResponse(removeResp, removeData, removeResp.status)
+      }
         
       case 'select-shipping-rate':
         endpoint = '/cart/shipping-method'
