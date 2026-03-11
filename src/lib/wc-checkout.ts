@@ -511,6 +511,7 @@ export async function getOrder(orderId: string): Promise<{ order: CheckoutOrder 
     order: {
       id: orderId,
       display_id: parseInt(orderId, 10),
+      order_key: '',
       status: 'processing',
       email: '',
       currency_code: 'usd',

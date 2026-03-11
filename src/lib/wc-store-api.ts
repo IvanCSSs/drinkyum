@@ -7,25 +7,7 @@
  * Uses ?rest_route= format for WordPress multisite subdirectory compatibility.
  */
 
-const WC_URL = process.env.NEXT_PUBLIC_WP_URL || 'https://wordpress-production-7c0a.up.railway.app/drinkyum'
-
-/**
- * Build Store API URL using rest_route query parameter
- */
-function buildStoreApiUrl(path: string, params?: Record<string, string | number | undefined>): string {
-  const url = new URL(WC_URL)
-  url.searchParams.set('rest_route', `/wc/store/v1${path}`)
-  
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
-        url.searchParams.set(key, String(value))
-      }
-    })
-  }
-  
-  return url.toString()
-}
+import { buildWpApiUrl } from './wp-api-url'
 
 export interface ProductSection {
   id: string
@@ -152,7 +134,7 @@ export async function fetchStoreProducts(params?: {
   orderby?: string
   order?: 'asc' | 'desc'
 }): Promise<StoreProduct[]> {
-  const url = buildStoreApiUrl('/products', params as Record<string, string | number | undefined>)
+  const url = buildWpApiUrl('/wc/store/v1/products', params as Record<string, string | number | undefined>)
   
   const res = await fetch(url, {
     method: 'GET',
@@ -171,7 +153,7 @@ export async function fetchStoreProducts(params?: {
  * Fetch single product from WC Store API
  */
 export async function fetchStoreProduct(productId: number): Promise<StoreProduct> {
-  const url = buildStoreApiUrl(`/products/${productId}`)
+  const url = buildWpApiUrl(`/wc/store/v1/products/${productId}`)
   
   const res = await fetch(url, {
     method: 'GET',
@@ -194,7 +176,7 @@ export async function fetchStoreCategories(params?: {
   page?: number
   parent?: number
 }): Promise<StoreCategory[]> {
-  const url = buildStoreApiUrl('/products/categories', params as Record<string, string | number | undefined>)
+  const url = buildWpApiUrl('/wc/store/v1/products/categories', params as Record<string, string | number | undefined>)
   
   const res = await fetch(url, {
     method: 'GET',
@@ -213,7 +195,7 @@ export async function fetchStoreCategories(params?: {
  * Fetch single category from WC Store API  
  */
 export async function fetchStoreCategory(categoryId: number): Promise<StoreCategory> {
-  const url = buildStoreApiUrl(`/products/categories/${categoryId}`)
+  const url = buildWpApiUrl(`/wc/store/v1/products/categories/${categoryId}`)
   
   const res = await fetch(url, {
     method: 'GET',
