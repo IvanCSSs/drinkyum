@@ -738,6 +738,17 @@ export async function selectShippingRate(rateId: string, packageId: number = 0):
 }
 
 /**
+ * Clear the server-side cart (CoCart session)
+ */
+export async function clearServerCart(): Promise<void> {
+  try {
+    await cartApiRequest<unknown>('clear-cart', {})
+  } catch {
+    // Best-effort — don't block checkout flow if clear fails
+  }
+}
+
+/**
  * Get cart item count
  */
 export async function getCartItemCount(): Promise<number> {

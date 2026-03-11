@@ -415,6 +415,11 @@ export async function POST(request: NextRequest) {
         return buildResponse(removeResp, removeData, removeResp.status)
       }
         
+      case 'clear-cart':
+        endpoint = '/cart/clear'
+        requestBody = {}
+        break
+
       case 'select-shipping-rate':
         endpoint = '/cart/shipping-method'
         requestBody = {

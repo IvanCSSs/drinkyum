@@ -12,6 +12,7 @@ import {
   updateCart as apiUpdateCart,
   selectShippingRate as apiSelectShippingRate,
   clearStoredCartId,
+  clearServerCart,
   type Cart,
   type CartItem,
   type CartCoupon,
@@ -332,6 +333,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => {
     clearStoredCartId();
+    clearServerCart(); // Clear CoCart server-side session too
     setCart(null);
   }, []);
 
