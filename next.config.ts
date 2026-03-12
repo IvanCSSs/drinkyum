@@ -83,11 +83,11 @@ const nextConfig: NextConfig = {
         source: '/cdn/:path*',
         destination: `${s3Url}/${tenantSlug}/:path*`,
       },
-      // WordPress media uploads: /wp-media/2026/01/img.jpg → WordPress uploads
-      // Files are stored at: wordpress-server/wp-content/uploads/sites/{siteId}/
+      // WordPress media uploads: /wp-media/2026/01/img.jpg → S3 directly
+      // Files are stored at: s3://medusa-multistore-assets/wordpress/uploads/sites/{siteId}/
       {
         source: '/wp-media/:path*',
-        destination: `${wpBaseUrl}/wp-content/uploads/sites/${wpSiteId}/:path*`,
+        destination: `${s3Url}/wordpress/uploads/sites/${wpSiteId}/:path*`,
       },
     ];
   },
