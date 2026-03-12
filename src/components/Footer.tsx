@@ -10,6 +10,7 @@ const navLinks = [
   { number: "04", label: "Lab Results", href: "/lab-results" },
   { number: "05", label: "FAQ", href: "/faq" },
   { number: "06", label: "Contact", href: "/contact" },
+  { number: "07", label: "Wholesale", href: "/wholesale" },
 ];
 
 export default function Footer() {
