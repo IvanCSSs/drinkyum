@@ -12,7 +12,7 @@ const faqs = [
   {
     question: "How do I use YUM?",
     answer:
-      "Simply shake the bottle and drink! Start with half a bottle if you're new to kratom. Effects typically begin within 15-30 minutes and last 4-8 hours depending on the serving size.",
+      "Start with one capful (15ml) on an empty or light stomach for best results. Effects typically begin within 20-30 minutes and last 3-4 hours. Less is more—you can always take more, but you can't take less. For first-time users, we recommend starting with half a serving.",
   },
   {
     question: "Can I take it every day?",
@@ -22,7 +22,7 @@ const faqs = [
   {
     question: "I'm new to kratom. Where should I start?",
     answer:
-      "Start with our 14ml bottle or half of a 30ml bottle. Wait 45 minutes to assess effects before taking more. Everyone's tolerance is different, so start low and find your optimal dose.",
+      "Start with half a capful (about 7ml) or our 14ml bottle. Wait 30 minutes to assess effects before taking more. Everyone's tolerance is different, so start low and find your sweet spot. Less is more with kratom—taking too much won't enhance the experience.",
   },
 ];
 

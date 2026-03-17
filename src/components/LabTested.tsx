@@ -51,7 +51,7 @@ export default function LabTested() {
 
               {/* Button */}
               <a
-                href="#"
+                href="/lab-results"
                 className="flex items-center justify-center text-[14px] lg:text-[15px] text-white font-normal hover:brightness-110 transition-all w-full sm:w-[200px] lg:w-[221px] h-[40px] lg:h-[35px] rounded-[10px]"
                 style={{
                   border: "1px solid #FFF",

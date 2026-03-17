@@ -38,8 +38,8 @@ import tracker from "@/lib/tracker";
 const defaultBenefits = [
   { icon: "flask", title: "Lab Tested", description: "Third-party verified for purity and potency" },
   { icon: "leaf", title: "Premium Extract", description: "High-quality concentration" },
-  { icon: "zap", title: "Fast Acting", description: "Feel the effects within 15-30 minutes" },
-  { icon: "clock", title: "Long Lasting", description: "4-6 hours of balanced effects" },
+  { icon: "zap", title: "Fast Acting", description: "Feel the effects within 20-30 minutes" },
+  { icon: "clock", title: "Long Lasting", description: "3-4 hours of balanced effects" },
 ];
 
 export default function ProductPage({
@@ -499,10 +499,10 @@ export default function ProductPage({
 
               {/* Trust Badges */}
               <div className="flex flex-wrap gap-4 mb-8 pb-8 border-b border-white/10">
-                <div className="flex items-center gap-2 text-white/60 text-sm">
+                <Link href="/lab-results" className="flex items-center gap-2 text-white/60 text-sm hover:text-white transition-colors">
                   <Shield size={16} className="text-green-400" />
                   <span>Lab Tested</span>
-                </div>
+                </Link>
                 <div className="flex items-center gap-2 text-white/60 text-sm">
                   <Truck size={16} className="text-yum-cyan" />
                   <span>Free Shipping $50+</span>

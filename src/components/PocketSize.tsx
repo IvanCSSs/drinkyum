@@ -138,7 +138,8 @@ export default function PocketSize() {
               </motion.p>
 
               {/* CTA Button */}
-              <motion.button
+              <motion.a
+                href="/collections"
                 className="flex items-center justify-center text-[14px] lg:text-[15px] text-white font-normal w-full sm:w-auto"
                 style={{
                   minWidth: "160px",
@@ -158,7 +159,7 @@ export default function PocketSize() {
                 whileTap={{ scale: 0.98 }}
               >
                 Grab the new size
-              </motion.button>
+              </motion.a>
             </div>
           </div>
         </div>
