@@ -242,9 +242,26 @@ export default function CartPage() {
                           {item.variant.title}
                         </p>
                       )}
-                      <p className="text-yum-pink font-bold text-base sm:text-lg mb-4">
+                      <p className="text-yum-pink font-bold text-base sm:text-lg mb-2">
                         ${item.unit_price.toFixed(2)}
                       </p>
+
+                      {/* Subscription Badge */}
+                      {item.is_subscription && (
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          <span className="text-xs px-2 py-1 rounded bg-yum-pink/20 text-yum-pink font-medium">
+                            Subscribe & Save
+                            {item.subscription_discount ? ` ${item.subscription_discount}%` : ''}
+                          </span>
+                          {item.subscription_interval && (
+                            <span className="text-xs text-white/50">
+                              {item.subscription_interval_count && item.subscription_interval_count > 1
+                                ? `Every ${item.subscription_interval_count} ${item.subscription_interval}s`
+                                : `Every ${item.subscription_interval}`}
+                            </span>
+                          )}
+                        </div>
+                      )}
 
                       {/* Quantity Controls */}
                       <div className="flex items-center justify-between">

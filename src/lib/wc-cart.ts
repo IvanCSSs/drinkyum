@@ -435,7 +435,9 @@ function transformCart(wcCart: WCStoreCart): Cart {
       const isSubscription = Boolean(
         subscriptionData?.is_subscription ||
         itemData['subscription_interval'] ||
-        itemData['_subscription_interval']
+        itemData['_subscription_interval'] ||
+        itemData['subscribe_save_period'] ||
+        itemData['subscribe_save_interval']
       )
 
       return {
@@ -465,10 +467,12 @@ function transformCart(wcCart: WCStoreCart): Cart {
         subscription_interval: subscriptionData?.period ||
           itemData['subscription_interval'] ||
           itemData['_subscription_interval'] ||
+          itemData['subscribe_save_period'] ||
           undefined,
         subscription_interval_count: subscriptionData?.interval ||
           (itemData['subscription_interval_count'] ? parseInt(itemData['subscription_interval_count'], 10) : undefined) ||
-          (itemData['_subscription_interval_count'] ? parseInt(itemData['_subscription_interval_count'], 10) : undefined),
+          (itemData['_subscription_interval_count'] ? parseInt(itemData['_subscription_interval_count'], 10) : undefined) ||
+          (itemData['subscribe_save_interval'] ? parseInt(itemData['subscribe_save_interval'], 10) : undefined),
         subscription_discount: subscriptionData?.discount_percent ||
           (itemData['subscription_discount'] ? parseFloat(itemData['subscription_discount']) : undefined) ||
           (itemData['_subscription_discount'] ? parseFloat(itemData['_subscription_discount']) : undefined),
