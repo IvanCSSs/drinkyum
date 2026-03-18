@@ -29,6 +29,63 @@ function getForwardHeaders(request: NextRequest): HeadersInit {
   return headers
 }
 
+/**
+ * Merge Store API subscription extension data into transformed CoCart data.
+ * CoCart doesn't expose WC session data like subscribe_save, but the Store API does
+ * via the registered 'subscribe-save' endpoint extension.
+ */
+async function mergeStoreApiExtensions(wcFormatData: WCStoreCartFormat, request: NextRequest): Promise<WCStoreCartFormat> {
+  try {
+    const storeCartUrl = buildWpApiUrl('/wc/store/v1/cart')
+    const resp = await fetch(storeCartUrl, {
+      method: 'GET',
+      headers: getForwardHeaders(request),
+    })
+    if (!resp.ok) return wcFormatData
+
+    const storeCart = await resp.json()
+    if (!storeCart.items || !Array.isArray(storeCart.items)) return wcFormatData
+
+    // Build a map of product_id -> Store API extensions
+    const extensionsByProductId = new Map<number, Record<string, unknown>>()
+    for (const item of storeCart.items) {
+      if (item.extensions?.['subscribe-save']?.is_subscription) {
+        extensionsByProductId.set(item.id, item.extensions)
+      }
+    }
+
+    // Merge into CoCart-transformed items
+    if (extensionsByProductId.size > 0 && Array.isArray(wcFormatData.items)) {
+      for (const item of wcFormatData.items as Array<Record<string, unknown>>) {
+        const productId = item.id as number
+        const storeExt = extensionsByProductId.get(productId)
+        if (storeExt) {
+          item.extensions = storeExt
+          // Also inject into item_data for transformCart compatibility
+          const ssData = storeExt['subscribe-save'] as Record<string, unknown>
+          const existingItemData = (item.item_data || []) as Array<{key: string, value: string}>
+          existingItemData.push(
+            { key: 'subscribe_save_period', value: String(ssData.period || '') },
+            { key: 'subscribe_save_interval', value: String(ssData.interval || '1') },
+            { key: 'subscribe_save_discount', value: String(ssData.discount_percent || '0') },
+          )
+          item.item_data = existingItemData
+          // Also update price to reflect subscription discount
+          const storeItem = storeCart.items.find((si: Record<string, unknown>) => si.id === productId)
+          if (storeItem?.prices) {
+            item.prices = storeItem.prices
+          }
+        }
+      }
+    }
+
+    return wcFormatData
+  } catch (e) {
+    console.error('[Cart API] Failed to merge Store API extensions:', e)
+    return wcFormatData
+  }
+}
+
 // Transform CoCart response to WC Store API format (so wc-cart.ts doesn't need changes)
 function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartFormat {
   const items = coCartData.items || []
@@ -315,7 +372,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform CoCart response to WC Store API format
-    const wcFormatData = transformCoCartToWCFormat(coCartData)
+    let wcFormatData = transformCoCartToWCFormat(coCartData)
+    
+    // Merge Store API subscription extension data (CoCart doesn't expose this)
+    wcFormatData = await mergeStoreApiExtensions(wcFormatData, request)
     
     // Build response and inject WC Store API nonce so checkout works
     const response = buildResponse(wcResponse, wcFormatData, wcResponse.status)
@@ -346,21 +406,47 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'add-item':
-      case 'add-subscription':
         endpoint = '/cart/add-item'
         // CoCart uses 'id' and 'quantity' directly
         requestBody = {
           id: String(payload.id),
           quantity: String(payload.quantity || 1),
         }
-        // Include subscription data in cart_item_data if present
-        if (payload.subscribe_save_period) {
-          requestBody.cart_item_data = {
+        break
+
+      case 'add-subscription': {
+        // Use Subscribe & Save REST endpoint (CoCart doesn't trigger WC subscription hooks)
+        const ssUrl = buildWpApiUrl('/subscribe-save/v1/add-to-cart')
+        const ssResp = await fetch(ssUrl, {
+          method: 'POST',
+          headers: getForwardHeaders(request),
+          credentials: 'include',
+          body: JSON.stringify({
+            product_id: parseInt(String(payload.id), 10),
+            quantity: parseInt(String(payload.quantity || 1), 10),
             subscribe_save_period: payload.subscribe_save_period,
             subscribe_save_interval: payload.subscribe_save_interval || 1,
-          }
+          }),
+        })
+        const ssData = await ssResp.json()
+        if (ssData.code || !ssData.success) {
+          return buildResponse(ssResp, ssData, ssResp.status)
         }
-        break
+        // Subscription added — now fetch the full cart via CoCart to return normalized format
+        const cartAfterSs = await fetch(getCoCartUrl('/cart'), {
+          method: 'GET',
+          headers: getForwardHeaders(request),
+          credentials: 'include',
+        })
+        const coCartAfterSs = await cartAfterSs.json()
+        if (coCartAfterSs.code) {
+          return buildResponse(cartAfterSs, coCartAfterSs, cartAfterSs.status)
+        }
+        const wcFormatAfterSs = transformCoCartToWCFormat(coCartAfterSs)
+        // Merge Store API subscription extensions into the transformed cart
+        const mergedCart = await mergeStoreApiExtensions(wcFormatAfterSs, request)
+        return buildResponse(cartAfterSs, mergedCart, cartAfterSs.status)
+      }
         
       case 'update-item':
         // CoCart uses POST to /cart/item/{item_key} with quantity param
