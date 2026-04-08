@@ -483,7 +483,22 @@ export async function POST(request: NextRequest) {
         if (applyData.code) {
           return buildResponse(applyResp, applyData, applyResp.status)
         }
-        return buildResponse(applyResp, applyData, applyResp.status)
+
+        // Custom coupon endpoint can return sparse/partial cart payloads.
+        // Re-fetch the full CoCart cart so the frontend transform always gets
+        // a complete billing_address/customer shape.
+        const cartAfterCoupon = await fetch(getCoCartUrl('/cart'), {
+          method: 'GET',
+          headers: getForwardHeaders(request),
+          credentials: 'include',
+        })
+        const coCartAfterCoupon = await cartAfterCoupon.json()
+        if (coCartAfterCoupon.code) {
+          return buildResponse(cartAfterCoupon, coCartAfterCoupon, cartAfterCoupon.status)
+        }
+        let wcFormatAfterCoupon = transformCoCartToWCFormat(coCartAfterCoupon)
+        wcFormatAfterCoupon = await mergeStoreApiExtensions(wcFormatAfterCoupon, request)
+        return buildResponse(cartAfterCoupon, wcFormatAfterCoupon, cartAfterCoupon.status)
       }
         
       case 'remove-coupon': {
