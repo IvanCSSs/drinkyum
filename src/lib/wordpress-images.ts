@@ -59,6 +59,13 @@ export function wpImageUrl(
     return `/wp-media/${wpUploadsMatch[1]}`;
   }
 
+  // Tenant-scoped S3 uploads (DrinkYUM product images stored outside WP uploads/sites/{id})
+  // Matches: ...amazonaws.com/drinkyum/uploads/2026/04/file.png
+  const tenantUploadsMatch = url.match(/amazonaws\.com\/(?:[^/]+\/)?drinkyum\/uploads\/(.+)$/);
+  if (tenantUploadsMatch) {
+    return `/cdn/uploads/${tenantUploadsMatch[1]}`;
+  }
+
   // Return original URL if no transformation needed (external images, etc.)
   return url;
 }
