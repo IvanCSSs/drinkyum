@@ -280,13 +280,30 @@ export default function CollectionPage({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
+              {/* Background fill layer */}
               <Image
                 src={featuredImage}
-                alt={`${collection?.title} featured image`}
+                alt=""
                 fill
-                className="object-contain p-4"
+                className="object-cover scale-110 blur-2xl opacity-35"
                 priority
+                aria-hidden="true"
               />
+
+              {/* Dark wash over blurred background */}
+              <div className="absolute inset-0 bg-[#0A0A0A]/45" />
+
+              {/* Foreground contained image */}
+              <div className="absolute inset-0">
+                <Image
+                  src={featuredImage}
+                  alt={`${collection?.title} featured image`}
+                  fill
+                  className="object-contain p-4"
+                  priority
+                />
+              </div>
+
               {/* Gradient overlay */}
               <div
                 className="absolute inset-0"
