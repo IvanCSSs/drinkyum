@@ -275,7 +275,7 @@ export default function CollectionPage({
           {/* Featured Hero Image */}
           {featuredImage && (
             <motion.div
-              className="relative w-full h-48 sm:h-64 lg:h-80 rounded-2xl overflow-hidden mb-10"
+              className="relative w-full h-48 sm:h-64 lg:h-80 rounded-2xl overflow-hidden mb-10 bg-[#0A0A0A]"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -284,7 +284,7 @@ export default function CollectionPage({
                 src={featuredImage}
                 alt={`${collection?.title} featured image`}
                 fill
-                className="object-cover"
+                className="object-contain p-4"
                 priority
               />
               {/* Gradient overlay */}
