@@ -131,12 +131,12 @@ function CollectionCard({ collection, index }: CollectionCardProps) {
           />
 
           {/* Image Container */}
-          <div className="relative h-48 lg:h-56 overflow-hidden">
+          <div className="relative h-48 lg:h-56 overflow-hidden bg-[#0A0A0A]">
             <Image
               src={featuredImage}
               alt={collection.title}
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              className="object-contain p-4 transition-transform duration-700 group-hover:scale-105"
             />
 
             {/* Product count badge */}
