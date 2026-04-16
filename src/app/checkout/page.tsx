@@ -15,7 +15,7 @@ import {
   Tag,
   X
 } from "lucide-react";
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
@@ -278,7 +278,7 @@ async function saveBillingAddressToCart(address: {
 // COMPONENT
 // =============================================================================
 
-export default function CheckoutPage() {
+function CheckoutPageInner() {
   // Get real cart data from CartContext
   const searchParams = useSearchParams();
   const isFreeSampleOffer = searchParams.get("offer") === "free-sample";
@@ -2551,3 +2551,10 @@ export default function CheckoutPage() {
   );
 }
 
+export default function CheckoutPage() {
+  return (
+    <Suspense>
+      <CheckoutPageInner />
+    </Suspense>
+  );
+}
