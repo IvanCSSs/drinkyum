@@ -837,6 +837,7 @@ function CheckoutPageInner() {
   // SHIPPING METHOD - Save on selection change (for fallback options)
   const handleShippingMethodChange = useCallback(async (method: "standard" | "express") => {
     setSelectedShipping(method);
+    setConfirmedShippingPrice(method === "express" ? 12.99 : 5.99);
     saveCheckoutSession();
   }, [saveCheckoutSession]);
 
@@ -2035,6 +2036,7 @@ function CheckoutPageInner() {
                         const currentRate = availableShippingRates.find(r => r.selected);
                         if (currentRate) setConfirmedShippingPrice(currentRate.price);
                         else if (shippingTotal > 0) setConfirmedShippingPrice(shippingTotal);
+                        else if (confirmedShippingPrice === null) setConfirmedShippingPrice(selectedShipping === "express" ? 12.99 : 5.99);
                         await refreshCart(); 
                         handleStepChange(3); 
                       }}
