@@ -744,9 +744,13 @@ export async function getProducts(params?: ProductListParams): Promise<{
 
   const result = await getWCProducts(wcParams)
 
+  // Filter out free-sample products — only accessible via /free-sample page
+  const FREE_SAMPLE_IDS = new Set([1674, 1676])
+  const filtered = result.products.filter(p => !FREE_SAMPLE_IDS.has(p.id))
+
   return {
-    products: result.products.map(adaptWCProduct),
-    count: result.total,
+    products: filtered.map(adaptWCProduct),
+    count: filtered.length,
     offset: params?.offset || 0,
     limit: params?.limit || 10,
   }
