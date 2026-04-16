@@ -189,7 +189,7 @@ export default function FreeSamplePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="relative max-w-6xl mx-auto mb-10 lg:mb-16 rounded-3xl overflow-hidden"
+          className="relative max-w-6xl mx-auto mt-[150px] mb-10 lg:mb-16 rounded-3xl overflow-hidden"
           style={{ border: "1px solid rgba(255,255,255,0.08)" }}
         >
           <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full">
