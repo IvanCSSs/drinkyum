@@ -27,18 +27,22 @@ const SAMPLE_OPTIONS = [
     productHandle: "yum-bubble-gum-14ml-free-sample",
     couponCode: "FREESAMPLEBG14",
     flavor: "Bubble Gum",
-    image: "/images/product-1.png",
+    emoji: "🍬",
+    tasteNote: "Sweet · Nostalgic",
     accent: "#E1258F",
-    description: "Classic sweet bubble gum — the crowd favorite.",
+    description:
+      "Pink, playful, and unapologetically sweet — the one everyone asks for by name. Tastes like the candy aisle, hits like an extract shot.",
   },
   {
     id: "tb",
     productHandle: "yum-tropical-breeze-14ml-free-sample",
     couponCode: "FREESAMPLETB14",
     flavor: "Tropical Breeze",
-    image: "/images/product-2.png",
+    emoji: "🏝️",
+    tasteNote: "Citrus · Refreshing",
     accent: "#22c55e",
-    description: "Bright tropical citrus with a clean finish.",
+    description:
+      "Bright citrus meets mellow tropical fruit — a clean, refreshing finish for when you want something less sweet and more sunshine.",
   },
 ] as const;
 
@@ -154,7 +158,9 @@ export default function FreeSamplePage() {
   };
 
   return (
-    <main className="min-h-screen bg-yum-dark text-white">
+    <main className="min-h-screen text-white relative" style={{
+      background: "radial-gradient(ellipse at top, #2a1a14 0%, #120a08 40%, #080808 100%)"
+    }}>
       <MobileLogo />
       <Navbar />
 
@@ -242,12 +248,17 @@ export default function FreeSamplePage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="rounded-3xl p-6 lg:p-8"
             style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.12)",
               backdropFilter: "blur(10px)",
+              boxShadow: "0 30px 80px -20px rgba(0,0,0,0.6)",
             }}
           >
-            <h2 className="text-xl font-semibold mb-5">Pick your flavor</h2>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-semibold">Pick your flavor</h2>
+              <span className="text-[11px] uppercase tracking-widest text-white/40">Step 1 of 1</span>
+            </div>
+
             <div className="grid grid-cols-2 gap-3 mb-6">
               {SAMPLE_OPTIONS.map((option) => {
                 const active = selected === option.id;
@@ -255,32 +266,55 @@ export default function FreeSamplePage() {
                   <button
                     key={option.id}
                     onClick={() => setSelected(option.id)}
-                    className="rounded-2xl p-4 text-left transition-all"
+                    className="relative rounded-2xl p-5 text-left transition-all overflow-hidden group"
                     style={{
-                      borderWidth: 1,
+                      borderWidth: 2,
                       borderStyle: "solid",
-                      borderColor: active ? option.accent : "rgba(255,255,255,0.1)",
-                      background: active ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)",
-                      boxShadow: active ? `0 0 0 1px ${option.accent} inset` : "none",
+                      borderColor: active ? option.accent : "rgba(255,255,255,0.08)",
+                      background: active
+                        ? `linear-gradient(135deg, ${option.accent}22 0%, ${option.accent}08 100%)`
+                        : "rgba(255,255,255,0.02)",
                     }}
                   >
-                    <div className="relative aspect-square rounded-xl overflow-hidden bg-black/20 mb-3">
-                      <Image src={option.image} alt={option.flavor} fill className="object-contain p-3" />
+                    {/* Soft accent glow */}
+                    <div
+                      className="absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl transition-opacity"
+                      style={{
+                        background: option.accent,
+                        opacity: active ? 0.35 : 0.12,
+                      }}
+                    />
+
+                    {/* Flavor disc */}
+                    <div
+                      className="relative w-14 h-14 rounded-full mb-4 flex items-center justify-center text-2xl transition-transform group-hover:scale-105"
+                      style={{
+                        background: `radial-gradient(circle at 30% 30%, ${option.accent} 0%, ${option.accent}cc 60%, ${option.accent}88 100%)`,
+                        boxShadow: active
+                          ? `0 8px 24px -4px ${option.accent}88, inset 0 1px 0 rgba(255,255,255,0.3)`
+                          : `0 4px 12px -2px ${option.accent}44, inset 0 1px 0 rgba(255,255,255,0.2)`,
+                      }}
+                    >
+                      <span>{option.emoji}</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold">{option.flavor}</h3>
-                      {active && (
-                        <span className="text-[11px] font-semibold" style={{ color: option.accent }}>
-                          ✓
-                        </span>
-                      )}
-                    </div>
+
+                    <h3 className="font-semibold text-base mb-1">{option.flavor}</h3>
+                    <p className="text-[11px] text-white/50 leading-tight">{option.tasteNote}</p>
+
+                    {active && (
+                      <div
+                        className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                        style={{ background: option.accent }}
+                      >
+                        ✓
+                      </div>
+                    )}
                   </button>
                 );
               })}
             </div>
 
-            <p className="text-sm text-white/60 mb-5">{selectedOption.description}</p>
+            <p className="text-sm text-white/70 mb-5 leading-relaxed">{selectedOption.description}</p>
 
             <div className="flex items-center gap-3 mb-5">
               <span className="text-white/40 line-through">$14.99</span>
