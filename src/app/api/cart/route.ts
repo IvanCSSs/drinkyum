@@ -229,7 +229,9 @@ function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartForma
     needs_payment: parseFloat(coCartData.totals?.total || '0') > 0,
     needs_shipping: (coCartData.items || []).length > 0,
     payment_requirements: ['products'],
-    has_calculated_shipping: !!coCartData.shipping?.has_calculated_shipping,
+    has_calculated_shipping: !!coCartData.shipping?.has_calculated_shipping || 
+      !!(coCartData.customer?.shipping_address?.shipping_address_1) ||
+      parseFloat(coCartData.totals?.shipping_total || '0') > 0,
     shipping_rates: [],
     items_count: (coCartData.items || []).reduce((sum: number, item: CoCartItem) => 
       sum + (typeof item.quantity === 'number' ? item.quantity : (item.quantity?.value || 1)), 0),
