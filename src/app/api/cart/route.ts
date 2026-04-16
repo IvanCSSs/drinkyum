@@ -354,6 +354,34 @@ async function fetchStoreApiNonce(request: NextRequest): Promise<{ nonce?: strin
   }
 }
 
+/**
+ * Fetch shipping rates from WC Store API and inject into cart data
+ */
+async function mergeShippingRates(wcFormatData: WCStoreCartFormat, request: NextRequest): Promise<WCStoreCartFormat> {
+  try {
+    const storeCartUrl = buildWpApiUrl('/wc/store/v1/cart')
+    const resp = await fetch(storeCartUrl, {
+      method: 'GET',
+      headers: getForwardHeaders(request),
+    })
+    if (!resp.ok) return wcFormatData
+    const storeCart = await resp.json()
+    if (storeCart.shipping_rates && Array.isArray(storeCart.shipping_rates)) {
+      wcFormatData.shipping_rates = storeCart.shipping_rates
+      wcFormatData.has_calculated_shipping = storeCart.has_calculated_shipping || wcFormatData.has_calculated_shipping
+      // Also update shipping total from Store API if available
+      if (storeCart.totals?.total_shipping) {
+        const totals = wcFormatData.totals as Record<string, unknown>
+        totals.total_shipping = storeCart.totals.total_shipping
+        totals.currency_minor_unit = storeCart.totals.currency_minor_unit || 2
+      }
+    }
+    return wcFormatData
+  } catch (e) {
+    return wcFormatData
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Fetch CoCart data and WC Store API nonce in parallel
@@ -557,7 +585,8 @@ export async function POST(request: NextRequest) {
         if (coCartAfterShipping.code) {
           return buildResponse(cartAfterShipping, coCartAfterShipping, cartAfterShipping.status)
         }
-        const wcFormatAfterShipping = transformCoCartToWCFormat(coCartAfterShipping)
+        let wcFormatAfterShipping = transformCoCartToWCFormat(coCartAfterShipping)
+        wcFormatAfterShipping = await mergeShippingRates(wcFormatAfterShipping, request)
         return buildResponse(cartAfterShipping, wcFormatAfterShipping, cartAfterShipping.status)
       }
         

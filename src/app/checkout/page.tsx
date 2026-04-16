@@ -329,6 +329,7 @@ function CheckoutPageInner() {
   const [zipCode, setZipCode] = useState("");
   const [saveInfo, setSaveInfo] = useState(true);
   const [selectedShipping, setSelectedShipping] = useState<"standard" | "express">("standard");
+  const [confirmedShippingPrice, setConfirmedShippingPrice] = useState<number | null>(null);
   const [sameAsBilling, setSameAsBilling] = useState(true);
 
   // Shipping rates from WooCommerce (via cart context)
@@ -1004,9 +1005,12 @@ function CheckoutPageInner() {
 
   // Calculations
   const subtotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
-  // Use shipping total from cart — non-zero means a rate was selected server-side
-  // Also fall back to selectedRate.price if available (from availableShippingRates)
-  const shippingCost = shippingTotal > 0 ? shippingTotal : hasCalculatedShipping ? shippingTotal : selectedRate ? selectedRate.price : null;
+  // Use confirmed shipping price (set when user clicks Continue to Payment)
+  // Fall back to shippingTotal from cart, then selectedRate, then null
+  const shippingCost = confirmedShippingPrice !== null ? confirmedShippingPrice 
+    : shippingTotal > 0 ? shippingTotal 
+    : selectedRate ? selectedRate.price 
+    : null;
   const tax = (subtotal - discountTotal) * 0.08; // 8% tax estimate on discounted subtotal
   const total = subtotal - discountTotal + (shippingCost ?? 0) + tax;
 
@@ -2027,7 +2031,13 @@ function CheckoutPageInner() {
                       Back
                     </button>
                     <button
-                      onClick={async () => { await refreshCart(); handleStepChange(3); }}
+                      onClick={async () => { 
+                        const currentRate = availableShippingRates.find(r => r.selected);
+                        if (currentRate) setConfirmedShippingPrice(currentRate.price);
+                        else if (shippingTotal > 0) setConfirmedShippingPrice(shippingTotal);
+                        await refreshCart(); 
+                        handleStepChange(3); 
+                      }}
                       className="flex-1 py-4 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
                       style={{
                         background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
