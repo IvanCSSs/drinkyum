@@ -513,7 +513,19 @@ export async function POST(request: NextRequest) {
         if (removeData.code) {
           return buildResponse(removeResp, removeData, removeResp.status)
         }
-        return buildResponse(removeResp, removeData, removeResp.status)
+        // Re-fetch full CoCart cart so billing_address and all fields are present
+        const cartAfterRemove = await fetch(getCoCartUrl('/cart'), {
+          method: 'GET',
+          headers: getForwardHeaders(request),
+          credentials: 'include',
+        })
+        const coCartAfterRemove = await cartAfterRemove.json()
+        if (coCartAfterRemove.code) {
+          return buildResponse(cartAfterRemove, coCartAfterRemove, cartAfterRemove.status)
+        }
+        let wcFormatAfterRemove = transformCoCartToWCFormat(coCartAfterRemove)
+        wcFormatAfterRemove = await mergeStoreApiExtensions(wcFormatAfterRemove, request)
+        return buildResponse(cartAfterRemove, wcFormatAfterRemove, cartAfterRemove.status)
       }
         
       case 'clear-cart':
@@ -521,13 +533,31 @@ export async function POST(request: NextRequest) {
         requestBody = {}
         break
 
-      case 'select-shipping-rate':
-        endpoint = '/cart/shipping-method'
-        requestBody = {
-          rate_id: payload.rate_id,
-          package_id: payload.package_id || 0,
+      case 'select-shipping-rate': {
+        // Set the shipping method via CoCart, then re-fetch full cart with shipping_rates
+        const shippingResp = await fetch(getCoCartUrl('/cart/shipping-method'), {
+          method: 'POST',
+          headers: getForwardHeaders(request),
+          credentials: 'include',
+          body: JSON.stringify({ rate_id: payload.rate_id, package_id: payload.package_id || 0 }),
+        })
+        const shippingData = await shippingResp.json()
+        if (shippingData.code) {
+          return buildResponse(shippingResp, shippingData, shippingResp.status)
         }
-        break
+        // Re-fetch full cart so shipping_total and shipping_rates are updated
+        const cartAfterShipping = await fetch(getCoCartUrl('/cart'), {
+          method: 'GET',
+          headers: getForwardHeaders(request),
+          credentials: 'include',
+        })
+        const coCartAfterShipping = await cartAfterShipping.json()
+        if (coCartAfterShipping.code) {
+          return buildResponse(cartAfterShipping, coCartAfterShipping, cartAfterShipping.status)
+        }
+        const wcFormatAfterShipping = transformCoCartToWCFormat(coCartAfterShipping)
+        return buildResponse(cartAfterShipping, wcFormatAfterShipping, cartAfterShipping.status)
+      }
         
       default:
         return NextResponse.json(
