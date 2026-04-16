@@ -34,7 +34,11 @@ function getForwardHeaders(request: NextRequest): HeadersInit {
  * CoCart doesn't expose WC session data like subscribe_save, but the Store API does
  * via the registered 'subscribe-save' endpoint extension.
  */
-async function mergeStoreApiExtensions(wcFormatData: WCStoreCartFormat, request: NextRequest): Promise<WCStoreCartFormat> {
+/**
+ * Single Store API fetch that merges both subscription extensions and shipping rates.
+ * Replaces the previous separate mergeStoreApiData + mergeShippingRates calls.
+ */
+async function mergeStoreApiData(wcFormatData: WCStoreCartFormat, request: NextRequest): Promise<WCStoreCartFormat> {
   try {
     const storeCartUrl = buildWpApiUrl('/wc/store/v1/cart')
     const resp = await fetch(storeCartUrl, {
@@ -44,47 +48,57 @@ async function mergeStoreApiExtensions(wcFormatData: WCStoreCartFormat, request:
     if (!resp.ok) return wcFormatData
 
     const storeCart = await resp.json()
-    if (!storeCart.items || !Array.isArray(storeCart.items)) return wcFormatData
 
-    // Build a map of product_id -> Store API extensions
-    const extensionsByProductId = new Map<number, Record<string, unknown>>()
-    for (const item of storeCart.items) {
-      if (item.extensions?.['subscribe-save']?.is_subscription) {
-        extensionsByProductId.set(item.id, item.extensions)
+    // --- Merge subscription extensions ---
+    if (storeCart.items && Array.isArray(storeCart.items)) {
+      const extensionsByProductId = new Map<number, Record<string, unknown>>()
+      for (const item of storeCart.items) {
+        if (item.extensions?.['subscribe-save']?.is_subscription) {
+          extensionsByProductId.set(item.id, item.extensions)
+        }
       }
-    }
 
-    // Merge into CoCart-transformed items
-    if (extensionsByProductId.size > 0 && Array.isArray(wcFormatData.items)) {
-      for (const item of wcFormatData.items as Array<Record<string, unknown>>) {
-        const productId = item.id as number
-        const storeExt = extensionsByProductId.get(productId)
-        if (storeExt) {
-          item.extensions = storeExt
-          // Also inject into item_data for transformCart compatibility
-          const ssData = storeExt['subscribe-save'] as Record<string, unknown>
-          const existingItemData = (item.item_data || []) as Array<{key: string, value: string}>
-          existingItemData.push(
-            { key: 'subscribe_save_period', value: String(ssData.period || '') },
-            { key: 'subscribe_save_interval', value: String(ssData.interval || '1') },
-            { key: 'subscribe_save_discount', value: String(ssData.discount_percent || '0') },
-          )
-          item.item_data = existingItemData
-          // Also update price to reflect subscription discount
-          const storeItem = storeCart.items.find((si: Record<string, unknown>) => si.id === productId)
-          if (storeItem?.prices) {
-            item.prices = storeItem.prices
+      if (extensionsByProductId.size > 0 && Array.isArray(wcFormatData.items)) {
+        for (const item of wcFormatData.items as Array<Record<string, unknown>>) {
+          const productId = item.id as number
+          const storeExt = extensionsByProductId.get(productId)
+          if (storeExt) {
+            item.extensions = storeExt
+            const ssData = storeExt['subscribe-save'] as Record<string, unknown>
+            const existingItemData = (item.item_data || []) as Array<{key: string, value: string}>
+            existingItemData.push(
+              { key: 'subscribe_save_period', value: String(ssData.period || '') },
+              { key: 'subscribe_save_interval', value: String(ssData.interval || '1') },
+              { key: 'subscribe_save_discount', value: String(ssData.discount_percent || '0') },
+            )
+            item.item_data = existingItemData
+            const storeItem = storeCart.items.find((si: Record<string, unknown>) => si.id === productId)
+            if (storeItem?.prices) {
+              item.prices = storeItem.prices
+            }
           }
         }
       }
     }
 
+    // --- Merge shipping rates ---
+    if (storeCart.shipping_rates && Array.isArray(storeCart.shipping_rates)) {
+      wcFormatData.shipping_rates = storeCart.shipping_rates
+      wcFormatData.has_calculated_shipping = storeCart.has_calculated_shipping || wcFormatData.has_calculated_shipping
+      if (storeCart.totals?.total_shipping) {
+        const totals = wcFormatData.totals as Record<string, unknown>
+        totals.total_shipping = storeCart.totals.total_shipping
+        totals.currency_minor_unit = storeCart.totals.currency_minor_unit || 2
+      }
+    }
+
     return wcFormatData
   } catch (e) {
-    console.error('[Cart API] Failed to merge Store API extensions:', e)
+    console.error('[Cart API] Failed to merge Store API data:', e)
     return wcFormatData
   }
 }
+
 
 // Transform CoCart response to WC Store API format (so wc-cart.ts doesn't need changes)
 function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartFormat {
@@ -354,33 +368,6 @@ async function fetchStoreApiNonce(request: NextRequest): Promise<{ nonce?: strin
   }
 }
 
-/**
- * Fetch shipping rates from WC Store API and inject into cart data
- */
-async function mergeShippingRates(wcFormatData: WCStoreCartFormat, request: NextRequest): Promise<WCStoreCartFormat> {
-  try {
-    const storeCartUrl = buildWpApiUrl('/wc/store/v1/cart')
-    const resp = await fetch(storeCartUrl, {
-      method: 'GET',
-      headers: getForwardHeaders(request),
-    })
-    if (!resp.ok) return wcFormatData
-    const storeCart = await resp.json()
-    if (storeCart.shipping_rates && Array.isArray(storeCart.shipping_rates)) {
-      wcFormatData.shipping_rates = storeCart.shipping_rates
-      wcFormatData.has_calculated_shipping = storeCart.has_calculated_shipping || wcFormatData.has_calculated_shipping
-      // Also update shipping total from Store API if available
-      if (storeCart.totals?.total_shipping) {
-        const totals = wcFormatData.totals as Record<string, unknown>
-        totals.total_shipping = storeCart.totals.total_shipping
-        totals.currency_minor_unit = storeCart.totals.currency_minor_unit || 2
-      }
-    }
-    return wcFormatData
-  } catch (e) {
-    return wcFormatData
-  }
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -403,10 +390,10 @@ export async function GET(request: NextRequest) {
 
     // Transform CoCart response to WC Store API format
     let wcFormatData = transformCoCartToWCFormat(coCartData)
-    
-    // Merge Store API subscription extension data (CoCart doesn't expose this)
-    wcFormatData = await mergeStoreApiExtensions(wcFormatData, request)
-    
+
+    // Merge subscription extensions + shipping rates from WC Store API in one fetch
+    wcFormatData = await mergeStoreApiData(wcFormatData, request)
+
     // Build response and inject WC Store API nonce so checkout works
     const response = buildResponse(wcResponse, wcFormatData, wcResponse.status)
     if (storeNonce.nonce) {
@@ -474,7 +461,7 @@ export async function POST(request: NextRequest) {
         }
         const wcFormatAfterSs = transformCoCartToWCFormat(coCartAfterSs)
         // Merge Store API subscription extensions into the transformed cart
-        const mergedCart = await mergeStoreApiExtensions(wcFormatAfterSs, request)
+        const mergedCart = await mergeStoreApiData(wcFormatAfterSs, request)
         return buildResponse(cartAfterSs, mergedCart, cartAfterSs.status)
       }
         
@@ -527,7 +514,7 @@ export async function POST(request: NextRequest) {
           return buildResponse(cartAfterCoupon, coCartAfterCoupon, cartAfterCoupon.status)
         }
         let wcFormatAfterCoupon = transformCoCartToWCFormat(coCartAfterCoupon)
-        wcFormatAfterCoupon = await mergeStoreApiExtensions(wcFormatAfterCoupon, request)
+        wcFormatAfterCoupon = await mergeStoreApiData(wcFormatAfterCoupon, request)
         return buildResponse(cartAfterCoupon, wcFormatAfterCoupon, cartAfterCoupon.status)
       }
         
@@ -554,7 +541,7 @@ export async function POST(request: NextRequest) {
           return buildResponse(cartAfterRemove, coCartAfterRemove, cartAfterRemove.status)
         }
         let wcFormatAfterRemove = transformCoCartToWCFormat(coCartAfterRemove)
-        wcFormatAfterRemove = await mergeStoreApiExtensions(wcFormatAfterRemove, request)
+        wcFormatAfterRemove = await mergeStoreApiData(wcFormatAfterRemove, request)
         return buildResponse(cartAfterRemove, wcFormatAfterRemove, cartAfterRemove.status)
       }
         
@@ -586,7 +573,7 @@ export async function POST(request: NextRequest) {
           return buildResponse(cartAfterShipping, coCartAfterShipping, cartAfterShipping.status)
         }
         let wcFormatAfterShipping = transformCoCartToWCFormat(coCartAfterShipping)
-        wcFormatAfterShipping = await mergeShippingRates(wcFormatAfterShipping, request)
+        wcFormatAfterShipping = await mergeStoreApiData(wcFormatAfterShipping, request)
         return buildResponse(cartAfterShipping, wcFormatAfterShipping, cartAfterShipping.status)
       }
         
