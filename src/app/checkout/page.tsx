@@ -294,6 +294,7 @@ function CheckoutPageInner() {
     removeCoupon,
     updateShippingAddress,
     selectShippingRate: selectShippingRateContext,
+    refreshCart,
   } = useCart();
 
   // Transform CartContext items to checkout format
@@ -2026,7 +2027,7 @@ function CheckoutPageInner() {
                       Back
                     </button>
                     <button
-                      onClick={() => handleStepChange(3)}
+                      onClick={async () => { await refreshCart(); handleStepChange(3); }}
                       className="flex-1 py-4 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
                       style={{
                         background: "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)",
