@@ -174,11 +174,32 @@ export default function FreeSamplePage() {
       </div>
 
       {/* Hero */}
-      <section className="relative pt-12 lg:pt-20 pb-16 px-4 overflow-hidden">
+      <section className="relative pt-6 lg:pt-10 pb-16 px-4 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 -left-20 w-96 h-96 rounded-full bg-yum-pink/10 blur-[120px]" />
           <div className="absolute bottom-0 -right-20 w-96 h-96 rounded-full bg-green-500/10 blur-[120px]" />
         </div>
+
+        {/* Hero banner image */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative max-w-6xl mx-auto mb-10 lg:mb-16 rounded-3xl overflow-hidden"
+          style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full">
+            <Image
+              src="/images/free-sample-hero.png"
+              alt="YUM kratom bottles with tropical fruit"
+              fill
+              priority
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 1152px"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-yum-dark via-yum-dark/20 to-transparent" />
+          </div>
+        </motion.div>
 
         <div className="relative max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <motion.div
