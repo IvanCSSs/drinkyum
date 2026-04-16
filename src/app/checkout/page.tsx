@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ChevronLeft,
   Lock,
@@ -279,6 +280,8 @@ async function saveBillingAddressToCart(address: {
 
 export default function CheckoutPage() {
   // Get real cart data from CartContext
+  const searchParams = useSearchParams();
+  const isFreeSampleOffer = searchParams.get("offer") === "free-sample";
   const {
     items: contextItems,
     isLoading: cartLoading,
@@ -1140,6 +1143,9 @@ export default function CheckoutPage() {
   // Handle final submission
   const handleSubmit = useCallback(async () => {
     if (!checkoutId) return;
+
+    const checkoutStartedAt = performance.now();
+    console.log('[Checkout][TIMING] submit_start', { checkoutId, startedAt: checkoutStartedAt });
     
     // Bot detection checks
     if (honeypot) {
@@ -1233,6 +1239,7 @@ export default function CheckoutPage() {
 
 
 
+        const tokenizationStartedAt = performance.now();
         const opaqueData = await new Promise<{ dataDescriptor: string; dataValue: string }>((resolve, reject) => {
           const secureData = {
             authData: {
@@ -1256,12 +1263,14 @@ export default function CheckoutPage() {
             }
           });
         });
-
-
+        console.log('[Checkout][TIMING] authorizenet_tokenized', {
+          elapsedMs: Math.round(performance.now() - tokenizationStartedAt),
+        });
 
         // WooCommerce handles payment processing in completeCheckout
         // Pass opaque data via payment_data array (WooCommerce Store API format)
         // For subscriptions, we must create an account
+        const checkoutApiStartedAt = performance.now();
         const result = await completeCheckoutAPI({
           payment_method: "authorizenet",
           payment_data: [
@@ -2497,10 +2506,12 @@ export default function CheckoutPage() {
                     <span className="text-white">
                       {shippingCost === null ? (
                         <span className="text-white/40">Calculated at next step</span>
-                      ) : shippingCost === 0 ? (
+                      ) : shippingCost === 0 && !isFreeSampleOffer ? (
                         <span className="text-green-400">Free</span>
+                      ) : isFreeSampleOffer && (shippingCost === 0 || shippingCost === null) ? (
+                        <span className="text-white/40">Calculated at next step</span>
                       ) : (
-                        `$${shippingCost.toFixed(2)}`
+                        `${shippingCost.toFixed(2)}`
                       )}
                     </span>
                   </div>
