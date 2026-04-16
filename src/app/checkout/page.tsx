@@ -837,9 +837,14 @@ function CheckoutPageInner() {
   // SHIPPING METHOD - Save on selection change (for fallback options)
   const handleShippingMethodChange = useCallback(async (method: "standard" | "express") => {
     setSelectedShipping(method);
-    setConfirmedShippingPrice(method === "express" ? 12.99 : 5.99);
+    if (method === "express") {
+      setConfirmedShippingPrice(12.99);
+    } else {
+      const cartSubtotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
+      setConfirmedShippingPrice(isFreeSampleOffer ? 8.99 : cartSubtotal >= 50 ? 0 : 5.99);
+    }
     saveCheckoutSession();
-  }, [saveCheckoutSession]);
+  }, [saveCheckoutSession, isFreeSampleOffer, cartItems]);
 
   // Initialize checkout session (cart data now comes from CartContext)
   useEffect(() => {
@@ -1006,12 +1011,15 @@ function CheckoutPageInner() {
 
   // Calculations
   const subtotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
-  // Use confirmed shipping price (set when user clicks Continue to Payment)
+  // Use confirmed shipping price (set when user selects a method or clicks Continue to Payment)
   // Fall back to shippingTotal from cart, then selectedRate, then null
-  const shippingCost = confirmedShippingPrice !== null ? confirmedShippingPrice 
-    : shippingTotal > 0 ? shippingTotal 
-    : selectedRate ? selectedRate.price 
-    : null;
+  const shippingCost = confirmedShippingPrice !== null
+    ? confirmedShippingPrice
+    : hasCalculatedShipping && shippingTotal > 0
+      ? shippingTotal
+      : selectedRate
+        ? selectedRate.price
+        : null;
   const tax = (subtotal - discountTotal) * 0.08; // 8% tax estimate on discounted subtotal
   const total = subtotal - discountTotal + (shippingCost ?? 0) + tax;
 
@@ -1986,7 +1994,7 @@ function CheckoutPageInner() {
                             </div>
                             <div className="text-right">
                               <p className="text-white font-bold">
-                                {subtotal >= 50 ? <span className="text-green-400">Free</span> : "$5.99"}
+                                {isFreeSampleOffer ? "$8.99" : subtotal >= 50 ? <span className="text-green-400">Free</span> : "$5.99"}
                               </p>
                             </div>
                           </button>
@@ -2032,13 +2040,20 @@ function CheckoutPageInner() {
                       Back
                     </button>
                     <button
-                      onClick={async () => { 
-                        const currentRate = availableShippingRates.find(r => r.selected);
-                        if (currentRate) setConfirmedShippingPrice(currentRate.price);
-                        else if (shippingTotal > 0) setConfirmedShippingPrice(shippingTotal);
-                        else if (confirmedShippingPrice === null) setConfirmedShippingPrice(selectedShipping === "express" ? 12.99 : 5.99);
-                        await refreshCart(); 
-                        handleStepChange(3); 
+                      onClick={async () => {
+                        // Capture the shipping price before moving to payment
+                        if (confirmedShippingPrice === null) {
+                          const currentRate = availableShippingRates.find(r => r.selected);
+                          if (currentRate) {
+                            setConfirmedShippingPrice(currentRate.price);
+                          } else if (shippingTotal > 0) {
+                            setConfirmedShippingPrice(shippingTotal);
+                          } else {
+                            const cartSubtotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
+                            setConfirmedShippingPrice(isFreeSampleOffer ? 8.99 : cartSubtotal >= 50 ? 0 : 5.99);
+                          }
+                        }
+                        handleStepChange(3);
                       }}
                       className="flex-1 py-4 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
                       style={{
