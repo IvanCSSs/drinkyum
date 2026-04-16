@@ -27,22 +27,22 @@ const SAMPLE_OPTIONS = [
     productHandle: "yum-bubble-gum-14ml-free-sample",
     couponCode: "FREESAMPLEBG14",
     flavor: "Bubble Gum",
-    emoji: "🍬",
-    tasteNote: "Sweet · Nostalgic",
+    image: "/images/sample-bg-14ml.jpg",
+    tasteNote: "Smooth · Signature",
     accent: "#E1258F",
     description:
-      "Pink, playful, and unapologetically sweet — the one everyone asks for by name. Tastes like the candy aisle, hits like an extract shot.",
+      "Our signature flavor — smooth, slightly sweet, and easy to drink. The one most customers come back for. No bitter extract aftertaste.",
   },
   {
     id: "tb",
     productHandle: "yum-tropical-breeze-14ml-free-sample",
     couponCode: "FREESAMPLETB14",
     flavor: "Tropical Breeze",
-    emoji: "🏝️",
+    image: "/images/sample-tb-14ml.jpg",
     tasteNote: "Citrus · Refreshing",
-    accent: "#22c55e",
+    accent: "#00B8E4",
     description:
-      "Bright citrus meets mellow tropical fruit — a clean, refreshing finish for when you want something less sweet and more sunshine.",
+      "Bright citrus meets mellow tropical fruit — clean, refreshing, and a little less sweet. For when you want something crisp.",
   },
 ] as const;
 
@@ -65,15 +65,15 @@ const FEATURES = [
     icon: Sparkles,
     title: "Actually tastes good",
     body:
-      "We spent months on the flavor. No bitter kratom aftertaste — just clean, sweet, drinkable shots.",
-    color: "#22c55e",
+      "We spent months on the flavor. No bitter kratom aftertaste — just clean, smooth, drinkable shots.",
+    color: "#00B8E4",
   },
   {
     icon: FlaskConical,
     title: "Full transparency",
     body:
       "Third-party lab tested for purity, potency, and contaminants. Results published for every batch.",
-    color: "#60a5fa",
+    color: "#E2C530",
   },
 ];
 
@@ -158,9 +158,7 @@ export default function FreeSamplePage() {
   };
 
   return (
-    <main className="min-h-screen text-white relative" style={{
-      background: "radial-gradient(ellipse at top, #2a1a14 0%, #120a08 40%, #080808 100%)"
-    }}>
+    <main className="min-h-screen bg-yum-dark text-white relative">
       <MobileLogo />
       <Navbar />
 
@@ -169,7 +167,7 @@ export default function FreeSamplePage() {
         <div
           className="w-full text-center text-xs sm:text-sm py-2.5 px-4"
           style={{
-            background: "linear-gradient(90deg, rgba(225,37,143,0.18) 0%, rgba(34,197,94,0.18) 100%)",
+            background: "linear-gradient(90deg, rgba(225,37,143,0.18) 0%, rgba(0,184,228,0.18) 100%)",
             borderBottom: "1px solid rgba(255,255,255,0.08)",
           }}
         >
@@ -182,8 +180,8 @@ export default function FreeSamplePage() {
       {/* Hero */}
       <section className="relative pt-6 lg:pt-10 pb-16 px-4 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 -left-20 w-96 h-96 rounded-full bg-yum-pink/10 blur-[120px]" />
-          <div className="absolute bottom-0 -right-20 w-96 h-96 rounded-full bg-green-500/10 blur-[120px]" />
+          <div className="absolute top-20 -left-20 w-96 h-96 rounded-full bg-yum-pink/15 blur-[120px]" />
+          <div className="absolute bottom-0 -right-20 w-96 h-96 rounded-full bg-yum-cyan/10 blur-[120px]" />
         </div>
 
         {/* Hero banner image */}
@@ -266,49 +264,42 @@ export default function FreeSamplePage() {
                   <button
                     key={option.id}
                     onClick={() => setSelected(option.id)}
-                    className="relative rounded-2xl p-5 text-left transition-all overflow-hidden group"
+                    className="relative rounded-2xl overflow-hidden text-left transition-all group"
                     style={{
                       borderWidth: 2,
                       borderStyle: "solid",
                       borderColor: active ? option.accent : "rgba(255,255,255,0.08)",
-                      background: active
-                        ? `linear-gradient(135deg, ${option.accent}22 0%, ${option.accent}08 100%)`
-                        : "rgba(255,255,255,0.02)",
+                      background: "rgba(255,255,255,0.02)",
                     }}
                   >
-                    {/* Soft accent glow */}
-                    <div
-                      className="absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl transition-opacity"
-                      style={{
-                        background: option.accent,
-                        opacity: active ? 0.35 : 0.12,
-                      }}
-                    />
+                    {/* Product image */}
+                    <div className="relative aspect-[4/5] w-full overflow-hidden">
+                      <Image
+                        src={option.image}
+                        alt={`YUM ${option.flavor} 14ml bottle`}
+                        fill
+                        sizes="(max-width: 1024px) 50vw, 240px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      {/* Soft bottom gradient for label legibility */}
+                      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                    {/* Flavor disc */}
-                    <div
-                      className="relative w-14 h-14 rounded-full mb-4 flex items-center justify-center text-2xl transition-transform group-hover:scale-105"
-                      style={{
-                        background: `radial-gradient(circle at 30% 30%, ${option.accent} 0%, ${option.accent}cc 60%, ${option.accent}88 100%)`,
-                        boxShadow: active
-                          ? `0 8px 24px -4px ${option.accent}88, inset 0 1px 0 rgba(255,255,255,0.3)`
-                          : `0 4px 12px -2px ${option.accent}44, inset 0 1px 0 rgba(255,255,255,0.2)`,
-                      }}
-                    >
-                      <span>{option.emoji}</span>
+                      {/* Active state corner check */}
+                      {active && (
+                        <div
+                          className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
+                          style={{ background: option.accent, boxShadow: `0 4px 16px ${option.accent}88` }}
+                        >
+                          ✓
+                        </div>
+                      )}
                     </div>
 
-                    <h3 className="font-semibold text-base mb-1">{option.flavor}</h3>
-                    <p className="text-[11px] text-white/50 leading-tight">{option.tasteNote}</p>
-
-                    {active && (
-                      <div
-                        className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                        style={{ background: option.accent }}
-                      >
-                        ✓
-                      </div>
-                    )}
+                    {/* Name + taste note */}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-base mb-1">{option.flavor}</h3>
+                      <p className="text-[11px] text-white/50 leading-tight uppercase tracking-wider">{option.tasteNote}</p>
+                    </div>
                   </button>
                 );
               })}
@@ -513,7 +504,7 @@ export default function FreeSamplePage() {
           <div
             className="rounded-3xl p-8 lg:p-12 text-center"
             style={{
-              background: "linear-gradient(135deg, rgba(225,37,143,0.08) 0%, rgba(34,197,94,0.05) 100%)",
+              background: "linear-gradient(135deg, rgba(225,37,143,0.08) 0%, rgba(0,184,228,0.05) 100%)",
               border: "1px solid rgba(255,255,255,0.08)",
             }}
           >
