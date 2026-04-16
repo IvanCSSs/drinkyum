@@ -413,7 +413,7 @@ function transformCart(wcCart: WCStoreCart): Cart {
 
   return {
     id: getStoredCartToken() || 'guest-cart',
-    email: wcCart.billing_address.email || undefined,
+    email: wcCart.billing_address?.email || undefined,
     customer_id: undefined,
     region_id: 'default',
     currency_code: wcCart.totals.currency_code.toLowerCase(),
@@ -502,17 +502,17 @@ function transformCart(wcCart: WCStoreCart): Cart {
           phone: wcCart.shipping_address.phone || undefined,
         }
       : undefined,
-    billing_address: wcCart.billing_address.address_1
+    billing_address: wcCart.billing_address?.address_1
       ? {
-          first_name: wcCart.billing_address.first_name,
-          last_name: wcCart.billing_address.last_name,
-          address_1: wcCart.billing_address.address_1,
-          address_2: wcCart.billing_address.address_2 || undefined,
-          city: wcCart.billing_address.city,
-          province: wcCart.billing_address.state,
-          postal_code: wcCart.billing_address.postcode,
-          country_code: wcCart.billing_address.country,
-          phone: wcCart.billing_address.phone || undefined,
+          first_name: wcCart.billing_address?.first_name ?? '',
+          last_name: wcCart.billing_address?.last_name ?? '',
+          address_1: wcCart.billing_address?.address_1 ?? '',
+          address_2: wcCart.billing_address?.address_2 || undefined,
+          city: wcCart.billing_address?.city ?? '',
+          province: wcCart.billing_address?.state ?? '',
+          postal_code: wcCart.billing_address?.postcode ?? '',
+          country_code: wcCart.billing_address?.country ?? '',
+          phone: wcCart.billing_address?.phone || undefined,
         }
       : undefined,
     shipping_methods: wcCart.shipping_rates.flatMap((pkg) =>

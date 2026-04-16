@@ -1003,9 +1003,9 @@ function CheckoutPageInner() {
 
   // Calculations
   const subtotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
-  // Use shipping total from cart (includes free shipping coupons)
-  // Only show when shipping has been calculated
-  const shippingCost = hasCalculatedShipping ? shippingTotal : null;
+  // Use shipping total from cart, or fall back to the selected rate's price directly
+  const selectedRate = availableShippingRates.find(r => r.selected);
+  const shippingCost = hasCalculatedShipping ? shippingTotal : selectedRate ? selectedRate.price : null;
   const tax = (subtotal - discountTotal) * 0.08; // 8% tax estimate on discounted subtotal
   const total = subtotal - discountTotal + (shippingCost ?? 0) + tax;
 
