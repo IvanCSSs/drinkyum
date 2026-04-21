@@ -32,6 +32,7 @@ import {
 import { trackCheckoutStep } from "@/lib/analytics";
 import { trackBeginCheckout, type GtagItem } from "@/lib/gtag";
 import { tracker } from "@/lib/tracker";
+import { trackMetaEvent } from "@/components/MetaPixel";
 import { klaviyoStartedCheckout, klaviyoIdentify } from "@/components/Klaviyo";
 import { saveAbandonedCart } from "@/lib/abandoned-cart";
 
@@ -923,6 +924,14 @@ function CheckoutPageInner() {
           checkoutValue,
           'USD'
         );
+        // Browser pixel
+        trackMetaEvent('InitiateCheckout', {
+          content_ids: newSession.cartItems.map((item: { id: string | number }) => String(item.id)),
+          content_type: 'product',
+          num_items: newSession.cartItems.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0),
+          value: checkoutValue,
+          currency: 'USD',
+        });
         // Klaviyo started checkout
         klaviyoStartedCheckout({
           $value: checkoutValue,

@@ -11,6 +11,7 @@ import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import { trackPurchase, type GtagItem } from "@/lib/gtag";
 import { klaviyoPlacedOrder, klaviyoIdentify } from "@/components/Klaviyo";
+import { trackMetaEvent } from "@/components/MetaPixel";
 import { useCart } from "@/contexts/CartContext";
 
 // Order type matching the WooCommerce API response
@@ -112,6 +113,15 @@ export default function OrderConfirmationPage() {
             shipping: ord.shipping_total,
           }
         );
+        // Browser pixel purchase
+        trackMetaEvent('Purchase', {
+          content_ids: ord.items.map((item) => String(item.id)),
+          content_type: 'product',
+          value: ord.total,
+          currency: ord.currency_code?.toUpperCase() || 'USD',
+          num_items: ord.items.reduce((sum, item) => sum + item.quantity, 0),
+          order_id: String(ord.display_id || ord.id),
+        });
         // Klaviyo purchase tracking
         if (ord.email) {
           klaviyoIdentify(ord.email, {

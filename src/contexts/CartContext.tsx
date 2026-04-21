@@ -23,6 +23,7 @@ import { trackAddToCart, trackRemoveFromCart, trackCartUpdate } from "@/lib/anal
 import { trackGtagAddToCart, trackGtagRemoveFromCart } from "@/lib/gtag";
 import { klaviyoAddedToCart } from "@/components/Klaviyo";
 import { tracker } from "@/lib/tracker";
+import { trackMetaEvent } from "@/components/MetaPixel";
 
 interface CartContextType {
   cart: Cart | null;
@@ -134,6 +135,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         quantity,
         currency: 'USD',
       });
+      // Browser pixel (for FB Events Manager visibility)
+      trackMetaEvent('AddToCart', {
+        content_ids: [addedItem?.variant?.product?.id || variantId],
+        content_type: 'product',
+        content_name: addedItem?.title || 'Unknown',
+        value: (addedItem?.unit_price || 0) * quantity,
+        currency: 'USD',
+      });
     } catch (err) {
       console.error("Failed to add to cart:", err);
       setError("Failed to add item to cart");
@@ -196,6 +205,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         name: addedItem?.title || 'Unknown',
         price: addedItem?.unit_price || 0,
         quantity,
+        currency: 'USD',
+      });
+      // Browser pixel (for FB Events Manager visibility)
+      trackMetaEvent('AddToCart', {
+        content_ids: [addedItem?.variant?.product?.id || variantId],
+        content_type: 'product',
+        content_name: addedItem?.title || 'Unknown',
+        value: (addedItem?.unit_price || 0) * quantity,
         currency: 'USD',
       });
     } catch (err) {
