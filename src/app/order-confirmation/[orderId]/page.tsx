@@ -29,6 +29,7 @@ interface Order {
     unit_price: number;
     subtotal: number;
     total: number;
+    variant?: { product?: { id: string } };
   }>;
   subtotal: number;
   discount_total: number;
@@ -82,6 +83,7 @@ export default function OrderConfirmationPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tracked, setTracked] = useState(false);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -94,34 +96,38 @@ export default function OrderConfirmationPage() {
         // Clear cart in React context after successful order
         clearCart();
 
-        // GA4 purchase event (fire once on load)
+        // WC headless-orders.php returns amounts as floats (dollars), not cents
         const ord = response.order;
-        const gtagItems: GtagItem[] = ord.items.map((item) => ({
-          item_id: item.id,
-          item_name: item.title,
-          price: item.unit_price,
-          quantity: item.quantity,
-          currency: ord.currency_code?.toUpperCase() || 'USD',
-        }));
-        trackPurchase(
-          String(ord.display_id || ord.id),
-          ord.total,
-          gtagItems,
-          {
-            currency: ord.currency_code?.toUpperCase() || 'USD',
-            tax: ord.tax_total,
-            shipping: ord.shipping_total,
-          }
-        );
-        // Browser pixel purchase
-        trackMetaEvent('Purchase', {
-          content_ids: ord.items.map((item) => String(item.id)),
-          content_type: 'product',
-          value: ord.total,
-          currency: ord.currency_code?.toUpperCase() || 'USD',
-          num_items: ord.items.reduce((sum, item) => sum + item.quantity, 0),
-          order_id: String(ord.display_id || ord.id),
-        });
+        const currency = ord.currency_code?.toUpperCase() || 'USD';
+
+        // Fire conversion events once — guard against re-renders
+        if (!tracked) {
+          setTracked(true);
+
+          // GA4 purchase event
+          const gtagItems: GtagItem[] = ord.items.map((item) => ({
+            item_id: String(item.variant?.product?.id || item.id),
+            item_name: item.title,
+            price: item.unit_price,
+            quantity: item.quantity,
+            currency,
+          }));
+          trackPurchase(
+            String(ord.display_id || ord.id),
+            ord.total,
+            gtagItems,
+            { currency, tax: ord.tax_total, shipping: ord.shipping_total }
+          );
+
+          // Browser pixel purchase
+          trackMetaEvent('Purchase', {
+            content_ids: ord.items.map((item) => String(item.variant?.product?.id || item.id)),
+            content_type: 'product',
+            value: ord.total,
+            currency,
+            num_items: ord.items.reduce((sum, item) => sum + item.quantity, 0),
+          });
+        }
         // Klaviyo purchase tracking
         if (ord.email) {
           klaviyoIdentify(ord.email, {
