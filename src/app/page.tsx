@@ -11,8 +11,13 @@ import FAQ from "@/components/FAQ";
 import FAQSection from "@/components/FAQSection";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
+import CloakHome from "@/components/CloakHome";
 
 export default function Home() {
+  if (process.env.NEXT_PUBLIC_CLOAK === "true") {
+    return <CloakHome />;
+  }
+
   return (
     <main className="min-h-screen bg-yum-dark relative">
       <MobileLogo />
