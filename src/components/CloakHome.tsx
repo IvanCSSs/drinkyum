@@ -2,25 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ShoppingCart, X, Plus, Minus } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 
 const PRODUCTS = [
   {
-    id: "yum-bubble-gum-30ml",
-    handle: "yum-bubble-gum-30ml",
     name: "YUM Bubble Gum",
     size: "30ml",
-    price: 14.99,
-    variantId: "bubble-gum-30ml",
+    price: 24.99,
+    variantId: "54",
+    image: "/images/bg-single-30ml.png",
+    alt: "YUM Bubble Gum 30ml",
   },
   {
-    id: "yum-tropical-breeze-30ml",
-    handle: "yum-tropical-breeze-30ml",
     name: "YUM Tropical Breeze",
     size: "30ml",
-    price: 14.99,
-    variantId: "tropical-breeze-30ml",
+    price: 24.99,
+    variantId: "62",
+    image: "/images/tb-triple-30ml.png",
+    alt: "YUM Tropical Breeze 30ml",
   },
 ];
 
@@ -152,11 +153,11 @@ export default function CloakHome() {
         </p>
         <div className="grid sm:grid-cols-2 gap-6">
           {PRODUCTS.map((p) => (
-            <div key={p.id} className="rounded-3xl p-6 flex flex-col gap-4"
+            <div key={p.variantId} className="rounded-3xl p-6 flex flex-col gap-4"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <div className="rounded-2xl aspect-square w-full flex items-center justify-center text-8xl"
+              <div className="relative rounded-2xl aspect-square w-full overflow-hidden"
                 style={{ background: "rgba(255,255,255,0.03)" }}>
-                🍬
+                <Image src={p.image} alt={p.alt} fill className="object-contain p-4" />
               </div>
               <div>
                 <h3 className="font-semibold text-lg">{p.name}</h3>
