@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ShoppingCart, X, Plus, Minus } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 
@@ -157,7 +156,7 @@ export default function CloakHome() {
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
               <div className="relative rounded-2xl aspect-square w-full overflow-hidden"
                 style={{ background: "rgba(255,255,255,0.03)" }}>
-                <Image src={p.image} alt={p.alt} fill className="object-contain p-4" />
+                <img src={p.image} alt={p.alt} className="w-full h-full object-contain p-4" />
               </div>
               <div>
                 <h3 className="font-semibold text-lg">{p.name}</h3>
