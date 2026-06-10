@@ -245,8 +245,11 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 							Your first one is{" "}
 							<span style={{ color: "#E1258F" }}>on us.</span>
 						</h2>
-						<p className="text-white/75 text-lg mb-8 leading-relaxed max-w-lg">
-							Pick a flavor — we'll cover the bottle, you cover shipping. No subscription, no gimmick. Try it, decide for yourself.
+						<p className="text-white/75 text-lg mb-3 leading-relaxed max-w-lg">
+							First bottle's on us. Pick a flavor — we cover the bottle, you cover the $8.99 shipping.
+						</p>
+						<p className="text-white/55 text-sm mb-8 leading-relaxed max-w-lg italic">
+							If it's not the best-tasting botanical shot you've had, we'll refund the shipping too. Tell us we're wrong.
 						</p>
 
 						{/* Flavor picker */}
@@ -418,43 +421,112 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 				</div>
 			</section>
 
-			{/* ============================= BOTANICAL EXPERIENCE ============================= */}
+			{/* ============================= LAB TRANSPARENCY ============================= */}
+			<section className="px-6 pb-24 max-w-4xl mx-auto">
+				<p className="text-center text-white/50 uppercase tracking-widest text-xs mb-3">
+					Every Bottle Tracked
+				</p>
+				<h2 className="text-center text-3xl sm:text-4xl font-bold mb-4">
+					Every batch tested. Every batch published.
+				</h2>
+				<p className="text-center text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed">
+					Each YUM bottle ships with a unique batch ID on the label.
+					Type it in at <span className="text-white/85">drinkyum.com/lab-results</span> and we'll email you the full lab report for your specific bottle.
+				</p>
+
+				<div
+					className="rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto"
+					style={{
+						background: "rgba(255,255,255,0.03)",
+						border: "1px solid rgba(255,255,255,0.08)",
+					}}
+				>
+					{/* Mock batch report row */}
+					<div className="flex items-center justify-between mb-5 pb-5 border-b border-white/10">
+						<div>
+							<p className="text-white/40 text-[10px] uppercase tracking-widest mb-1">
+								Batch Report
+							</p>
+							<p className="font-mono text-sm text-white/85">
+								BG-2126-04
+							</p>
+						</div>
+						<div className="text-right">
+							<p className="text-white/40 text-[10px] uppercase tracking-widest mb-1">
+								Tested
+							</p>
+							<p className="text-sm text-white/85">Independent Lab</p>
+						</div>
+					</div>
+
+					<div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+						{[
+							{ label: "Mitragynine", value: "Per spec", note: "Leaf-proportional" },
+							{ label: "7-OH-Mitragynine", value: "Per spec", note: "Naturally low" },
+							{ label: "Heavy Metals", value: "ND", note: "Non-detected" },
+							{ label: "Microbials", value: "Pass", note: "Within limits" },
+							{ label: "Pesticides", value: "ND", note: "Non-detected" },
+							{ label: "Solvents", value: "ND", note: "Non-detected" },
+						].map((row) => (
+							<div key={row.label}>
+								<div className="flex items-baseline justify-between">
+									<span className="text-white/60 text-xs">{row.label}</span>
+									<span className="font-semibold text-white text-sm">{row.value}</span>
+								</div>
+								<p className="text-white/40 text-[11px] mt-0.5">{row.note}</p>
+							</div>
+						))}
+					</div>
+
+					<p className="text-white/40 text-[11px] text-center mt-6">
+						Sample report. Your bottle's actual values are emailed when you look up its batch ID.
+					</p>
+				</div>
+			</section>
+
+			{/* ============================= THREE ASYMMETRIC CLAIMS ============================= */}
 			<section className="px-6 pb-24 max-w-5xl mx-auto">
 				<p className="text-center text-white/50 uppercase tracking-widest text-xs mb-3">
-					Thoughtfully Made
+					Why YUM
 				</p>
 				<h2 className="text-center text-3xl sm:text-4xl font-bold mb-12">
-					A botanical experience.
+					Three things most brands won't tell you.
 				</h2>
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 					{[
 						{
-							title: "Ancient Plants, Modern Purpose",
-							desc: "Rooted in centuries-old rituals — Kr🌀tom, Kava, Green Tea.",
+							eyebrow: "Taste",
+							title: "Actually drinkable.",
+							desc: "Most botanical shots are punishment. We spent months on flavor. Smooth Bubble Gum or Tropical Breeze — no bitter chalk, no citrus mask, no aftertaste.",
 						},
 						{
-							title: "Crafted for 21+",
-							desc: "Mindful sipping for adults. No noise. No compromise.",
+							eyebrow: "Proof",
+							title: "Every batch on the record.",
+							desc: "Independent lab tested for potency, heavy metals, microbials, pesticides, solvents. Look up your bottle's batch ID — we'll email the full report.",
 						},
 						{
-							title: "Organic, Natural Ingredients",
-							desc: "Real plant extracts. Nothing synthetic, nothing artificial.",
+							eyebrow: "Chemistry",
+							title: "Leaf-proportional alkaloids.",
+							desc: "Most extracts spike one compound for a cheap punch. We keep the alkaloid profile balanced — the way the plant actually grows. No synthetic spikes, no crash.",
 						},
-						{
-							title: "Choose Your Moment",
-							desc: "Solo evening or social gathering — each shot fits in.",
-						},
-					].map((v) => (
+					].map((claim) => (
 						<div
-							key={v.title}
-							className="rounded-2xl p-5"
+							key={claim.title}
+							className="rounded-3xl p-6"
 							style={{
 								background: "rgba(255,255,255,0.03)",
 								border: "1px solid rgba(255,255,255,0.08)",
 							}}
 						>
-							<h3 className="font-semibold text-sm mb-2">{v.title}</h3>
-							<p className="text-white/60 text-xs leading-relaxed">{v.desc}</p>
+							<p className="text-[11px] uppercase tracking-widest mb-3" style={{ color: "#E1258F" }}>
+								{claim.eyebrow}
+							</p>
+							<h3 className="font-semibold text-lg mb-3 leading-tight">
+								{claim.title}
+							</h3>
+							<p className="text-white/65 text-sm leading-relaxed">
+								{claim.desc}
+							</p>
 						</div>
 					))}
 				</div>
