@@ -115,21 +115,17 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
             style={{ background: "radial-gradient(ellipse, rgba(225,37,143,0.18) 0%, transparent 70%)" }} />
         </div>
 
-        {/* Text content — base layer */}
+        {/* Headline — base layer (z-10) sits behind the bottle */}
         <div className="relative z-10 flex flex-col items-center">
           <p className="uppercase tracking-[0.3em] text-white/50 text-xs mb-5">Feel Something Real</p>
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6 max-w-3xl">
             The Botanical<br />
             <span style={{ color: "#E1258F" }}>Extract Shot.</span>
           </h1>
-          <p className="text-white/70 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
-            Powered by ancient plants for effects you can actually feel. Sip intentionally, savor fully, enjoy responsibly.
-          </p>
         </div>
 
-        {/* Bottle — in FRONT of text, horizontally centered, dropped down
-            slightly so it overlaps the lower half of the hero instead of
-            sitting dead center. */}
+        {/* Bottle — in front of headline, centered, lowered 35% so it
+            overlaps the lower half of the hero. */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
           <Image
             src="/images/hero-product.png"
@@ -139,13 +135,18 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
             priority
             className="object-contain drop-shadow-[0_20px_60px_rgba(225,37,143,0.45)]"
             style={{
-              transform: "translateY(15%) rotate(12deg)",
+              transform: "translateY(35%) rotate(12deg)",
               maxWidth: "none",
             }}
           />
         </div>
 
-        {/* CTA — top-most layer so it sits over the bottle when they overlap */}
+        {/* Tagline — sits OVER the bottle (z-30) so it reads cleanly */}
+        <p className="relative z-30 text-white/85 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed text-center">
+          Powered by ancient plants for effects you can actually feel. Sip intentionally, savor fully, enjoy responsibly.
+        </p>
+
+        {/* CTA — top-most layer */}
         <div className="relative z-30 mt-2">
           <button
             onClick={() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" })}
