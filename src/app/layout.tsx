@@ -93,8 +93,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Skip age verification for search engine bots (SEO fix)
-  const skipAgeGate = await isBot();
+  // Skip age verification for search engine bots (SEO fix).
+  // Also skip on the .co cloak — /need-to-know already gates 21+ before
+  // any cart hands off to .com, so the cloak shouldn't show the modal.
+  const isCloak = process.env.NEXT_PUBLIC_CLOAK === "true";
+  const skipAgeGate = isCloak || (await isBot());
   
   return (
     <html lang="en" className={lato.variable}>
@@ -113,7 +116,9 @@ export default async function RootLayout({
         <ConsoleFilter />
         <GoogleAds />
         <MetaPixel />
-        <Klaviyo />
+        {/* Klaviyo popups are .com-only — the cloak shouldn't push the
+            free-sample popup over its own landing page. */}
+        {!isCloak && <Klaviyo />}
         <Script
           src="https://api.goaffpro.com/loader.js?shop=yaSrxzhUuxMx"
           strategy="afterInteractive"
