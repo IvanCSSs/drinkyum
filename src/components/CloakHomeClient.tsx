@@ -109,38 +109,43 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
 
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center text-center px-6 pt-32 pb-20 overflow-hidden min-h-[680px]">
-        {/* Pink blur glow */}
+        {/* Pink blur glow — sits behind everything */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px]"
-            style={{ background: "radial-gradient(ellipse, rgba(225,37,143,0.22) 0%, transparent 70%)" }} />
+            style={{ background: "radial-gradient(ellipse, rgba(225,37,143,0.18) 0%, transparent 70%)" }} />
         </div>
 
-        {/* Bottle — absolutely positioned behind the text */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <Image
-            src="/images/hero-product.png"
-            alt=""
-            width={280}
-            height={840}
-            priority
-            className="object-contain drop-shadow-[0_20px_60px_rgba(225,37,143,0.35)] opacity-90"
-            style={{ transform: "translateY(40px) rotate(12deg)", maxWidth: "none" }}
-          />
-        </div>
-
-        {/* Text content — sits in front of the bottle */}
+        {/* Text content — base layer */}
         <div className="relative z-10 flex flex-col items-center">
           <p className="uppercase tracking-[0.3em] text-white/50 text-xs mb-5">Feel Something Real</p>
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6 max-w-3xl">
             The Botanical<br />
             <span style={{ color: "#E1258F" }}>Extract Shot.</span>
           </h1>
-          <p className="text-white/80 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
+          <p className="text-white/70 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
             Powered by ancient plants for effects you can actually feel. Sip intentionally, savor fully, enjoy responsibly.
           </p>
+        </div>
+
+        {/* Bottle — in FRONT of text, offset right. Smaller (about 40% of
+            the prior size) so it accents the hero rather than dominating. */}
+        <div className="absolute inset-0 flex items-center justify-end pr-4 sm:pr-12 lg:pr-24 pointer-events-none z-20">
+          <Image
+            src="/images/hero-product.png"
+            alt=""
+            width={112}
+            height={336}
+            priority
+            className="object-contain drop-shadow-[0_20px_60px_rgba(225,37,143,0.45)]"
+            style={{ transform: "rotate(12deg)", maxWidth: "none" }}
+          />
+        </div>
+
+        {/* CTA — top-most layer so it sits over the bottle when they overlap */}
+        <div className="relative z-30 mt-2">
           <button
             onClick={() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" })}
-            className="h-14 px-10 rounded-full font-semibold text-white text-lg transition-all hover:scale-[1.03] active:scale-[0.98]"
+            className="h-14 px-10 rounded-full font-semibold text-white text-lg transition-all hover:scale-[1.03] active:scale-[0.98] shadow-[0_10px_30px_rgba(225,37,143,0.4)]"
             style={{ background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)" }}
           >
             Experience It Now
