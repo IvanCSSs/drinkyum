@@ -108,37 +108,43 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
       </header>
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-32 pb-12 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
+      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-32 pb-20 overflow-hidden min-h-[680px]">
+        {/* Pink blur glow */}
+        <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px]"
-            style={{ background: "radial-gradient(ellipse, rgba(225,37,143,0.18) 0%, transparent 70%)" }} />
+            style={{ background: "radial-gradient(ellipse, rgba(225,37,143,0.22) 0%, transparent 70%)" }} />
         </div>
-        <p className="uppercase tracking-[0.3em] text-white/50 text-xs mb-5">Feel Something Real</p>
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6 max-w-3xl">
-          The Botanical<br />
-          <span style={{ color: "#E1258F" }}>Extract Shot.</span>
-        </h1>
-        <p className="text-white/70 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
-          Powered by ancient plants for effects you can actually feel. Sip intentionally, savor fully, enjoy responsibly.
-        </p>
-        <button
-          onClick={() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" })}
-          className="h-14 px-10 rounded-full font-semibold text-white text-lg transition-all hover:scale-[1.03] active:scale-[0.98] mb-12"
-          style={{ background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)" }}
-        >
-          Experience It Now
-        </button>
-        {/* Hero product image — local asset, loads instantly */}
-        <div className="relative w-full max-w-md aspect-[4/3] flex items-center justify-center">
+
+        {/* Bottle — absolutely positioned behind the text */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
           <Image
             src="/images/hero-product.png"
-            alt="Botanical Extract Shot"
-            width={400}
-            height={500}
+            alt=""
+            width={280}
+            height={840}
             priority
-            className="object-contain drop-shadow-[0_20px_60px_rgba(225,37,143,0.35)]"
-            style={{ transform: "rotate(8deg)" }}
+            className="object-contain drop-shadow-[0_20px_60px_rgba(225,37,143,0.35)] opacity-90"
+            style={{ transform: "translateY(40px) rotate(12deg)", maxWidth: "none" }}
           />
+        </div>
+
+        {/* Text content — sits in front of the bottle */}
+        <div className="relative z-10 flex flex-col items-center">
+          <p className="uppercase tracking-[0.3em] text-white/50 text-xs mb-5">Feel Something Real</p>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6 max-w-3xl">
+            The Botanical<br />
+            <span style={{ color: "#E1258F" }}>Extract Shot.</span>
+          </h1>
+          <p className="text-white/80 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
+            Powered by ancient plants for effects you can actually feel. Sip intentionally, savor fully, enjoy responsibly.
+          </p>
+          <button
+            onClick={() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" })}
+            className="h-14 px-10 rounded-full font-semibold text-white text-lg transition-all hover:scale-[1.03] active:scale-[0.98]"
+            style={{ background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)" }}
+          >
+            Experience It Now
+          </button>
         </div>
       </section>
 
