@@ -1,55 +1,42 @@
-import { getProducts } from "@/lib/wc-products";
 import CloakHomeClient from "./CloakHomeClient";
 
-// Revalidate the cloak product list hourly. Products almost never change,
-// and re-fetching WP on every visitor render adds latency we don't need.
+// Revalidate the cloak hourly — there's no per-visitor data here, the
+// page is a static landing for the free-sample offer.
 export const revalidate = 3600;
 
-// Pull the size suffix out of a product title for the card subtitle.
-// e.g. "YUM Tropical Breeze 14ml Single" → "14ml"
-function extractSize(title: string): string {
-	const m = title.match(/(\d+\s*ml)/i);
-	return m ? m[1].toLowerCase().replace(/\s+/g, "") : "";
-}
+// The two free-sample SKUs (same as the .com /free-sample page). Pinned
+// here rather than fetched at render time because:
+//   - The cloak only ever shows these two products
+//   - Avoids a WP roundtrip on every cache miss
+//   - Failure mode if a SKU changes upstream is "free sample fails to
+//     claim" not "cloak fails to render", which is easier to debug.
+const SAMPLE_OPTIONS = [
+	{
+		id: "bg" as const,
+		variantId: "1674",
+		productHandle: "yum-bubble-gum-14ml-free-sample",
+		couponCode: "FREESAMPLEBG14",
+		flavor: "Bubble Gum",
+		image: "/images/sample-bg-14ml.jpg",
+		tasteNote: "Smooth · Signature",
+		accent: "#E1258F",
+		description:
+			"Smooth, slightly sweet, and easy to drink. The one most customers come back for.",
+	},
+	{
+		id: "tb" as const,
+		variantId: "1676",
+		productHandle: "yum-tropical-breeze-14ml-free-sample",
+		couponCode: "FREESAMPLETB14",
+		flavor: "Tropical Breeze",
+		image: "/images/sample-tb-14ml.jpg",
+		tasteNote: "Citrus · Refreshing",
+		accent: "#00B8E4",
+		description:
+			"Bright citrus meets mellow tropical fruit — clean, refreshing, a little less sweet.",
+	},
+];
 
-// The /wp-media/* rewrite proxy is flaky on Vercel (occasional 30s
-// timeouts on larger PNGs from upstream WP-on-Railway). Bypass it by
-// pointing next/image directly at the upstream WP URL — Vercel's image
-// CDN still optimizes + caches the result.
-const WP_BASE =
-	process.env.NEXT_PUBLIC_WP_URL ||
-	"https://wordpress-production-7c0a.up.railway.app/drinkyum";
-const WP_SITE_ID = process.env.WP_SITE_ID || "3";
-
-function resolveImage(url: string | undefined | null): string {
-	if (!url) return "";
-	// Relative /wp-media/<path> → upstream WP uploads URL.
-	if (url.startsWith("/wp-media/")) {
-		const path = url.slice("/wp-media/".length);
-		return `${WP_BASE}/wp-content/uploads/sites/${WP_SITE_ID}/${path}`;
-	}
-	return url;
-}
-
-export default async function CloakHome() {
-	const { products } = await getProducts({ limit: 30 });
-
-	const withPrice = products
-		.map((p) => {
-			const price = p.variants[0]?.prices[0]?.amount ?? 0;
-			return { p, price };
-		})
-		.filter((x) => x.price > 0)
-		.sort((a, b) => a.price - b.price);
-
-	const cloakProducts = withPrice.slice(0, 3).map(({ p, price }) => ({
-		name: p.title,
-		size: extractSize(p.title) || "30ml",
-		price,
-		variantId: p.id,
-		image: resolveImage(p.thumbnail || p.images[0]?.url || ""),
-		alt: p.title,
-	}));
-
-	return <CloakHomeClient products={cloakProducts} />;
+export default function CloakHome() {
+	return <CloakHomeClient sampleOptions={SAMPLE_OPTIONS} />;
 }
