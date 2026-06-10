@@ -484,7 +484,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 								chip: "Within limits",
 								chipColor: "#22C55E",
 								explainer:
-									"Standard food-safety screen for anything alive that shouldn't be in your bottle. Ours passes well below the allowed limits.",
+									"Zero mold. Zero yeast. Zero bacteria you'd care about. Tested every batch so what's in your bottle is just the plants.",
 							},
 							{
 								label: "Pesticides",
