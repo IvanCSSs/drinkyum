@@ -59,7 +59,7 @@ export default function NeedToKnowClient() {
 			};
 
 			const finalUrl = `${handoffUrl}?token=${encodeURIComponent(token)}`;
-			window.open(finalUrl, "_blank", "noopener,noreferrer");
+			window.location.href = finalUrl;
 		} catch (err) {
 			console.error("[need-to-know] continue failed", err);
 			setError("Something went wrong. Please try again.");

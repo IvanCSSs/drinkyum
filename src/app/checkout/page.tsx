@@ -1060,7 +1060,10 @@ function CheckoutPageInner() {
   };
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const isEmpty = cartItems.length === 0;
+  // Only treat the cart as empty once it has actually loaded — otherwise
+  // a fresh navigation (or a cart handoff from .co) briefly flashes the
+  // "your cart is empty" state while the cart hydrates.
+  const isEmpty = !cartLoading && cartItems.length === 0;
 
   const steps = [
     { id: 1, name: "Information" },
