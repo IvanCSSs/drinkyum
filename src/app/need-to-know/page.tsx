@@ -12,6 +12,7 @@
  * redirects to checkout.
  */
 
+import { Suspense } from "react";
 import NeedToKnowClient from "./NeedToKnowClient";
 
 export const metadata = {
@@ -20,6 +21,12 @@ export const metadata = {
 	robots: { index: false, follow: false },
 };
 
+// useSearchParams() inside NeedToKnowClient requires a Suspense boundary
+// (Next 15+) so the page can prerender the shell statically.
 export default function NeedToKnowPage() {
-	return <NeedToKnowClient />;
+	return (
+		<Suspense fallback={null}>
+			<NeedToKnowClient />
+		</Suspense>
+	);
 }
