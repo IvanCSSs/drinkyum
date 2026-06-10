@@ -117,14 +117,15 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
 
         {/* Eyebrow + headline */}
         <p className="relative z-10 uppercase tracking-[0.3em] text-white/50 text-xs mb-5">Feel Something Real</p>
-        <h1 className="relative z-10 text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-8 max-w-3xl">
+        <h1 className="relative z-10 text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-2 max-w-3xl">
           The Botanical<br />
           <span style={{ color: "#E1258F" }}>Extract Shot.</span>
         </h1>
 
         {/* Bottle — in the flow, between headline and tagline so the page
-            reads: title → bottle → tagline → CTA. */}
-        <div className="relative z-10 mb-8 flex justify-center">
+            reads: title → bottle → tagline → CTA. Tight gap above ties
+            the bottle visually to the headline. */}
+        <div className="relative z-10 -mt-2 mb-6 flex justify-center">
           <Image
             src="/images/hero-product.png"
             alt=""
