@@ -88,27 +88,62 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
   return (
     <div className="min-h-screen bg-yum-dark text-white font-sans">
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4"
-        style={{ background: "rgba(8,8,8,0.92)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <span className="text-xl font-bold tracking-tight">YUM</span>
-        <button
-          onClick={() => setCartOpen(true)}
-          className="relative p-2 rounded-full hover:bg-white/10 transition-colors"
-          aria-label="Open cart"
+      {/* Header — floating glass pill, mirrors .com Navbar treatment */}
+      <header className="fixed top-5 sm:top-8 left-0 right-0 z-50 px-4 sm:px-8">
+        <div
+          className="max-w-[1200px] mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-[14px] rounded-xl relative overflow-hidden"
+          style={{
+            background: "rgba(1, 6, 25, 0.45)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}
         >
-          <ShoppingCart size={22} />
-          {cartCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center text-white"
-              style={{ background: "#E1258F" }}>
-              {cartCount}
-            </span>
-          )}
-        </button>
+          {/* Pink radial border (same as .com Navbar) */}
+          <div
+            className="absolute inset-0 rounded-xl pointer-events-none"
+            style={{
+              padding: "1px",
+              background:
+                "radial-gradient(ellipse at top center, rgba(225, 37, 143, 0.8) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.05) 100%)",
+              mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              maskComposite: "xor",
+              WebkitMask:
+                "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              WebkitMaskComposite: "xor",
+            }}
+          />
+
+          {/* Logo */}
+          <Link href="/" className="flex-shrink-0 relative z-10" aria-label="YUM home">
+            <Image
+              src="/images/logo.svg"
+              alt="YUM"
+              width={100}
+              height={28}
+              className="h-7 w-auto"
+              priority
+            />
+          </Link>
+
+          {/* Cart */}
+          <button
+            onClick={() => setCartOpen(true)}
+            className="relative z-10 p-2 rounded-full hover:bg-white/10 transition-colors"
+            aria-label="Open cart"
+          >
+            <ShoppingCart size={22} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center text-white"
+                style={{ background: "#E1258F" }}>
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative flex flex-col items-center text-center px-6 pt-16 sm:pt-20 pb-20 overflow-hidden">
+      {/* Hero — extra top padding on mobile so the eyebrow clears the floating header */}
+      <section className="relative flex flex-col items-center text-center px-6 pt-32 sm:pt-36 pb-20 overflow-hidden">
         {/* Pink blur glow — sits behind everything */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px]"
