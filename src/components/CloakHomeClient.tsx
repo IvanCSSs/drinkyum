@@ -143,37 +143,65 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
       </section>
 
       {/* Products */}
-      <section id="products" className="max-w-4xl mx-auto px-6 pb-24">
+      <section id="products" className="max-w-5xl mx-auto px-6 pb-24">
         <p className="text-center text-white/50 uppercase tracking-widest text-xs mb-3">Find Your YUM</p>
-        <h2 className="text-center text-3xl font-bold mb-12">Your invitation into the moment</h2>
-        <p className="text-center text-white/60 max-w-lg mx-auto mb-12 -mt-6 leading-relaxed">
+        <h2 className="text-center text-3xl font-bold mb-4">Your invitation into the moment</h2>
+        <p className="text-center text-white/60 max-w-lg mx-auto mb-12 leading-relaxed">
           A botanical extract shot with effects you can actually feel. Powered by ancient plants for a unique experience.
         </p>
-        <div className="grid sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {products.map((p) => (
-            <div key={p.variantId} className="rounded-3xl p-6 flex flex-col gap-4"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <div className="relative rounded-2xl aspect-square w-full overflow-hidden"
-                style={{ background: "rgba(255,255,255,0.03)" }}>
+            <div
+              key={p.variantId}
+              className="group relative rounded-[20px] p-2 flex flex-col"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              {/* Image — fills the square via object-cover, hover-scales like .com */}
+              <div className="relative aspect-square w-full overflow-hidden rounded-[14px]"
+                style={{ background: "rgba(255,255,255,0.02)" }}>
                 <Image
                   src={p.image || "/images/product-1.png"}
                   alt={p.alt}
                   fill
-                  sizes="(max-width: 640px) 100vw, 400px"
-                  className="object-contain p-4"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.08]"
+                  style={{ transform: "scale(1.05)" }}
                 />
               </div>
-              <div>
-                <h3 className="font-semibold text-lg">{p.name}</h3>
-                <p className="text-white/50 text-sm">{p.size} · Botanical Extract Shot</p>
-              </div>
-              <div className="flex items-center justify-between mt-auto">
-                <span className="text-xl font-bold">${p.price.toFixed(2)}</span>
+
+              {/* Card body */}
+              <div className="flex flex-col flex-1 gap-3 px-2 pt-3 pb-2">
+                <div>
+                  <h3
+                    className="text-sm font-medium leading-[1.25] line-clamp-2"
+                    style={{
+                      background: "linear-gradient(180deg, #FFFFFF 0%, #999999 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    {p.name}
+                  </h3>
+                  <p className="text-white/40 text-[11px] uppercase tracking-wider mt-1">
+                    {p.size} · Botanical Extract Shot
+                  </p>
+                </div>
+
+                <span className="text-[15px] font-bold" style={{ color: "#E12590" }}>
+                  ${p.price.toFixed(2)}
+                </span>
+
                 <button
                   onClick={() => handleAdd(p)}
                   disabled={isAddingToCart}
-                  className="h-11 px-6 rounded-full font-semibold text-white text-sm transition-all hover:scale-[1.03] disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)" }}
+                  className="mt-auto h-10 rounded-[10px] font-semibold text-white text-sm transition-all hover:opacity-90 disabled:opacity-60"
+                  style={{
+                    background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)",
+                  }}
                 >
                   {isAddingToCart ? "Adding…" : "Add to Cart"}
                 </button>
