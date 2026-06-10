@@ -339,7 +339,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						{
 							emoji: "🌿",
 							name: "KR🌀TOM",
-							label: "Mitragyna Speciosa",
+							label: "Southeast Asian Leaf",
 							desc: "A tropical leaf used for centuries in Southeast Asia for its natural balancing properties.",
 						},
 						{
@@ -460,31 +460,27 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						{[
 							{
 								label: "Main active compound",
-								tech: "Mitragynine",
 								chip: "Natural range",
 								chipColor: "#E1258F",
 								explainer:
 									"This is the primary plant compound that gives the leaf its character. Many brands juice this number to mask poor quality — we keep it in the range you'd find in a real, well-grown leaf.",
 							},
 							{
-								label: "Strong alkaloid",
-								tech: "7-OH-Mitragynine",
+								label: "Strong active compound",
 								chip: "Naturally low",
 								chipColor: "#00B8E4",
 								explainer:
-									"The intense alkaloid. Some brands spike this for a cheap, harsh punch — that's where the risk lives. Ours stays naturally low, the way the plant actually grows.",
+									"The intense compound. Some brands spike this for a cheap, harsh punch — that's where the risk lives. Ours stays naturally low, the way the plant actually grows.",
 							},
 							{
 								label: "Heavy metals",
-								tech: "Lead, mercury, arsenic, cadmium",
 								chip: "None detected",
 								chipColor: "#22C55E",
 								explainer:
-									"Plants can pull metals up from the soil. The lab couldn't find any in our batch — that means safe to drink, no buildup risk.",
+									"Plants can pull metals up from the soil. The lab couldn't find any in our batch — safe to drink, no buildup risk.",
 							},
 							{
 								label: "Microbials",
-								tech: "Mold, yeast, bacteria",
 								chip: "Within limits",
 								chipColor: "#22C55E",
 								explainer:
@@ -492,7 +488,6 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 							},
 							{
 								label: "Pesticides",
-								tech: "Farm chemicals",
 								chip: "None detected",
 								chipColor: "#22C55E",
 								explainer:
@@ -500,15 +495,14 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 							},
 							{
 								label: "Residual solvents",
-								tech: "Leftover extraction chemicals",
 								chip: "None detected",
 								chipColor: "#22C55E",
 								explainer:
-									"Cheap extractions leave chemical residue behind. Our process doesn't — the lab couldn't find any.",
+									"Cheap extraction processes leave chemical residue behind. Our process doesn't — the lab couldn't find any.",
 							},
 						].map((row) => (
 							<div
-								key={row.tech}
+								key={row.label}
 								className="flex flex-col sm:flex-row sm:items-start sm:gap-6"
 							>
 								<div className="sm:w-[44%] mb-2 sm:mb-0">
@@ -527,9 +521,6 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 											{row.chip}
 										</span>
 									</div>
-									<p className="text-white/40 text-[11px] mt-1 font-mono">
-										{row.tech}
-									</p>
 								</div>
 								<p className="text-white/65 text-sm leading-relaxed sm:flex-1">
 									{row.explainer}
@@ -566,8 +557,8 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						},
 						{
 							eyebrow: "Chemistry",
-							title: "Leaf-proportional alkaloids.",
-							desc: "Most extracts spike one compound for a cheap punch. We keep the alkaloid profile balanced — the way the plant actually grows. No synthetic spikes, no crash.",
+							title: "Leaf-proportional profile.",
+							desc: "Most extracts spike one compound for a cheap punch. We keep the active profile balanced — the way the plant actually grows. No synthetic spikes, no crash.",
 						},
 					].map((claim) => (
 						<div

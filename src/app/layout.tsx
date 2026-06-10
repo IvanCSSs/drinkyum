@@ -17,7 +17,12 @@ const lato = Lato({
   variable: "--font-lato",
 });
 
-export const metadata: Metadata = {
+// Cloak (.co) gets a sanitized SEO/metadata payload — no flagged
+// keywords in title, description, OG tags, twitter card, or anywhere
+// crawlers read. The moneypage (.com) keeps its real keyword-heavy SEO.
+const IS_CLOAK_META = process.env.NEXT_PUBLIC_CLOAK === "true";
+
+const moneypageMetadata: Metadata = {
   metadataBase: new URL("https://www.drinkyum.com"),
   title: {
     default: "DrinkYUM | Premium Kratom Extract Beverages",
@@ -58,6 +63,53 @@ export const metadata: Metadata = {
     follow: true,
   },
 };
+
+const cloakMetadata: Metadata = {
+  metadataBase: new URL("https://drinkyum.co"),
+  title: {
+    default: "YUM | Botanical Extract Shot",
+    template: "%s | YUM",
+  },
+  description: "A botanical extract shot powered by ancient plants. First bottle on us — you just cover shipping.",
+  keywords: ["wellness", "botanical", "natural", "plant-based"],
+  authors: [{ name: "YUM" }],
+  creator: "YUM",
+  publisher: "YUM",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://drinkyum.co",
+    siteName: "YUM",
+    title: "YUM | Botanical Extract Shot",
+    description: "A botanical extract shot powered by ancient plants. First bottle on us — you just cover shipping.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "YUM",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "YUM | Botanical Extract Shot",
+    description: "A botanical extract shot powered by ancient plants. First bottle on us.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    // Don't let search engines index the cloak — it's only for paid traffic.
+    index: false,
+    follow: false,
+  },
+};
+
+export const metadata: Metadata = IS_CLOAK_META
+  ? cloakMetadata
+  : moneypageMetadata;
 
 // Organization structured data
 const organizationSchema = {
@@ -102,15 +154,21 @@ export default async function RootLayout({
   return (
     <html lang="en" className={lato.variable}>
       <head>
-        {/* Awin verification */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-        />
+        {/* JSON-LD structured data — moneypage SEO only. The cloak
+            shouldn't be indexed and its JSON-LD would leak flagged
+            keywords to anything crawling the page. */}
+        {!isCloak && (
+          <>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+            />
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+            />
+          </>
+        )}
       </head>
       <body className="antialiased">
         <ConsoleFilter />
