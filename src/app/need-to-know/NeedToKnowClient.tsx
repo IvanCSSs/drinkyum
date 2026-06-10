@@ -1,75 +1,101 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useCart } from "@/contexts/CartContext";
+import { useSearchParams } from "next/navigation";
 
 export default function NeedToKnowClient() {
-	const { cart } = useCart();
+	const searchParams = useSearchParams();
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [finalUrl, setFinalUrl] = useState<string | null>(null);
 
-	const handleContinue = async () => {
+	// Read the claim params the cloak put in the URL.
+	const variantId = searchParams?.get("v") ?? "";
+	const coupon = searchParams?.get("c") ?? undefined;
+	const flavor = searchParams?.get("f") ?? "";
+
+	// Pre-sign the handoff token as soon as the page loads. By the time the
+	// user finishes reading the disclaimers and clicks Continue, the URL is
+	// ready and we just navigate — no extra round-trip after the click.
+	useEffect(() => {
+		if (!variantId) return;
+		let cancelled = false;
+
+		(async () => {
+			try {
+				const res = await fetch("/api/handoff/sign", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						items: [{ variantId, quantity: 1 }],
+						coupon,
+					}),
+				});
+				if (!res.ok) throw new Error(`sign failed: ${res.status}`);
+				const { token, handoffUrl } = (await res.json()) as {
+					token: string;
+					handoffUrl: string;
+				};
+				if (!cancelled) {
+					setFinalUrl(`${handoffUrl}?token=${encodeURIComponent(token)}`);
+				}
+			} catch (err) {
+				console.error("[need-to-know] pre-sign failed", err);
+				if (!cancelled) {
+					setError("Something went wrong. Please try again.");
+				}
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [variantId, coupon]);
+
+	const handleContinue = () => {
 		if (submitting) return;
 		setSubmitting(true);
 		setError(null);
 
-		try {
-			// Fire Meta Pixel InitiateCheckout if available
-			const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void })
-				.fbq;
-			if (typeof fbq === "function") {
-				fbq("track", "InitiateCheckout", {
-					value: cart?.total ?? 0,
-					currency: "USD",
-					num_items:
-						cart?.items?.reduce((s, i) => s + (i.quantity ?? 0), 0) ?? 0,
-				});
-			}
-
-			const items =
-				cart?.items
-					?.map((i) => ({
-						variantId: String(i.variant_id ?? ""),
-						quantity: i.quantity,
-					}))
-					.filter((i) => i.variantId.length > 0 && i.quantity > 0) ?? [];
-
-			if (items.length === 0) {
-				setError(
-					"Your cart appears to be empty. Add a product before continuing.",
-				);
-				setSubmitting(false);
-				return;
-			}
-
-			// Forward the first applied coupon (we only support one at a time
-			// in practice — free-sample flows use FREESAMPLE… codes).
-			const coupon = cart?.coupons?.[0]?.code;
-
-			const tokenRes = await fetch("/api/handoff/sign", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ items, coupon }),
-			});
-
-			if (!tokenRes.ok) {
-				throw new Error(`sign request failed: ${tokenRes.status}`);
-			}
-
-			const { token, handoffUrl } = (await tokenRes.json()) as {
-				token: string;
-				handoffUrl: string;
-			};
-
-			const finalUrl = `${handoffUrl}?token=${encodeURIComponent(token)}`;
-			window.location.href = finalUrl;
-		} catch (err) {
-			console.error("[need-to-know] continue failed", err);
-			setError("Something went wrong. Please try again.");
-			setSubmitting(false);
+		// Fire Meta Pixel InitiateCheckout if available
+		const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void })
+			.fbq;
+		if (typeof fbq === "function") {
+			fbq("track", "InitiateCheckout", { currency: "USD" });
 		}
+
+		if (finalUrl) {
+			window.location.href = finalUrl;
+			return;
+		}
+
+		// Fallback: if pre-sign hasn't finished yet, sign synchronously now.
+		(async () => {
+			try {
+				const res = await fetch("/api/handoff/sign", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						items: [{ variantId, quantity: 1 }],
+						coupon,
+					}),
+				});
+				if (!res.ok) throw new Error(`sign failed: ${res.status}`);
+				const { token, handoffUrl } = (await res.json()) as {
+					token: string;
+					handoffUrl: string;
+				};
+				window.location.href = `${handoffUrl}?token=${encodeURIComponent(token)}`;
+			} catch (err) {
+				console.error("[need-to-know] continue failed", err);
+				setError("Something went wrong. Please try again.");
+				setSubmitting(false);
+			}
+		})();
 	};
+
+	const missingVariant = !variantId;
 
 	return (
 		<main className="min-h-screen bg-yum-dark text-white flex items-center justify-center px-6 py-12">
@@ -79,7 +105,7 @@ export default function NeedToKnowClient() {
 						Before you continue
 					</h1>
 					<p className="text-center text-white/70 mb-8">
-						A few things you should know.
+						{flavor ? `You're claiming the ${flavor}. ` : ""}A few things you should know.
 					</p>
 
 					<ul className="space-y-4 text-white/85 mb-8">
@@ -121,16 +147,18 @@ export default function NeedToKnowClient() {
 						</li>
 					</ul>
 
-					{error && (
+					{(error || missingVariant) && (
 						<div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/10 text-red-200 text-sm px-4 py-3">
-							{error}
+							{missingVariant
+								? "Missing product info — head back and pick a flavor."
+								: error}
 						</div>
 					)}
 
 					<button
 						type="button"
 						onClick={handleContinue}
-						disabled={submitting}
+						disabled={submitting || missingVariant}
 						className="block w-full h-14 rounded-full font-semibold text-white text-base text-center transition-all hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
 						style={{
 							background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)",

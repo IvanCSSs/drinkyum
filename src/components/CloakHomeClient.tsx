@@ -96,7 +96,7 @@ const FAQS = [
 
 export default function CloakHomeClient({ sampleOptions }: Props) {
 	const router = useRouter();
-	const { cart, addToCart, applyCoupon, clearCart, refreshCart, updateQuantity, removeItem, isAddingToCart } = useCart();
+	const { cart, updateQuantity, removeItem } = useCart();
 
 	const [selectedId, setSelectedId] = useState<SampleOption["id"]>(sampleOptions[0].id);
 	const [cartOpen, setCartOpen] = useState(false);
@@ -108,33 +108,21 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 	const selected = sampleOptions.find((o) => o.id === selectedId) ?? sampleOptions[0];
 	const cartCount = cart?.items?.reduce((s, i) => s + i.quantity, 0) ?? 0;
 
-	const handleClaim = async () => {
+	const handleClaim = () => {
 		if (claiming) return;
 		setClaiming(true);
 		setClaimError(null);
 
-		try {
-			clearCart();
-			await new Promise((r) => setTimeout(r, 250));
-
-			await addToCart(selected.variantId, 1, {
-				free_sample_offer: true,
-				free_sample_flavor: selected.flavor,
-			});
-			await applyCoupon(selected.couponCode);
-			await refreshCart();
-
-			// Cloak users always pass through the compliance gate before
-			// the .com checkout handoff. /need-to-know reads the cart on
-			// mount and signs the handoff token.
-			router.push("/need-to-know");
-		} catch (err) {
-			console.error("[cloak] claim failed:", err);
-			setClaimError(
-				err instanceof Error ? err.message : "Couldn't claim your sample. Try again.",
-			);
-			setClaiming(false);
-		}
+		// Fast path: skip touching the cloak's CoCart session entirely.
+		// The /api/cart/handoff endpoint on .com rebuilds the cart server-side
+		// from the variantId+coupon in the signed token, so any work we'd do
+		// here is duplicated and gone in ~3s of round-trips.
+		const params = new URLSearchParams({
+			v: selected.variantId,
+			c: selected.couponCode,
+			f: selected.flavor,
+		});
+		router.push(`/need-to-know?${params.toString()}`);
 	};
 
 	return (
@@ -302,7 +290,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 
 						<button
 							onClick={handleClaim}
-							disabled={claiming || isAddingToCart}
+							disabled={claiming}
 							className="w-full sm:w-auto h-14 px-10 rounded-full font-semibold text-white text-base sm:text-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100 shadow-[0_10px_30px_rgba(225,37,143,0.4)]"
 							style={{
 								background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)",
