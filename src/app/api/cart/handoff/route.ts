@@ -36,7 +36,7 @@ function rewriteCookieDomain(cookie: string): string {
 
 async function addItemsToCart(
 	items: Array<{ variantId: string; quantity: number }>,
-): Promise<{ setCookies: string[]; cartKey?: string }> {
+): Promise<{ setCookies: string[]; sessionCookie: string | null; cartKey?: string }> {
 	const setCookies: string[] = [];
 	let cartKey: string | undefined;
 	let sessionCookie: string | null = null;
@@ -84,7 +84,43 @@ async function addItemsToCart(
 		if (data?.cart_key) cartKey = data.cart_key;
 	}
 
-	return { setCookies, cartKey };
+	return { setCookies, sessionCookie, cartKey };
+}
+
+/**
+ * Apply a coupon to the cart identified by the given session cookie.
+ * Uses the same custom mu-plugin endpoint as the /api/cart proxy.
+ */
+async function applyCouponWithSession(
+	code: string,
+	sessionCookie: string | null,
+): Promise<{ extraSetCookies: string[]; ok: boolean }> {
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+	};
+	if (sessionCookie) headers.Cookie = sessionCookie;
+
+	const res = await fetch(buildWpApiUrl("/store/v1/cart/coupon"), {
+		method: "POST",
+		headers,
+		body: JSON.stringify({ code }),
+	});
+
+	const extra =
+		(res.headers as Headers & {
+			getSetCookie?: () => string[];
+		}).getSetCookie?.() ?? [];
+	const extraSetCookies = extra.map(rewriteCookieDomain);
+
+	if (!res.ok) {
+		console.error(
+			"[handoff] coupon apply failed",
+			res.status,
+			await res.text().catch(() => ""),
+		);
+		return { extraSetCookies, ok: false };
+	}
+	return { extraSetCookies, ok: true };
 }
 
 export async function GET(request: NextRequest) {
@@ -97,6 +133,7 @@ export async function GET(request: NextRequest) {
 	// If a CoCart cart_key came across, prefer it: same WP backend, so the
 	// same cart loads cleanly. Otherwise re-add the items from the payload.
 	let setCookies: string[] = [];
+	let sessionCookie: string | null = null;
 
 	if (payload.cartKey) {
 		// CoCart v2 reads ?cart_key=... to restore the matching session.
@@ -110,11 +147,23 @@ export async function GET(request: NextRequest) {
 		for (const c of cookies) {
 			setCookies.push(rewriteCookieDomain(c));
 		}
+		sessionCookie = cookies.map((c) => c.split(";")[0]).join("; ") || null;
 	} else if (payload.items.length > 0) {
 		const added = await addItemsToCart(payload.items);
 		setCookies = added.setCookies;
+		sessionCookie = added.sessionCookie;
 	} else {
 		return fail("empty_handoff");
+	}
+
+	// Forward any coupon that was applied on the cloak side so the .com
+	// checkout shows the discounted total instead of full price.
+	if (payload.coupon) {
+		const { extraSetCookies } = await applyCouponWithSession(
+			payload.coupon,
+			sessionCookie,
+		);
+		setCookies.push(...extraSetCookies);
 	}
 
 	if (setCookies.length === 0) {

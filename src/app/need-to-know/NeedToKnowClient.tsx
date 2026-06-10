@@ -43,10 +43,14 @@ export default function NeedToKnowClient() {
 				return;
 			}
 
+			// Forward the first applied coupon (we only support one at a time
+			// in practice — free-sample flows use FREESAMPLE… codes).
+			const coupon = cart?.coupons?.[0]?.code;
+
 			const tokenRes = await fetch("/api/handoff/sign", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ items }),
+				body: JSON.stringify({ items, coupon }),
 			});
 
 			if (!tokenRes.ok) {

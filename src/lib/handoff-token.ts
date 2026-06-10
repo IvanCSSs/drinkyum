@@ -15,6 +15,7 @@
 export interface HandoffPayload {
 	cartKey?: string;
 	items: Array<{ variantId: string; quantity: number }>;
+	coupon?: string;
 	exp: number; // unix seconds
 	source: "co";
 }
@@ -71,6 +72,7 @@ export async function signHandoffToken(
 	const full: HandoffPayload = {
 		cartKey: payload.cartKey,
 		items: payload.items,
+		coupon: payload.coupon,
 		exp: Math.floor(Date.now() / 1000) + (payload.ttlSeconds ?? 300),
 		source: "co",
 	};

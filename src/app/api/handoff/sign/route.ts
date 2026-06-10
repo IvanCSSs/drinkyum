@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 interface SignBody {
 	cartKey?: string;
 	items?: Array<{ variantId?: string; quantity?: number }>;
+	coupon?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -41,9 +42,11 @@ export async function POST(request: NextRequest) {
 		"https://www.drinkyum.com/api/cart/handoff";
 
 	try {
+		const couponCode = body.coupon?.trim();
 		const token = await signHandoffToken({
 			cartKey: body.cartKey,
 			items,
+			coupon: couponCode ? couponCode : undefined,
 			ttlSeconds: 300,
 		});
 		return NextResponse.json({ token, handoffUrl });
