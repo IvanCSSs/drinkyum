@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart, X, Plus, Minus } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
@@ -107,7 +108,7 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
       </header>
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-40 pb-24 overflow-hidden">
+      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-32 pb-12 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px]"
             style={{ background: "radial-gradient(ellipse, rgba(225,37,143,0.18) 0%, transparent 70%)" }} />
@@ -117,16 +118,28 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
           The Botanical<br />
           <span style={{ color: "#E1258F" }}>Extract Shot.</span>
         </h1>
-        <p className="text-white/70 text-lg sm:text-xl max-w-xl mb-10 leading-relaxed">
+        <p className="text-white/70 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
           Powered by ancient plants for effects you can actually feel. Sip intentionally, savor fully, enjoy responsibly.
         </p>
         <button
           onClick={() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" })}
-          className="h-14 px-10 rounded-full font-semibold text-white text-lg transition-all hover:scale-[1.03] active:scale-[0.98]"
+          className="h-14 px-10 rounded-full font-semibold text-white text-lg transition-all hover:scale-[1.03] active:scale-[0.98] mb-12"
           style={{ background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)" }}
         >
           Experience It Now
         </button>
+        {/* Hero product image — local asset, loads instantly */}
+        <div className="relative w-full max-w-md aspect-[4/3] flex items-center justify-center">
+          <Image
+            src="/images/hero-product.png"
+            alt="Botanical Extract Shot"
+            width={400}
+            height={500}
+            priority
+            className="object-contain drop-shadow-[0_20px_60px_rgba(225,37,143,0.35)]"
+            style={{ transform: "rotate(8deg)" }}
+          />
+        </div>
       </section>
 
       {/* Products */}
@@ -142,7 +155,13 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
               <div className="relative rounded-2xl aspect-square w-full overflow-hidden"
                 style={{ background: "rgba(255,255,255,0.03)" }}>
-                <img src={p.image} alt={p.alt} className="w-full h-full object-contain p-4" />
+                <Image
+                  src={p.image || "/images/product-1.png"}
+                  alt={p.alt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 400px"
+                  className="object-contain p-4"
+                />
               </div>
               <div>
                 <h3 className="font-semibold text-lg">{p.name}</h3>
@@ -183,6 +202,26 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
         </div>
       </section>
 
+      {/* How it works — 3-step ritual */}
+      <section className="px-6 pb-24 max-w-5xl mx-auto">
+        <p className="text-center text-white/50 uppercase tracking-widest text-xs mb-3">The Ritual</p>
+        <h2 className="text-center text-3xl font-bold mb-12">Sip. Feel. Flow.</h2>
+        <div className="grid sm:grid-cols-3 gap-6">
+          {[
+            { num: "01", title: "Sip the Botanicals", desc: "A 30ml shot of ancient plants. No mixing, no waiting." },
+            { num: "02", title: "Feel the Shift", desc: "Effects start within 15–20 minutes. Smooth, clear, present." },
+            { num: "03", title: "Find Your Flow", desc: "Stay sharp. Stay social. Or quietly enjoy the moment." },
+          ].map((step) => (
+            <div key={step.num} className="rounded-3xl p-6 text-center relative overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <span className="block text-6xl font-bold mb-4" style={{ color: "rgba(225,37,143,0.35)" }}>{step.num}</span>
+              <h3 className="font-semibold text-lg mb-3">{step.title}</h3>
+              <p className="text-white/60 text-sm leading-relaxed">{step.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Ingredients */}
       <section className="px-6 pb-24 max-w-4xl mx-auto">
         <p className="text-center text-white/50 uppercase tracking-widest text-xs mb-3">What&apos;s Inside</p>
@@ -195,6 +234,26 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
               <p className="text-white/40 text-[10px] uppercase tracking-widest mb-2">{ing.label}</p>
               <h3 className="font-semibold text-sm mb-3">{ing.name}</h3>
               <p className="text-white/60 text-sm leading-relaxed">{ing.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Value props */}
+      <section className="px-6 pb-24 max-w-5xl mx-auto">
+        <p className="text-center text-white/50 uppercase tracking-widest text-xs mb-3">Thoughtfully Made</p>
+        <h2 className="text-center text-3xl font-bold mb-12">A botanical experience.</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { title: "Ancient Plants", desc: "Traditional botanicals, modern purpose." },
+            { title: "Crafted for 21+", desc: "Mindful sipping for adults." },
+            { title: "Lab Tested", desc: "Every batch independently verified." },
+            { title: "Choose Your Moment", desc: "On the couch, at the party, in the studio." },
+          ].map((v) => (
+            <div key={v.title} className="rounded-2xl p-5 text-center"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <h3 className="font-semibold text-base mb-2">{v.title}</h3>
+              <p className="text-white/60 text-sm leading-relaxed">{v.desc}</p>
             </div>
           ))}
         </div>
@@ -241,8 +300,26 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
               {!cart?.items?.length ? (
                 <p className="text-white/50 text-sm text-center py-12">Your cart is empty.</p>
               ) : (
-                cart.items.map((item) => (
+                cart.items.map((item) => {
+                  // Match item back to the cloak product (we only have 2 SKUs)
+                  // so we can show a thumbnail in the drawer.
+                  const product = products.find(
+                    (p) => p.variantId === String(item.variant_id),
+                  );
+                  return (
                   <div key={item.id} className="flex gap-3 items-start">
+                    {product?.image ? (
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0"
+                        style={{ background: "rgba(255,255,255,0.04)" }}>
+                        <Image
+                          src={product.image}
+                          alt={product.alt}
+                          fill
+                          sizes="56px"
+                          className="object-contain p-1"
+                        />
+                      </div>
+                    ) : null}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm leading-tight">{item.title}</p>
                       <p className="text-white/50 text-xs mt-1">${item.unit_price?.toFixed(2)}</p>
@@ -259,7 +336,8 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
                       </button>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
             {cart?.items?.length ? (
