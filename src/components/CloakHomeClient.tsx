@@ -127,9 +127,9 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
           </p>
         </div>
 
-        {/* Bottle — in FRONT of text, offset right. Smaller (about 40% of
-            the prior size) so it accents the hero rather than dominating. */}
-        <div className="absolute inset-0 flex items-center justify-end pr-4 sm:pr-12 lg:pr-24 pointer-events-none z-20">
+        {/* Bottle — in FRONT of text, slight right offset of center. Sits
+            close to the headline so it feels integrated, not detached. */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
           <Image
             src="/images/hero-product.png"
             alt=""
@@ -137,7 +137,10 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
             height={336}
             priority
             className="object-contain drop-shadow-[0_20px_60px_rgba(225,37,143,0.45)]"
-            style={{ transform: "rotate(12deg)", maxWidth: "none" }}
+            style={{
+              transform: "translateX(220px) rotate(12deg)",
+              maxWidth: "none",
+            }}
           />
         </div>
 
