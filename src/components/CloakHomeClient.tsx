@@ -431,25 +431,22 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 				</h2>
 				<p className="text-center text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed">
 					Each YUM bottle ships with a unique batch ID on the label.
-					Type it in at <span className="text-white/85">drinkyum.com/lab-results</span> and we'll email you the full lab report for your specific bottle.
+					Type it in at <span className="text-white/85">drinkyum.com/lab-results</span> and we'll email you the full report for your bottle.
 				</p>
 
 				<div
-					className="rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto"
+					className="rounded-3xl p-6 sm:p-8 max-w-3xl mx-auto"
 					style={{
 						background: "rgba(255,255,255,0.03)",
 						border: "1px solid rgba(255,255,255,0.08)",
 					}}
 				>
-					{/* Mock batch report row */}
-					<div className="flex items-center justify-between mb-5 pb-5 border-b border-white/10">
+					<div className="flex items-center justify-between mb-6 pb-5 border-b border-white/10">
 						<div>
 							<p className="text-white/40 text-[10px] uppercase tracking-widest mb-1">
 								Batch Report
 							</p>
-							<p className="font-mono text-sm text-white/85">
-								BG-2126-04
-							</p>
+							<p className="font-mono text-sm text-white/85">BG-2126-04</p>
 						</div>
 						<div className="text-right">
 							<p className="text-white/40 text-[10px] uppercase tracking-widest mb-1">
@@ -459,27 +456,90 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						</div>
 					</div>
 
-					<div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+					<div className="space-y-5">
 						{[
-							{ label: "Mitragynine", value: "Per spec", note: "Leaf-proportional" },
-							{ label: "7-OH-Mitragynine", value: "Per spec", note: "Naturally low" },
-							{ label: "Heavy Metals", value: "ND", note: "Non-detected" },
-							{ label: "Microbials", value: "Pass", note: "Within limits" },
-							{ label: "Pesticides", value: "ND", note: "Non-detected" },
-							{ label: "Solvents", value: "ND", note: "Non-detected" },
+							{
+								label: "Main active compound",
+								tech: "Mitragynine",
+								chip: "Natural range",
+								chipColor: "#E1258F",
+								explainer:
+									"This is the primary plant compound that gives the leaf its character. Many brands juice this number to mask poor quality — we keep it in the range you'd find in a real, well-grown leaf.",
+							},
+							{
+								label: "Strong alkaloid",
+								tech: "7-OH-Mitragynine",
+								chip: "Naturally low",
+								chipColor: "#00B8E4",
+								explainer:
+									"The intense alkaloid. Some brands spike this for a cheap, harsh punch — that's where the risk lives. Ours stays naturally low, the way the plant actually grows.",
+							},
+							{
+								label: "Heavy metals",
+								tech: "Lead, mercury, arsenic, cadmium",
+								chip: "None detected",
+								chipColor: "#22C55E",
+								explainer:
+									"Plants can pull metals up from the soil. The lab couldn't find any in our batch — that means safe to drink, no buildup risk.",
+							},
+							{
+								label: "Microbials",
+								tech: "Mold, yeast, bacteria",
+								chip: "Within limits",
+								chipColor: "#22C55E",
+								explainer:
+									"Standard food-safety screen for anything alive that shouldn't be in your bottle. Ours passes well below the allowed limits.",
+							},
+							{
+								label: "Pesticides",
+								tech: "Farm chemicals",
+								chip: "None detected",
+								chipColor: "#22C55E",
+								explainer:
+									"Some farms spray their crop. We source from ones that don't, and we test to confirm — none in our extract.",
+							},
+							{
+								label: "Residual solvents",
+								tech: "Leftover extraction chemicals",
+								chip: "None detected",
+								chipColor: "#22C55E",
+								explainer:
+									"Cheap extractions leave chemical residue behind. Our process doesn't — the lab couldn't find any.",
+							},
 						].map((row) => (
-							<div key={row.label}>
-								<div className="flex items-baseline justify-between">
-									<span className="text-white/60 text-xs">{row.label}</span>
-									<span className="font-semibold text-white text-sm">{row.value}</span>
+							<div
+								key={row.tech}
+								className="flex flex-col sm:flex-row sm:items-start sm:gap-6"
+							>
+								<div className="sm:w-[44%] mb-2 sm:mb-0">
+									<div className="flex items-center gap-2 flex-wrap">
+										<p className="font-semibold text-white text-sm">
+											{row.label}
+										</p>
+										<span
+											className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+											style={{
+												background: `${row.chipColor}22`,
+												color: row.chipColor,
+												border: `1px solid ${row.chipColor}55`,
+											}}
+										>
+											{row.chip}
+										</span>
+									</div>
+									<p className="text-white/40 text-[11px] mt-1 font-mono">
+										{row.tech}
+									</p>
 								</div>
-								<p className="text-white/40 text-[11px] mt-0.5">{row.note}</p>
+								<p className="text-white/65 text-sm leading-relaxed sm:flex-1">
+									{row.explainer}
+								</p>
 							</div>
 						))}
 					</div>
 
-					<p className="text-white/40 text-[11px] text-center mt-6">
-						Sample report. Your bottle's actual values are emailed when you look up its batch ID.
+					<p className="text-white/40 text-[11px] text-center mt-8 pt-6 border-t border-white/10">
+						Sample report. Your bottle's actual numbers are emailed when you look up its batch ID.
 					</p>
 				</div>
 			</section>
