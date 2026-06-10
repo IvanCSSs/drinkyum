@@ -268,7 +268,7 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
                   <span className="text-white/60">Subtotal</span>
                   <span className="font-semibold">${cart.total?.toFixed(2)}</span>
                 </div>
-                <Link href="/checkout"
+                <Link href="/need-to-know"
                   onClick={() => setCartOpen(false)}
                   className="block w-full h-12 rounded-full font-semibold text-white text-sm text-center leading-[48px] transition-all hover:scale-[1.02]"
                   style={{ background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)" }}>
