@@ -108,7 +108,7 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
       </header>
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-32 pb-20 overflow-hidden min-h-[680px]">
+      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-16 sm:pt-20 pb-20 overflow-hidden min-h-[680px]">
         {/* Pink blur glow — sits behind everything */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px]"
