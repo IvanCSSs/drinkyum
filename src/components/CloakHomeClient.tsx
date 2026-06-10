@@ -108,25 +108,23 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
       </header>
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-16 sm:pt-20 pb-20 overflow-hidden min-h-[680px]">
+      <section className="relative flex flex-col items-center text-center px-6 pt-16 sm:pt-20 pb-20 overflow-hidden">
         {/* Pink blur glow — sits behind everything */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px]"
             style={{ background: "radial-gradient(ellipse, rgba(225,37,143,0.18) 0%, transparent 70%)" }} />
         </div>
 
-        {/* Headline — base layer (z-10) sits behind the bottle */}
-        <div className="relative z-10 flex flex-col items-center">
-          <p className="uppercase tracking-[0.3em] text-white/50 text-xs mb-5">Feel Something Real</p>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6 max-w-3xl">
-            The Botanical<br />
-            <span style={{ color: "#E1258F" }}>Extract Shot.</span>
-          </h1>
-        </div>
+        {/* Eyebrow + headline */}
+        <p className="relative z-10 uppercase tracking-[0.3em] text-white/50 text-xs mb-5">Feel Something Real</p>
+        <h1 className="relative z-10 text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-8 max-w-3xl">
+          The Botanical<br />
+          <span style={{ color: "#E1258F" }}>Extract Shot.</span>
+        </h1>
 
-        {/* Bottle — anchored to the bottom of the hero section, centered
-            horizontally. Sits BELOW the headline text. */}
-        <div className="absolute inset-x-0 bottom-0 flex justify-center pointer-events-none z-20">
+        {/* Bottle — in the flow, between headline and tagline so the page
+            reads: title → bottle → tagline → CTA. */}
+        <div className="relative z-10 mb-8 flex justify-center">
           <Image
             src="/images/hero-product.png"
             alt=""
@@ -141,21 +139,19 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
           />
         </div>
 
-        {/* Tagline — sits OVER the bottle (z-30) so it reads cleanly */}
-        <p className="relative z-30 text-white/85 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed text-center">
+        {/* Tagline below the bottle */}
+        <p className="relative z-10 text-white/85 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed text-center">
           Powered by ancient plants for effects you can actually feel. Sip intentionally, savor fully, enjoy responsibly.
         </p>
 
-        {/* CTA — top-most layer */}
-        <div className="relative z-30 mt-2">
-          <button
-            onClick={() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" })}
-            className="h-14 px-10 rounded-full font-semibold text-white text-lg transition-all hover:scale-[1.03] active:scale-[0.98] shadow-[0_10px_30px_rgba(225,37,143,0.4)]"
-            style={{ background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)" }}
-          >
-            Experience It Now
-          </button>
-        </div>
+        {/* CTA */}
+        <button
+          onClick={() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" })}
+          className="relative z-10 h-14 px-10 rounded-full font-semibold text-white text-lg transition-all hover:scale-[1.03] active:scale-[0.98] shadow-[0_10px_30px_rgba(225,37,143,0.4)]"
+          style={{ background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)" }}
+        >
+          Experience It Now
+        </button>
       </section>
 
       {/* Products */}
