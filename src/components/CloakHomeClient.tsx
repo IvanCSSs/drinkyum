@@ -124,9 +124,9 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
           </h1>
         </div>
 
-        {/* Bottle — in front of headline, centered, lowered 35% so it
-            overlaps the lower half of the hero. */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+        {/* Bottle — anchored to the bottom of the hero section, centered
+            horizontally. Sits BELOW the headline text. */}
+        <div className="absolute inset-x-0 bottom-0 flex justify-center pointer-events-none z-20">
           <Image
             src="/images/hero-product.png"
             alt=""
@@ -135,7 +135,7 @@ export default function CloakHomeClient({ products }: { products: Product[] }) {
             priority
             className="object-contain drop-shadow-[0_20px_60px_rgba(225,37,143,0.45)]"
             style={{
-              transform: "translateY(35%) rotate(12deg)",
+              transform: "rotate(12deg)",
               maxWidth: "none",
             }}
           />
