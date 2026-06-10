@@ -191,29 +191,74 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			</header>
 
 			{/* ============================= HERO ============================= */}
-			<section className="relative px-6 pt-32 sm:pt-36 pb-20 overflow-hidden">
+			<section className="relative flex flex-col items-center text-center px-6 pt-32 sm:pt-36 pb-20 overflow-hidden">
+				{/* Pink blur glow */}
 				<div className="absolute inset-0 pointer-events-none z-0">
 					<div
-						className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full blur-[140px]"
+						className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px]"
 						style={{
 							background:
-								"radial-gradient(ellipse, rgba(225,37,143,0.22) 0%, transparent 70%)",
+								"radial-gradient(ellipse, rgba(225,37,143,0.18) 0%, transparent 70%)",
 						}}
 					/>
 				</div>
 
+				<p className="relative z-10 uppercase tracking-[0.3em] text-white/50 text-xs mb-5">
+					Feel Something Real
+				</p>
+				<h1 className="relative z-10 text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-2 max-w-3xl">
+					The Botanical
+					<br />
+					<span style={{ color: "#E1258F" }}>Extract Shot.</span>
+				</h1>
+
+				{/* Bottle — in flow between headline and tagline */}
+				<div className="relative z-10 -mt-2 mb-6 flex justify-center">
+					<Image
+						src="/images/hero-product.png"
+						alt=""
+						width={112}
+						height={336}
+						priority
+						className="object-contain drop-shadow-[0_20px_60px_rgba(225,37,143,0.45)]"
+						style={{ transform: "rotate(12deg)", maxWidth: "none" }}
+					/>
+				</div>
+
+				<p className="relative z-10 text-white/85 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed text-center">
+					Powered by ancient plants for effects you can actually feel. Sip intentionally, savor fully, enjoy responsibly.
+				</p>
+
+				<button
+					onClick={() =>
+						document
+							.getElementById("free-sample")
+							?.scrollIntoView({ behavior: "smooth" })
+					}
+					className="relative z-10 h-14 px-10 rounded-full font-semibold text-white text-lg transition-all hover:scale-[1.03] active:scale-[0.98] shadow-[0_10px_30px_rgba(225,37,143,0.4)]"
+					style={{ background: "linear-gradient(135deg, #E1258F 0%, #FF4DA6 100%)" }}
+				>
+					Try It For Free
+				</button>
+			</section>
+
+			{/* ============================= FREE SAMPLE OFFER ============================= */}
+			<section
+				id="free-sample"
+				className="relative px-6 pb-24 overflow-hidden scroll-mt-24"
+			>
 				<div className="relative z-10 max-w-5xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
 					{/* Left: copy + flavor picker + CTA */}
 					<div>
 						<p className="uppercase tracking-[0.3em] text-white/50 text-xs mb-5">
-							Feel Something Real
+							Free Sample
 						</p>
-						<h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] mb-5">
+						<h2 className="text-4xl sm:text-5xl font-bold leading-[1.05] mb-5">
 							Your first one is{" "}
 							<span style={{ color: "#E1258F" }}>on us.</span>
-						</h1>
+						</h2>
 						<p className="text-white/75 text-lg mb-8 leading-relaxed max-w-lg">
-							A botanical extract shot powered by ancient plants. Pick a flavor — we'll cover the bottle, you cover shipping.
+							Pick a flavor — we'll cover the bottle, you cover shipping. No subscription, no gimmick. Try it, decide for yourself.
 						</p>
 
 						{/* Flavor picker */}
@@ -271,8 +316,8 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						</p>
 					</div>
 
-					{/* Right: product image — local asset, instant load */}
-					<div className="relative flex items-center justify-center min-h-[400px]">
+					{/* Right: selected flavor's bottle */}
+					<div className="relative flex items-center justify-center min-h-[360px]">
 						<div
 							className="absolute inset-0 rounded-full blur-[80px] opacity-50"
 							style={{
@@ -282,9 +327,8 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						<Image
 							src={selected.image}
 							alt={`${selected.flavor} bottle`}
-							width={420}
-							height={420}
-							priority
+							width={380}
+							height={380}
 							className="relative object-contain drop-shadow-[0_30px_80px_rgba(225,37,143,0.35)]"
 						/>
 					</div>
