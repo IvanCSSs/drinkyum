@@ -484,7 +484,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 								chip: "Within limits",
 								chipColor: "#22C55E",
 								explainer:
-									"Zero mold. Zero yeast. Zero bacteria you'd care about. Tested every batch so what's in your bottle is just the plants.",
+									"Every batch screened for mold, yeast, and bacteria — the basics any drink should pass. Ours doesn't just pass, it clears the limits by a wide margin.",
 							},
 							{
 								label: "Pesticides",
