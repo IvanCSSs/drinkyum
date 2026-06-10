@@ -4,12 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 
-declare global {
-	interface Window {
-		fbq?: (...args: unknown[]) => void;
-	}
-}
-
 export default function NeedToKnowClient() {
 	const { cart } = useCart();
 	const [submitting, setSubmitting] = useState(false);
@@ -22,8 +16,10 @@ export default function NeedToKnowClient() {
 
 		try {
 			// Fire Meta Pixel InitiateCheckout if available
-			if (typeof window !== "undefined" && typeof window.fbq === "function") {
-				window.fbq("track", "InitiateCheckout", {
+			const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void })
+				.fbq;
+			if (typeof fbq === "function") {
+				fbq("track", "InitiateCheckout", {
 					value: cart?.total ?? 0,
 					currency: "USD",
 					num_items:
