@@ -338,21 +338,21 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 					{[
 						{
 							emoji: "🌿",
-							name: "KR🌀TOM",
-							label: "Southeast Asian Leaf",
-							desc: "A tropical leaf used for centuries in Southeast Asia for its natural balancing properties.",
+							name: "THE LEAF",
+							label: "Southeast Asian Botanical",
+							desc: "A tropical leaf used for centuries in Southeast Asia for its natural balancing properties. The single active heart of every YUM shot.",
 						},
 						{
-							emoji: "🌺",
-							name: "KAVA",
-							label: "Piper Methysticum",
-							desc: "A Polynesian root used in social rituals. Promotes calm, relaxation, mild euphoria.",
+							emoji: "⚗️",
+							name: "THE EXTRACT",
+							label: "Standardized & Clean",
+							desc: "We extract with a clean process and standardize every batch — so the same bottle hits the same way, every time. No synthetic spikes.",
 						},
 						{
-							emoji: "🍵",
-							name: "GREEN TEA",
-							label: "Camellia Sinensis",
-							desc: "Globally enjoyed for centuries. Adds gentle, clean energy and antioxidants.",
+							emoji: "💧",
+							name: "THE SHOT",
+							label: "14ml · Ready to Drink",
+							desc: "No bitter powder, no measuring, no chalky mix. A small liquid shot that's fast, precise, and actually tastes good.",
 						},
 					].map((ing) => (
 						<div
@@ -671,13 +671,13 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			{/* ============================= ANCIENT PLANTS DEEP DIVE ============================= */}
 			<section className="px-6 pb-24 max-w-4xl mx-auto">
 				<p className="text-center text-white/50 uppercase tracking-widest text-xs mb-3">
-					Tradition
+					The Story
 				</p>
 				<h2 className="text-center text-3xl sm:text-4xl font-bold mb-4">
-					Ancient plants, real effects.
+					One leaf. Done right.
 				</h2>
 				<p className="text-center text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed">
-					Long before pharmacies and packaged drinks, people turned to the earth for clarity, calm, and connection. These traditions still hold up.
+					We didn't blend a dozen buzzwords into a bottle. We took one ancient leaf and obsessed over getting it right — from the farm to the format.
 				</p>
 
 				<div className="space-y-8">
@@ -690,14 +690,15 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 					>
 						<div className="flex items-center gap-3 mb-3">
 							<span className="text-3xl">🌿</span>
-							<h3 className="font-semibold text-lg">KR🌀TOM</h3>
+							<h3 className="font-semibold text-lg">The Leaf</h3>
 						</div>
 						<p className="text-white/70 leading-relaxed text-sm sm:text-base">
-							In the heart of Southeast Asia, tribal communities have long
-							revered this sacred leaf. Passed down through generations,
-							farmers would chew its leaves to restore energy, soothe long
-							days, and stay alert through the tropical sun. It was tradition
-							before it was wellness — a ritual rooted in rhythm with nature.
+							In the heart of Southeast Asia, communities have revered this
+							tropical leaf for centuries. Farmers chewed it to restore energy,
+							soothe long days, and stay alert under the sun. It was tradition
+							before it was a trend — and it's the single active heart of every
+							YUM shot. No filler botanicals, no kitchen-sink blend. Just the
+							leaf, sourced from growers who do it properly.
 						</p>
 					</div>
 
@@ -709,14 +710,15 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						}}
 					>
 						<div className="flex items-center gap-3 mb-3">
-							<span className="text-3xl">🌺</span>
-							<h3 className="font-semibold text-lg">KAVA ROOT</h3>
+							<span className="text-3xl">⚗️</span>
+							<h3 className="font-semibold text-lg">The Extract</h3>
 						</div>
 						<p className="text-white/70 leading-relaxed text-sm sm:text-base">
-							Across the Pacific, Polynesian communities have gathered around
-							Kava for centuries. The root is prepared into a calming drink at
-							ceremonies and quiet evenings alike — passed from elder to
-							young, marking moments of welcome, agreement, and rest.
+							Most brands chase a cheap, harsh punch by spiking one compound.
+							We don't. Our extraction is standardized batch to batch and kept
+							proportional to the leaf — the way the plant actually grows. The
+							same bottle hits the same way every time, with no synthetic spikes
+							and no crash on the back end.
 						</p>
 					</div>
 
@@ -728,14 +730,14 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						}}
 					>
 						<div className="flex items-center gap-3 mb-3">
-							<span className="text-3xl">🍵</span>
-							<h3 className="font-semibold text-lg">GREEN TEA</h3>
+							<span className="text-3xl">💧</span>
+							<h3 className="font-semibold text-lg">The Shot</h3>
 						</div>
 						<p className="text-white/70 leading-relaxed text-sm sm:text-base">
-							From the mountains of East Asia, green tea has been a daily
-							companion to scholars, monks, and craftsmen — prized for the
-							gentle clarity it brings. Calm, focused, awake. Centuries of
-							quiet productivity in a single leaf.
+							Powder is bitter, messy, and impossible to dose right. We put it
+							in a 14ml liquid shot you can drink in one go — fast-acting,
+							precisely measured, and genuinely good-tasting. The format most
+							people wish the category started with.
 						</p>
 					</div>
 				</div>
