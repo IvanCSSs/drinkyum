@@ -27,26 +27,32 @@ const REVIEWS = [
 	{
 		text: "I am amazed. Extremely relaxing without any odd side effects. A natural yet pure feeling. Thank you YUM.",
 		author: "Samantha R.",
+		avatar: "/images/cloak/avatar-1.jpg",
 	},
 	{
 		text: "Best flavor so far. Best performing botanical shot I have tried. Other supplements pale in comparison.",
 		author: "Brett M.",
+		avatar: "/images/cloak/avatar-2.jpg",
 	},
 	{
 		text: "Helps me relax and unwind without compromising alertness or focus.",
 		author: "Galilee T.",
+		avatar: "/images/cloak/avatar-3.jpg",
 	},
 	{
 		text: "A saving grace since I don't enjoy alc🍺hol or other alternatives, but still want to feel something. The flavors are amazing.",
 		author: "Bridget K.",
+		avatar: "/images/cloak/avatar-4.jpg",
 	},
 	{
 		text: "Loved it. Phenomenal flavor and not like anything else on the market.",
 		author: "Paige L.",
+		avatar: "/images/cloak/avatar-5.jpg",
 	},
 	{
 		text: "Love these so much. Great alternative to relax with.",
 		author: "Myles D.",
+		avatar: "/images/cloak/avatar-6.jpg",
 	},
 ];
 
@@ -228,6 +234,36 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 				>
 					Try It For Free
 				</button>
+			</section>
+
+			{/* ============================= LIFESTYLE BAND ============================= */}
+			<section className="px-6 pb-24 max-w-5xl mx-auto">
+				<div className="relative rounded-[28px] overflow-hidden aspect-[16/10] sm:aspect-[2/1]">
+					<Image
+						src="/images/cloak/lifestyle-group.jpg"
+						alt="Friends enjoying YUM on the beach"
+						fill
+						sizes="(max-width: 1024px) 100vw, 1000px"
+						className="object-cover"
+					/>
+					{/* gradient + caption overlay */}
+					<div
+						className="absolute inset-0 flex items-end"
+						style={{
+							background:
+								"linear-gradient(to top, rgba(8,8,8,0.75) 0%, rgba(8,8,8,0.1) 45%, transparent 70%)",
+						}}
+					>
+						<div className="p-6 sm:p-10">
+							<h2 className="text-2xl sm:text-4xl font-bold leading-tight max-w-md">
+								Made for the moments worth feeling.
+							</h2>
+							<p className="text-white/70 text-sm sm:text-base mt-2 max-w-md">
+								Beach days, rooftop nights, and everything in between.
+							</p>
+						</div>
+					</div>
+				</div>
 			</section>
 
 			{/* ============================= FREE SAMPLE OFFER ============================= */}
@@ -598,6 +634,16 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						border: "1px solid rgba(255,255,255,0.08)",
 					}}
 				>
+					<div className="flex justify-center mb-4">
+						<Image
+							src={REVIEWS[reviewIdx].avatar}
+							alt={REVIEWS[reviewIdx].author}
+							width={64}
+							height={64}
+							className="rounded-full object-cover"
+							style={{ border: "2px solid rgba(225,37,143,0.5)" }}
+						/>
+					</div>
 					<span className="text-yellow-400 text-lg block mb-3">★★★★★</span>
 					<p className="text-white/85 text-lg leading-relaxed mb-4 italic">
 						&ldquo;{REVIEWS[reviewIdx].text}&rdquo;
@@ -740,6 +786,29 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 							people wish the category started with.
 						</p>
 					</div>
+				</div>
+			</section>
+
+			{/* ============================= LIFESTYLE TWO-UP ============================= */}
+			<section className="px-6 pb-24 max-w-5xl mx-auto">
+				<div className="grid sm:grid-cols-2 gap-5">
+					{[
+						{ src: "/images/cloak/lifestyle-cheers.jpg", alt: "Friends toasting with YUM" },
+						{ src: "/images/cloak/lifestyle-mocktail.jpg", alt: "YUM served as a mocktail" },
+					].map((img) => (
+						<div
+							key={img.src}
+							className="relative rounded-3xl overflow-hidden aspect-square"
+						>
+							<Image
+								src={img.src}
+								alt={img.alt}
+								fill
+								sizes="(max-width: 640px) 100vw, 500px"
+								className="object-cover"
+							/>
+						</div>
+					))}
 				</div>
 			</section>
 
