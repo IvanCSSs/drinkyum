@@ -793,7 +793,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			<section className="px-6 pb-24 max-w-5xl mx-auto">
 				<div className="grid sm:grid-cols-2 gap-5">
 					{[
-						{ src: "/images/cloak/lifestyle-cheers.jpg", alt: "Friends toasting with YUM" },
+						{ src: "/images/cloak/lifestyle-man.jpg", alt: "Enjoying a YUM shot in the sun" },
 						{ src: "/images/cloak/lifestyle-mocktail.jpg", alt: "YUM served as a mocktail" },
 					].map((img) => (
 						<div
