@@ -266,6 +266,41 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 				</div>
 			</section>
 
+			{/* ============================= MOMENTS 3-UP ============================= */}
+			<section className="px-6 pb-24 max-w-5xl mx-auto">
+				<div className="grid grid-cols-3 gap-3 sm:gap-5">
+					{[
+						{ src: "/images/cloak/lifestyle-tailgate.jpg", label: "Road trips" },
+						{ src: "/images/cloak/lifestyle-mountain.jpg", label: "The summit" },
+						{ src: "/images/cloak/lifestyle-rooftop.jpg", label: "Golden hour" },
+					].map((m) => (
+						<div
+							key={m.src}
+							className="relative rounded-2xl overflow-hidden aspect-[3/4]"
+						>
+							<Image
+								src={m.src}
+								alt={m.label}
+								fill
+								sizes="(max-width: 640px) 33vw, 320px"
+								className="object-cover"
+							/>
+							<div
+								className="absolute inset-0 flex items-end"
+								style={{
+									background:
+										"linear-gradient(to top, rgba(8,8,8,0.7) 0%, transparent 55%)",
+								}}
+							>
+								<span className="p-3 sm:p-4 text-xs sm:text-sm font-semibold">
+									{m.label}
+								</span>
+							</div>
+						</div>
+					))}
+				</div>
+			</section>
+
 			{/* ============================= FREE SAMPLE OFFER ============================= */}
 			<section
 				id="free-sample"
