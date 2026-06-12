@@ -270,9 +270,9 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			<section className="px-6 pb-24 max-w-5xl mx-auto">
 				<div className="grid grid-cols-3 gap-3 sm:gap-5">
 					{[
-						{ src: "/images/cloak/lifestyle-carwindow.jpg", label: "On the move" },
+						{ src: "/images/cloak/lifestyle-convertible.jpg", label: "On the move" },
 						{ src: "/images/cloak/lifestyle-skater.jpg", label: "Street level" },
-						{ src: "/images/cloak/miami-deco.jpg", label: "South Beach" },
+						{ src: "/images/cloak/lifestyle-marina.jpg", label: "On the water" },
 					].map((m) => (
 						<div
 							key={m.src}
@@ -828,8 +828,8 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			<section className="px-6 pb-24 max-w-5xl mx-auto">
 				<div className="grid sm:grid-cols-2 gap-5">
 					{[
-						{ src: "/images/cloak/lifestyle-beachheld.jpg", alt: "Holding a YUM shot at the beach" },
-						{ src: "/images/cloak/lifestyle-mocktail.jpg", alt: "YUM served as a mocktail" },
+						{ src: "/images/cloak/lifestyle-poolmock.jpg", alt: "YUM poolside with a fresh mocktail" },
+						{ src: "/images/cloak/lifestyle-beachforward.jpg", alt: "Holding a YUM shot at the beach" },
 					].map((img) => (
 						<div
 							key={img.src}
