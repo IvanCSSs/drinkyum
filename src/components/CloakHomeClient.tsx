@@ -8,7 +8,7 @@ import { ShoppingCart, X, Plus, Minus, ChevronDown, Check, Leaf, FlaskConical, D
 import { useCart } from "@/contexts/CartContext";
 
 type SampleOption = {
-	id: "bg" | "tb";
+	id: "bg";
 	variantId: string;
 	productHandle: string;
 	couponCode: string;
@@ -84,7 +84,7 @@ const FAQS = [
 	},
 	{
 		q: "How does the free sample work?",
-		a: "Pick a flavor, cover the small shipping fee, and we'll send you a single 14ml bottle. No subscription, no gimmick. Try it, decide for yourself.",
+		a: "Cover the small shipping fee and we'll send you a single 14ml bottle of our signature Bubble Gum. No subscription, no gimmick. Try it, decide for yourself.",
 	},
 	{
 		q: "Is this safe?",
@@ -322,44 +322,57 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 							<span style={{ color: "#E1258F" }}>on us.</span>
 						</h2>
 						<p className="text-white/75 text-lg mb-3 leading-relaxed max-w-lg">
-							First bottle's on us. Pick a flavor — we cover the bottle, you cover the $8.99 shipping.
+							First bottle's on us — our signature Bubble Gum. We cover the bottle, you cover the $8.99 shipping.
 						</p>
 						<p className="text-white/55 text-sm mb-8 leading-relaxed max-w-lg italic">
 							If it's not the best-tasting botanical shot you've had, we'll refund the shipping too. Tell us we're wrong.
 						</p>
 
-						{/* Flavor picker */}
-						<div className="grid grid-cols-2 gap-3 mb-6">
-							{sampleOptions.map((opt) => {
-								const isSelected = selectedId === opt.id;
-								return (
-									<button
-										key={opt.id}
-										onClick={() => setSelectedId(opt.id)}
-										className="relative rounded-2xl p-4 text-left transition-all"
-										style={{
-											background: isSelected
-												? "rgba(255,255,255,0.08)"
-												: "rgba(255,255,255,0.03)",
-											border: isSelected
-												? `2px solid ${opt.accent}`
-												: "2px solid rgba(255,255,255,0.08)",
-										}}
-									>
-										{isSelected && (
-											<div
-												className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
-												style={{ background: opt.accent }}
-											>
-												<Check size={12} className="text-white" />
-											</div>
-										)}
-										<div className="text-base font-semibold">{opt.flavor}</div>
-										<div className="text-white/50 text-xs mt-1">{opt.tasteNote}</div>
-									</button>
-								);
-							})}
-						</div>
+						{/* Flavor picker (only when there's more than one flavor) */}
+						{sampleOptions.length > 1 ? (
+							<div className="grid grid-cols-2 gap-3 mb-6">
+								{sampleOptions.map((opt) => {
+									const isSelected = selectedId === opt.id;
+									return (
+										<button
+											key={opt.id}
+											onClick={() => setSelectedId(opt.id)}
+											className="relative rounded-2xl p-4 text-left transition-all"
+											style={{
+												background: isSelected
+													? "rgba(255,255,255,0.08)"
+													: "rgba(255,255,255,0.03)",
+												border: isSelected
+													? `2px solid ${opt.accent}`
+													: "2px solid rgba(255,255,255,0.08)",
+											}}
+										>
+											{isSelected && (
+												<div
+													className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
+													style={{ background: opt.accent }}
+												>
+													<Check size={12} className="text-white" />
+												</div>
+											)}
+											<div className="text-base font-semibold">{opt.flavor}</div>
+											<div className="text-white/50 text-xs mt-1">{opt.tasteNote}</div>
+										</button>
+									);
+								})}
+							</div>
+						) : (
+							<div
+								className="rounded-2xl p-4 mb-6 inline-flex flex-col"
+								style={{
+									background: "rgba(255,255,255,0.05)",
+									border: `2px solid ${selected.accent}`,
+								}}
+							>
+								<div className="text-base font-semibold">{selected.flavor}</div>
+								<div className="text-white/50 text-xs mt-1">{selected.tasteNote}</div>
+							</div>
+						)}
 
 						{claimError && (
 							<div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/10 text-red-200 text-sm px-4 py-3">
@@ -626,7 +639,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						{
 							eyebrow: "Taste",
 							title: "Actually drinkable.",
-							desc: "Most botanical shots are punishment. We spent months on flavor. Smooth Bubble Gum or Tropical Breeze — no bitter chalk, no citrus mask, no aftertaste.",
+							desc: "Most botanical shots are punishment. We spent months on flavor. Smooth, sweet Bubble Gum — no bitter chalk, no citrus mask, no aftertaste.",
 						},
 						{
 							eyebrow: "Proof",
@@ -678,7 +691,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						{
 							gripe: "&ldquo;It tastes like punishment.&rdquo;",
 							fix: "We spent months on flavor.",
-							desc: "Smooth Bubble Gum or Tropical Breeze that goes down clean — no bitter chalk, no prune-juice burn, no holding your breath. The first shot you'll actually want to sip.",
+							desc: "Smooth, sweet Bubble Gum that goes down clean — no bitter chalk, no prune-juice burn, no holding your breath. The first shot you'll actually want to sip.",
 						},
 						{
 							gripe: "&ldquo;It hits too hard, then I crash.&rdquo;",
@@ -958,7 +971,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			<section className="text-center px-6 pb-24">
 				<h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to make the switch?</h2>
 				<p className="text-white/60 mb-8 max-w-md mx-auto">
-					Pick a flavor, cover shipping, and taste the difference yourself. The bottle's on us.
+					Cover shipping and taste the difference yourself. The bottle's on us.
 				</p>
 				<button
 					onClick={() => {

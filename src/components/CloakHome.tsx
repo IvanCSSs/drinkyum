@@ -23,18 +23,6 @@ const SAMPLE_OPTIONS = [
 		description:
 			"Smooth, slightly sweet, and easy to drink. The one most customers come back for.",
 	},
-	{
-		id: "tb" as const,
-		variantId: "1676",
-		productHandle: "yum-tropical-breeze-14ml-free-sample",
-		couponCode: "FREESAMPLETB14",
-		flavor: "Tropical Breeze",
-		image: "/images/sample-tb-14ml.jpg",
-		tasteNote: "Citrus · Refreshing",
-		accent: "#00B8E4",
-		description:
-			"Bright citrus meets mellow tropical fruit — clean, refreshing, a little less sweet.",
-	},
 ];
 
 export default function CloakHome() {
