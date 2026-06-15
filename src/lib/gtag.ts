@@ -101,6 +101,34 @@ export function trackPurchase(
   });
 }
 
+// ── Cloak free-sample lead (separate account, env-driven) ────────────
+
+/**
+ * Fired when a visitor claims the free sample on the .co cloak landing.
+ * Reports a GA4 `generate_lead` event plus a Google Ads conversion into
+ * whatever account the deploy is configured for. The Ads send_to is read
+ * from env so the cloak reports into its OWN separate Ads account — set
+ * NEXT_PUBLIC_GADS_CLOAK_CONVERSION="AW-XXXXX/label" on the drinkyum-co
+ * Vercel project. No-ops cleanly until that env var exists.
+ */
+export function trackCloakSampleClaim(flavor: string, value = 0): void {
+  gtag('event', 'generate_lead', {
+    currency: 'USD',
+    value,
+    lead_type: 'free_sample',
+    flavor,
+  });
+
+  const sendTo = process.env.NEXT_PUBLIC_GADS_CLOAK_CONVERSION;
+  if (sendTo) {
+    gtag('event', 'conversion', {
+      send_to: sendTo,
+      value,
+      currency: 'USD',
+    });
+  }
+}
+
 // ── Generic event helper ─────────────────────────────────────────────
 
 export function trackGtagEvent(eventName: string, params?: GtagEvent): void {

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShoppingCart, X, Plus, Minus, ChevronDown, Check, Leaf, FlaskConical, Droplet } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { trackCloakSampleClaim } from "@/lib/gtag";
 
 type SampleOption = {
 	id: "bg";
@@ -127,6 +128,10 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 		// The /api/cart/handoff endpoint on .com rebuilds the cart server-side
 		// from the variantId+coupon in the signed token, so any work we'd do
 		// here is duplicated and gone in ~3s of round-trips.
+		// Fire the cloak's free-sample lead conversion (into its own,
+		// separate Google account) before handing off to .com.
+		trackCloakSampleClaim(selected.flavor);
+
 		const params = new URLSearchParams({
 			v: selected.variantId,
 			c: selected.couponCode,
