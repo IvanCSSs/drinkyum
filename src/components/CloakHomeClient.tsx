@@ -30,7 +30,7 @@ const REVIEWS = [
 		avatar: "/images/cloak/avatar-1.jpg",
 	},
 	{
-		text: "Best flavor so far. Best performing botanical shot I have tried. Other supplements pale in comparison.",
+		text: "Switched from the brand the smoke shop kept pushing. Same feel, way smoother — and I'm not gagging it down anymore. Not going back.",
 		author: "Brett M.",
 		avatar: "/images/cloak/avatar-2.jpg",
 	},
@@ -45,12 +45,12 @@ const REVIEWS = [
 		avatar: "/images/cloak/avatar-4.jpg",
 	},
 	{
-		text: "Loved it. Phenomenal flavor and not like anything else on the market.",
+		text: "The one I used to buy cost a fortune and hit different every time. This is consistent, tastes incredible, and the free bottle sold me before I spent a dime.",
 		author: "Paige L.",
 		avatar: "/images/cloak/avatar-5.jpg",
 	},
 	{
-		text: "Love these so much. Great alternative to relax with.",
+		text: "Used to brace myself for the crash. With YUM it's smooth and present, then it just eases off. No wall, no fog. Finally found my one.",
 		author: "Myles D.",
 		avatar: "/images/cloak/avatar-6.jpg",
 	},
@@ -58,18 +58,18 @@ const REVIEWS = [
 
 const STACK_UP = {
 	yum: [
-		"Real botanical effects",
-		"Balanced, focused calm",
-		"Plant-based ingredients",
-		"Lab tested every batch",
-		"No jitters, no crash",
+		"Smooth, sippable flavor",
+		"Balanced, no crash",
+		"Standardized every batch",
+		"Lab tested, results on file",
+		"Try a full bottle free",
 	],
 	others: [
-		"Energy spikes",
-		"Jitters & fog",
-		"Artificial ingredients",
-		"One-size-fits-all dosing",
-		"Sleep disruption",
+		"Bitter, choke-it-down taste",
+		"Hits too hard, then a crash",
+		"Inconsistent batch to batch",
+		"\"Trust us\" potency claims",
+		"Pay full price to find out",
 	],
 };
 
@@ -77,6 +77,10 @@ const FAQS = [
 	{
 		q: "What is YUM?",
 		a: "A 14ml botanical extract shot powered by ancient plants. Designed for moments when you want to feel something real — without alc🍺hol or stimulants.",
+	},
+	{
+		q: "How is this different from what I'm already buying?",
+		a: "Most shots win on strength and lose everywhere else — bitter taste, an overshoot-then-crash hit, and potency that changes batch to batch. We kept the feel you're after and fixed the rest: a flavor you'll actually sip, a balanced profile that won't flatten you, and standardized, lab-tested batches. Same effect you know, minus the parts you tolerate.",
 	},
 	{
 		q: "How does the free sample work?",
@@ -220,7 +224,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 				</div>
 
 				<p className="relative z-10 text-white/85 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed text-center">
-					Powered by ancient plants for effects you can actually feel. Sip intentionally, savor fully, enjoy responsibly.
+					Everything you like about your shot — without the burn, the guesswork, or the crash. Powered by ancient plants for effects you can actually feel.
 				</p>
 
 				<button
@@ -717,7 +721,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 					Real People, Real Effects
 				</p>
 				<h2 className="text-center text-3xl sm:text-4xl font-bold mb-10">
-					What customers are saying.
+					The ones who switched, stayed.
 				</h2>
 				<div
 					className="rounded-3xl p-8 text-center relative overflow-hidden"
@@ -950,9 +954,9 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 
 			{/* ============================= FINAL CTA ============================= */}
 			<section className="text-center px-6 pb-24">
-				<h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to feel it?</h2>
+				<h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to make the switch?</h2>
 				<p className="text-white/60 mb-8 max-w-md mx-auto">
-					Pick a flavor, cover shipping. We'll send you the rest.
+					Pick a flavor, cover shipping, and taste the difference yourself. The bottle's on us.
 				</p>
 				<button
 					onClick={() => {
