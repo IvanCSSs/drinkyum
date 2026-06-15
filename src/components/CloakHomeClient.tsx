@@ -256,10 +256,10 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 					>
 						<div className="p-6 sm:p-10">
 							<h2 className="text-2xl sm:text-4xl font-bold leading-tight max-w-md">
-								Made for the moments worth feeling.
+								The night doesn&apos;t end. It just gets better.
 							</h2>
 							<p className="text-white/70 text-sm sm:text-base mt-2 max-w-md">
-								Beach days, rooftop nights, and everything in between.
+								One shot. Smooth, present, and clear — for the moments you&apos;ll actually remember.
 							</p>
 						</div>
 					</div>
@@ -270,10 +270,10 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			<section className="px-6 pb-24 max-w-5xl mx-auto">
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5">
 					{[
-						{ src: "/images/cloak/night-cheers.png", label: "After hours" },
-						{ src: "/images/cloak/night-convertible.png", label: "Top down" },
-						{ src: "/images/cloak/night-poolmock.png", label: "Poolside" },
-						{ src: "/images/cloak/night-moto.png", label: "On the move" },
+						{ src: "/images/cloak/night-cheers.png", label: "To the long nights" },
+						{ src: "/images/cloak/night-convertible.png", label: "Windows down, lights up" },
+						{ src: "/images/cloak/night-poolmock.png", label: "Last one in" },
+						{ src: "/images/cloak/night-moto.png", label: "Wherever it takes you" },
 					].map((m) => (
 						<div
 							key={m.src}
