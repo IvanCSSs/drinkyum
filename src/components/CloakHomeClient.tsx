@@ -240,8 +240,8 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			<section className="px-6 pb-24 max-w-5xl mx-auto">
 				<div className="relative rounded-[28px] overflow-hidden aspect-[16/10] sm:aspect-[2/1]">
 					<Image
-						src="/images/cloak/night-poolmock.png"
-						alt="YUM poolside at night"
+						src="/images/cloak/night-towelflat.png"
+						alt="YUM on a beach towel under neon light"
 						fill
 						sizes="(max-width: 1024px) 100vw, 1000px"
 						className="object-cover"
@@ -272,7 +272,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 					{[
 						{ src: "/images/cloak/night-cheers.png", label: "After hours" },
 						{ src: "/images/cloak/night-convertible.png", label: "Top down" },
-						{ src: "/images/cloak/night-towelflat.png", label: "Beach nights" },
+						{ src: "/images/cloak/night-poolmock.png", label: "Poolside" },
 						{ src: "/images/cloak/night-moto.png", label: "On the move" },
 					].map((m) => (
 						<div
