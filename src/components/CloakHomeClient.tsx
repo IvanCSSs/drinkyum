@@ -328,8 +328,8 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 							If it's not the best-tasting botanical shot you've had, we'll refund the shipping too. Tell us we're wrong.
 						</p>
 
-						{/* Flavor picker (only when there's more than one flavor) */}
-						{sampleOptions.length > 1 ? (
+						{/* Flavor picker — only shown when there's more than one flavor */}
+						{sampleOptions.length > 1 && (
 							<div className="grid grid-cols-2 gap-3 mb-6">
 								{sampleOptions.map((opt) => {
 									const isSelected = selectedId === opt.id;
@@ -360,17 +360,6 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 										</button>
 									);
 								})}
-							</div>
-						) : (
-							<div
-								className="rounded-2xl p-4 mb-6 inline-flex flex-col"
-								style={{
-									background: "rgba(255,255,255,0.05)",
-									border: `2px solid ${selected.accent}`,
-								}}
-							>
-								<div className="text-base font-semibold">{selected.flavor}</div>
-								<div className="text-white/50 text-xs mt-1">{selected.tasteNote}</div>
 							</div>
 						)}
 
