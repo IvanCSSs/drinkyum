@@ -240,8 +240,8 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			<section className="px-6 pb-24 max-w-5xl mx-auto">
 				<div className="relative rounded-[28px] overflow-hidden aspect-[16/10] sm:aspect-[2/1]">
 					<Image
-						src="/images/cloak/night-cheers.png"
-						alt="Friends enjoying YUM at night"
+						src="/images/cloak/night-poolmock.png"
+						alt="YUM poolside at night"
 						fill
 						sizes="(max-width: 1024px) 100vw, 1000px"
 						className="object-cover"
@@ -270,10 +270,10 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			<section className="px-6 pb-24 max-w-5xl mx-auto">
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5">
 					{[
-						{ src: "/images/cloak/night-moto.png", label: "On the move" },
-						{ src: "/images/cloak/night-surf.png", label: "Beach nights" },
+						{ src: "/images/cloak/night-cheers.png", label: "After hours" },
 						{ src: "/images/cloak/night-convertible.png", label: "Top down" },
-						{ src: "/images/cloak/night-picnic.png", label: "After hours" },
+						{ src: "/images/cloak/night-towelflat.png", label: "Beach nights" },
+						{ src: "/images/cloak/night-moto.png", label: "On the move" },
 					].map((m) => (
 						<div
 							key={m.src}
@@ -829,8 +829,8 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 			<section className="px-6 pb-24 max-w-5xl mx-auto">
 				<div className="grid sm:grid-cols-2 gap-5">
 					{[
-						{ src: "/images/cloak/night-poolmock.png", alt: "YUM poolside at night with a fresh mocktail" },
-						{ src: "/images/cloak/night-towelflat.png", alt: "YUM on a beach towel under neon light" },
+						{ src: "/images/cloak/night-surf.png", alt: "YUM at the beach under neon light" },
+						{ src: "/images/cloak/night-picnic.png", alt: "YUM at an after-hours picnic" },
 					].map((img) => (
 						<div
 							key={img.src}
