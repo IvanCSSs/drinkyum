@@ -655,6 +655,62 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 				</div>
 			</section>
 
+			{/* ============================= WHY PEOPLE SWITCH ============================= */}
+			<section className="px-6 pb-24 max-w-5xl mx-auto">
+				<p className="text-center text-white/50 uppercase tracking-widest text-xs mb-3">
+					Why people switch
+				</p>
+				<h2 className="text-center text-3xl sm:text-4xl font-bold mb-4">
+					Everything you like. None of what you don&apos;t.
+				</h2>
+				<p className="text-center text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed">
+					You already know what a good shot can do. We kept that — and fixed
+					the parts everyone quietly puts up with.
+				</p>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+					{[
+						{
+							gripe: "&ldquo;It tastes like punishment.&rdquo;",
+							fix: "We spent months on flavor.",
+							desc: "Smooth Bubble Gum or Tropical Breeze that goes down clean — no bitter chalk, no prune-juice burn, no holding your breath. The first shot you'll actually want to sip.",
+						},
+						{
+							gripe: "&ldquo;It hits too hard, then I crash.&rdquo;",
+							fix: "Smooth, present, never overwhelming.",
+							desc: "We keep the profile proportional to the leaf instead of spiking one compound for a cheap punch. A clean lift you can feel — not a wall that flattens you an hour later.",
+						},
+						{
+							gripe: "&ldquo;I never know what I&apos;m getting.&rdquo;",
+							fix: "Same bottle, same way, every time.",
+							desc: "Every batch is standardized and third-party lab tested — potency, heavy metals, pesticides, solvents. Predictable on purpose, with the report to back it.",
+						},
+						{
+							gripe: "&ldquo;It costs a fortune to find out.&rdquo;",
+							fix: "Try the full bottle on us.",
+							desc: "Same formula we sell every day — we'll send you a full 14ml bottle so you can decide for yourself before you spend a cent. No risk, no commitment.",
+						},
+					].map((row) => (
+						<div
+							key={row.fix}
+							className="rounded-3xl p-6 sm:p-7"
+							style={{
+								background: "rgba(255,255,255,0.03)",
+								border: "1px solid rgba(255,255,255,0.08)",
+							}}
+						>
+							<p
+								className="text-sm italic text-white/45 mb-3"
+								dangerouslySetInnerHTML={{ __html: row.gripe }}
+							/>
+							<h3 className="font-semibold text-lg mb-2 leading-tight" style={{ color: "#E1258F" }}>
+								{row.fix}
+							</h3>
+							<p className="text-white/65 text-sm leading-relaxed">{row.desc}</p>
+						</div>
+					))}
+				</div>
+			</section>
+
 			{/* ============================= REVIEWS ============================= */}
 			<section className="px-6 pb-24 max-w-3xl mx-auto">
 				<p className="text-center text-white/50 uppercase tracking-widest text-xs mb-3">
