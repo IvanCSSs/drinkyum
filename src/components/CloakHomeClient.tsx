@@ -410,7 +410,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 					{[
 						{
 							emoji: "🌿",
-							name: "THE LEAF",
+							name: "KRAT🌿M",
 							label: "Southeast Asian Botanical",
 							desc: "A tropical leaf used for centuries in Southeast Asia for its natural balancing properties. The single active heart of every YUM shot.",
 						},
@@ -772,7 +772,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 					>
 						<div className="flex items-center gap-3 mb-3">
 							<span className="text-3xl">🌿</span>
-							<h3 className="font-semibold text-lg">The Leaf</h3>
+							<h3 className="font-semibold text-lg">Krat🌿m</h3>
 						</div>
 						<p className="text-white/70 leading-relaxed text-sm sm:text-base">
 							In the heart of Southeast Asia, communities have revered this
