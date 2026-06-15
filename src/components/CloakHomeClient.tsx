@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingCart, X, Plus, Minus, ChevronDown, Check } from "lucide-react";
+import { ShoppingCart, X, Plus, Minus, ChevronDown, Check, Leaf, FlaskConical, Droplet } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 
 type SampleOption = {
@@ -413,19 +413,19 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 				<div className="grid sm:grid-cols-3 gap-5">
 					{[
 						{
-							emoji: "🌿",
+							Icon: Leaf,
 							name: "KRAT🌿M",
 							label: "Southeast Asian Botanical",
 							desc: "A tropical leaf used for centuries in Southeast Asia for its natural balancing properties. The single active heart of every YUM shot.",
 						},
 						{
-							emoji: "⚗️",
+							Icon: FlaskConical,
 							name: "THE EXTRACT",
 							label: "Standardized & Clean",
 							desc: "We extract with a clean process and standardize every batch — so the same bottle hits the same way, every time. No synthetic spikes.",
 						},
 						{
-							emoji: "💧",
+							Icon: Droplet,
 							name: "THE SHOT",
 							label: "14ml · Ready to Drink",
 							desc: "No bitter powder, no measuring, no chalky mix. A small liquid shot that's fast, precise, and actually tastes good.",
@@ -439,7 +439,9 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 								border: "1px solid rgba(255,255,255,0.08)",
 							}}
 						>
-							<div className="text-5xl mb-4">{ing.emoji}</div>
+							<div className="flex justify-center mb-4">
+								<ing.Icon size={40} strokeWidth={1.5} style={{ color: "#E1258F" }} />
+							</div>
 							<p className="text-white/40 text-[10px] uppercase tracking-widest mb-2">
 								{ing.label}
 							</p>
