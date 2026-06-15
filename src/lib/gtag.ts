@@ -129,6 +129,25 @@ export function trackCloakSampleClaim(flavor: string, value = 0): void {
   }
 }
 
+/** Fired when the free-sample offer section scrolls into view (top of funnel). */
+export function trackCloakViewOffer(flavor?: string): void {
+  gtag('event', 'view_offer', { lead_type: 'free_sample', ...(flavor ? { flavor } : {}) });
+}
+
+/** Fired when the cloak's info/disclaimer interstitial (/need-to-know) loads. */
+export function trackCloakViewInfo(flavor?: string): void {
+  gtag('event', 'view_info_page', { ...(flavor ? { flavor } : {}) });
+}
+
+/**
+ * Fired when the visitor clicks Continue on the info page and is handed off
+ * to the .com checkout. This is the last event the cloak's GA4 property sees
+ * for the session — the purchase itself lands in .com's separate property.
+ */
+export function trackCloakBeginCheckout(flavor?: string): void {
+  gtag('event', 'begin_checkout', { currency: 'USD', ...(flavor ? { flavor } : {}) });
+}
+
 // ── Generic event helper ─────────────────────────────────────────────
 
 export function trackGtagEvent(eventName: string, params?: GtagEvent): void {

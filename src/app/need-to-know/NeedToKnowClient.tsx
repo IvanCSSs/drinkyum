@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { trackCloakViewInfo, trackCloakBeginCheckout } from "@/lib/gtag";
 
 export default function NeedToKnowClient() {
 	const searchParams = useSearchParams();
@@ -14,6 +15,13 @@ export default function NeedToKnowClient() {
 	const variantId = searchParams?.get("v") ?? "";
 	const coupon = searchParams?.get("c") ?? undefined;
 	const flavor = searchParams?.get("f") ?? "";
+
+	// Cloak funnel: reached the info/disclaimer interstitial. Fires once on
+	// mount into the cloak's own GA4 property.
+	useEffect(() => {
+		trackCloakViewInfo(flavor || undefined);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	// Pre-sign the handoff token as soon as the page loads. By the time the
 	// user finishes reading the disclaimers and clicks Continue, the URL is
@@ -57,6 +65,10 @@ export default function NeedToKnowClient() {
 		if (submitting) return;
 		setSubmitting(true);
 		setError(null);
+
+		// Cloak funnel: leaving for the .com checkout. This is the last event
+		// the cloak's GA4 property sees — the purchase lands in .com's property.
+		trackCloakBeginCheckout(flavor || undefined);
 
 		// Fire Meta Pixel InitiateCheckout if available
 		const fbq = (window as unknown as { fbq?: (...args: unknown[]) => void })

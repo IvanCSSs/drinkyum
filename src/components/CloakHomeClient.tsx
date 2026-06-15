@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShoppingCart, X, Plus, Minus, ChevronDown, Check, Leaf, FlaskConical, Droplet } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
-import { trackCloakSampleClaim } from "@/lib/gtag";
+import { trackCloakSampleClaim, trackCloakViewOffer } from "@/lib/gtag";
 
 type SampleOption = {
 	id: "bg";
@@ -118,6 +118,28 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 
 	const selected = sampleOptions.find((o) => o.id === selectedId) ?? sampleOptions[0];
 	const cartCount = cart?.items?.reduce((s, i) => s + i.quantity, 0) ?? 0;
+
+	// Cloak funnel — top of funnel: fire view_offer once the free-sample
+	// offer section scrolls into view (into the cloak's own GA4 property).
+	const offerRef = useRef<HTMLElement | null>(null);
+	useEffect(() => {
+		const el = offerRef.current;
+		if (!el || typeof IntersectionObserver === "undefined") return;
+		let fired = false;
+		const obs = new IntersectionObserver(
+			(entries) => {
+				if (!fired && entries.some((e) => e.isIntersecting)) {
+					fired = true;
+					trackCloakViewOffer(selected.flavor);
+					obs.disconnect();
+				}
+			},
+			{ threshold: 0.4 }
+		);
+		obs.observe(el);
+		return () => obs.disconnect();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const handleClaim = () => {
 		if (claiming) return;
@@ -313,6 +335,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 
 			{/* ============================= FREE SAMPLE OFFER ============================= */}
 			<section
+				ref={offerRef}
 				id="free-sample"
 				className="relative px-6 pb-24 overflow-hidden scroll-mt-24"
 			>
