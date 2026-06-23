@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { klaviyoIdentify, klaviyoTrack } from "@/components/Klaviyo";
-
-const KLAVIYO_LIST_ID = "XumC9D"; // Your Klaviyo company ID
+import { klaviyoTrack } from "@/components/Klaviyo";
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
@@ -21,18 +19,19 @@ export default function Newsletter() {
     setError("");
     
     try {
-      // Identify user in Klaviyo
-      klaviyoIdentify(email, {
-        $source: 'Newsletter Signup',
-        $consent: ['email'],
+      // Actually subscribe to email marketing (server-side — the client
+      // identify call alone does NOT set marketing consent, which is why
+      // newsletter signups previously showed "Never subscribed").
+      const res = await fetch("/api/klaviyo/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, emailConsent: true }),
       });
-      
-      // Track the signup event
-      klaviyoTrack('Newsletter Signup', {
-        email,
-        source: 'homepage',
-      });
-      
+      if (!res.ok) throw new Error(`subscribe failed: ${res.status}`);
+
+      // Log the signup event for activity/attribution (non-blocking).
+      klaviyoTrack('Newsletter Signup', { email, source: 'homepage' });
+
       setIsSubmitted(true);
       setEmail("");
       setTimeout(() => setIsSubmitted(false), 5000);
