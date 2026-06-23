@@ -83,7 +83,6 @@ export default function OrderConfirmationPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tracked, setTracked] = useState(false);
 
   useEffect(() => {
     async function fetchOrder() {
@@ -100,9 +99,16 @@ export default function OrderConfirmationPage() {
         const ord = response.order;
         const currency = ord.currency_code?.toUpperCase() || 'USD';
 
-        // Fire conversion events once — guard against re-renders
-        if (!tracked) {
-          setTracked(true);
+        // Fire conversion events exactly once PER ORDER — guard against both
+        // re-renders and full page reloads (refresh/back re-mounts the component,
+        // which is why a useState flag alone double-counted). sessionStorage
+        // persists across reloads within the tab.
+        const dedupeKey = `purchase_tracked_${String(ord.display_id || ord.id)}`;
+        const alreadyTracked =
+          typeof window !== "undefined" && sessionStorage.getItem(dedupeKey) === "1";
+
+        if (!alreadyTracked) {
+          if (typeof window !== "undefined") sessionStorage.setItem(dedupeKey, "1");
 
           // GA4 purchase event
           const gtagItems: GtagItem[] = ord.items.map((item) => ({
