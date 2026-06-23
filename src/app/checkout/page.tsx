@@ -1362,6 +1362,26 @@ function CheckoutPageInner() {
             payment_method: 'authorizenet',
           });
 
+          // Subscribe to Klaviyo marketing per the checkout consent boxes.
+          // Server-side (the only way to set real marketing consent — the
+          // client identify calls don't). Fire-and-forget so it never blocks
+          // the redirect; keepalive lets it complete after navigation.
+          if (emailMarketing || smsMarketing) {
+            fetch("/api/klaviyo/subscribe", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              keepalive: true,
+              body: JSON.stringify({
+                email,
+                phone: phone || undefined,
+                firstName,
+                lastName,
+                emailConsent: emailMarketing,
+                smsConsent: smsMarketing,
+              }),
+            }).catch(() => {});
+          }
+
           window.location.href = `/order-confirmation/${order.id}?key=${order.order_key}`;
           return;
         } else {
