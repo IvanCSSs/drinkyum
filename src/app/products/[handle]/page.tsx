@@ -602,6 +602,37 @@ export default function ProductPage({
               ))}
             </motion.div>
           )}
+
+          {/* About Kratom — static, always present so every product page has
+              real kratom/mitragynine content (matches the Shopping feed and
+              gives Google's matching the relevance signal to surface this
+              product on kratom searches). */}
+          <div className="mt-16 max-w-3xl">
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Premium Kratom Extract
+            </h2>
+            <div className="space-y-4 text-white/60 leading-relaxed">
+              <p>
+                YUM is a premium kratom extract standardized for 75% mitragynine
+                — the primary active alkaloid in the kratom leaf (Mitragyna
+                speciosa), known for energy, focus, and a smooth, balanced
+                experience. Unlike raw kratom powder, our extract is precisely
+                dosed for consistency batch to batch.
+              </p>
+              <p>
+                Every batch of our kratom extract is third-party lab tested for
+                potency and purity — you get the verified mitragynine percentage
+                and a full safety screening, so you always know exactly what&apos;s
+                in your kratom shot.
+              </p>
+              <p className="text-white/50 text-sm">
+                New to kratom? Start with half a serving (about 7ml) and wait
+                30&ndash;45 minutes to assess effects before taking more. For adults
+                21+. Not evaluated by the FDA. Do not use if pregnant, nursing,
+                or taking medication.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

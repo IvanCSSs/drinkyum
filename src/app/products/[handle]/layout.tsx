@@ -40,15 +40,25 @@ export async function generateMetadata({ params }: ProductLayoutProps): Promise<
   const price = product.variants?.[0]?.prices?.[0]?.amount || 0;
   const imageUrl = product.images?.[0]?.url || product.thumbnail;
 
+  // Ensure "Kratom Extract" is in the SSR'd title + description — this is the
+  // HTML Googlebot reads first, and it's the relevance signal that lets the
+  // product surface on kratom Shopping searches (matches the open feed).
+  const kratomTitle = /kratom/i.test(product.title)
+    ? product.title
+    : `${product.title} — Kratom Extract`;
+  const kratomDesc = product.description
+    ? `${product.description} Premium kratom extract, standardized mitragynine, lab-tested.`
+    : `Shop ${product.title} — premium kratom extract with standardized mitragynine, lab-tested every batch.`;
+
   return {
-    title: `${product.title} | DrinkYUM`,
-    description: product.description || `Shop ${product.title} at DrinkYUM. Premium kratom extract beverages.`,
+    title: `${kratomTitle} | DrinkYUM`,
+    description: kratomDesc,
     alternates: {
       canonical: `/products/${handle}`,
     },
     openGraph: {
-      title: product.title,
-      description: product.description,
+      title: kratomTitle,
+      description: kratomDesc,
       type: "website",
       images: imageUrl ? [{ url: imageUrl }] : undefined,
     },
