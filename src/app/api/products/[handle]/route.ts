@@ -17,7 +17,12 @@ export async function GET(
   const { handle } = await params
 
   try {
-    const product = await getProductByHandle(handle)
+    // Fetch product + subscription options in parallel (was sequential —
+    // each is a ~2s WP round-trip, so this ~halves the uncached latency).
+    const [product, subscriptionOptions] = await Promise.all([
+      getProductByHandle(handle),
+      getSubscriptionOptions(handle),
+    ])
 
     if (!product) {
       return NextResponse.json(
@@ -26,13 +31,19 @@ export async function GET(
       )
     }
 
-    // Also fetch subscription options using the handle (slug) which we know works
-    const subscriptionOptions = await getSubscriptionOptions(handle)
-
-    return NextResponse.json({
-      product,
-      subscriptionOptions,
-    })
+    // Edge-cache the response: product data is stable, so serve cached for
+    // 5 min and revalidate in the background for up to an hour. Repeat hits
+    // (the common case for paid-click landings) return instantly without a
+    // WP round-trip. Cache-only — never changes the data returned.
+    return NextResponse.json(
+      { product, subscriptionOptions },
+      {
+        headers: {
+          'Cache-Control':
+            'public, s-maxage=300, stale-while-revalidate=3600',
+        },
+      }
+    )
   } catch (error) {
     console.error('[API] Error fetching product:', error)
     return NextResponse.json(
