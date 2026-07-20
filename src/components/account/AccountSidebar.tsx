@@ -11,10 +11,11 @@ import {
   User,
   Lock,
   LogOut,
+  Store,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-const navItems = [
+const baseNavItems = [
   { href: "/account", label: "Dashboard", icon: LayoutDashboard },
   { href: "/account/orders", label: "Orders", icon: Package },
   { href: "/account/subscriptions", label: "Subscriptions", icon: RefreshCw },
@@ -26,6 +27,14 @@ const navItems = [
 export default function AccountSidebar() {
   const pathname = usePathname();
   const { logout, customer } = useAuth();
+
+  // Show the Wholesale bulk-order tab only to approved wholesale accounts.
+  const navItems = customer?.wholesale?.approved
+    ? [
+        ...baseNavItems,
+        { href: "/account/wholesale", label: "Wholesale", icon: Store },
+      ]
+    : baseNavItems;
 
   const isActive = (href: string) => {
     if (href === "/account") {

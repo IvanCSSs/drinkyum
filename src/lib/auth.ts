@@ -24,6 +24,10 @@ export interface Customer {
   last_name: string
   phone?: string
   has_account: boolean
+  wholesale?: {
+    status: 'none' | 'pending' | 'approved' | 'rejected'
+    approved: boolean
+  }
   billing?: {
     first_name: string
     last_name: string
