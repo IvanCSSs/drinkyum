@@ -2388,13 +2388,6 @@ function CheckoutPageInner() {
                     </div>
                   )}
 
-                  <p className="text-[11px] leading-tight text-white/40 mb-4 max-w-md">
-                    By placing your order, you authorize our payment processor to
-                    temporarily retain your payment method to facilitate any
-                    post-purchase additions to this order. Retention is temporary
-                    and terminates upon order fulfillment.
-                  </p>
-
                   <div className="flex gap-4">
                     <button
                       onClick={() => handleStepChange(2)}
@@ -2443,6 +2436,13 @@ function CheckoutPageInner() {
                       )}
                     </button>
                   </div>
+
+                  <p className="text-[11px] leading-tight text-white/30 mt-4 text-center max-w-lg mx-auto">
+                    By placing your order, you authorize our payment processor to
+                    temporarily retain your payment method to facilitate any
+                    post-purchase additions to this order. Retention is temporary
+                    and terminates upon order fulfillment.
+                  </p>
                 </div>
               )}
             </motion.div>
