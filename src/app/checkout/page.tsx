@@ -13,7 +13,8 @@ import {
   Check,
   ChevronDown,
   Tag,
-  X
+  X,
+  Plus
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo, Suspense } from "react";
 import Navbar from "@/components/Navbar";
@@ -296,7 +297,37 @@ function CheckoutPageInner() {
     updateShippingAddress,
     selectShippingRate: selectShippingRateContext,
     refreshCart,
+    addToCart,
+    removeItem,
   } = useCart();
+
+  // ── Order bump (free-sample flow only): add another 14ml BG bottle for $6 ──
+  const BUMP_PRODUCT_ID = "1874"; // hidden yum-bubble-gum-14ml-bump product
+  const bumpLine = useMemo(
+    () => contextItems.find(
+      (it) => String(it.variant?.product?.id) === BUMP_PRODUCT_ID || String(it.variant_id) === BUMP_PRODUCT_ID
+    ),
+    [contextItems]
+  );
+  const bumpAdded = !!bumpLine;
+  const [bumpBusy, setBumpBusy] = useState(false);
+
+  const toggleBump = useCallback(async () => {
+    if (bumpBusy) return;
+    setBumpBusy(true);
+    try {
+      if (bumpAdded && bumpLine) {
+        await removeItem(bumpLine.id);
+      } else {
+        await addToCart(BUMP_PRODUCT_ID, 1, { order_bump: true });
+      }
+      await refreshCart();
+    } catch (err) {
+      console.error("[Order Bump] toggle failed:", err);
+    } finally {
+      setBumpBusy(false);
+    }
+  }, [bumpBusy, bumpAdded, bumpLine, removeItem, addToCart, refreshCart]);
 
   // Transform CartContext items to checkout format
   const cartItems = useMemo(() => contextItems.map(item => ({
@@ -2379,6 +2410,52 @@ function CheckoutPageInner() {
                       <span className="text-white text-sm">{selectedShipping === "express" ? "Express (2-3 days)" : "Standard (5-7 days)"}</span>
                     </div>
                   </div>
+
+                  {/* Order Bump — free-sample flow only */}
+                  {isFreeSampleOffer && (
+                    <button
+                      type="button"
+                      onClick={toggleBump}
+                      disabled={bumpBusy}
+                      className="w-full text-left rounded-xl p-4 transition-all disabled:opacity-60 disabled:cursor-wait"
+                      style={{
+                        background: bumpAdded ? "rgba(225,37,143,0.08)" : "rgba(255,255,255,0.02)",
+                        border: bumpAdded ? "1px solid rgba(225,37,143,0.6)" : "1px dashed rgba(225,37,143,0.4)",
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        {/* Checkbox */}
+                        <div
+                          className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 transition-all"
+                          style={{
+                            background: bumpAdded ? "linear-gradient(135deg, #E1258F 0%, #C01F7A 100%)" : "rgba(255,255,255,0.05)",
+                            border: bumpAdded ? "none" : "1px solid rgba(255,255,255,0.2)",
+                          }}
+                        >
+                          {bumpBusy ? (
+                            <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                          ) : bumpAdded ? (
+                            <Check size={16} className="text-white" />
+                          ) : (
+                            <Plus size={16} className="text-yum-pink" />
+                          )}
+                        </div>
+
+                        {/* Copy */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-white font-semibold text-sm">
+                              Add another 14ml Bubble Gum bottle
+                            </span>
+                            <span className="text-yum-pink font-bold text-sm whitespace-nowrap">+$6</span>
+                          </div>
+                          <p className="text-white/50 text-xs mt-0.5">
+                            One-time offer — ships free with your sample. {bumpAdded ? "Added to your order." : "Tap to add."}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  )}
 
                   {/* Payment Error Display */}
                   {paymentError && (
