@@ -146,11 +146,17 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div className="flex items-center gap-3 lg:gap-6 order-1 sm:order-3 flex-wrap justify-center sm:justify-end">
-            <Link 
+            <Link
               href="/shipping-returns"
               className="text-[12px] lg:text-[13px] hover:opacity-80 transition-opacity text-white"
             >
               Shipping & Returns
+            </Link>
+            <Link
+              href="/shipping-policy"
+              className="text-[12px] lg:text-[13px] hover:opacity-80 transition-opacity text-white"
+            >
+              Claims Policy
             </Link>
             <Link 
               href="/terms-of-service"
