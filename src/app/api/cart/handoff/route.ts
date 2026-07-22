@@ -175,12 +175,12 @@ export async function GET(request: NextRequest) {
 	// CoCart's Set-Cookie carries the session — the .com checkout reads from
 	// it on the very next request. We don't need a cart_key URL param.
 	const redirectUrl = new URL("/checkout", "https://www.drinkyum.com");
-	// Tag cloak-origin buyers so they can be segmented in GA4. Users arriving
-	// via this handoff came from the .co cloak; without this the cross-domain
-	// jump reads as a self-referral / direct. Kept to our own GA4 only — no
-	// ad-platform-visible signal that links .co to .com.
-	redirectUrl.searchParams.set("utm_source", "cloak");
-	redirectUrl.searchParams.set("utm_medium", "handoff");
+	// Tag handoff-origin buyers so they can be segmented in GA4. The label is
+	// deliberately neutral/non-descriptive — it must reveal nothing to anyone
+	// inspecting the URL, referrer, or an analytics export. Segment on these
+	// values in our own GA4; they carry no external meaning.
+	redirectUrl.searchParams.set("utm_source", "yum-direct");
+	redirectUrl.searchParams.set("utm_medium", "partner");
 	const response = NextResponse.redirect(redirectUrl, 302);
 	for (const sc of setCookies) {
 		response.headers.append("Set-Cookie", sc);
