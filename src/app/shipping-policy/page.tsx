@@ -53,11 +53,11 @@ export default function ShippingPolicyPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="grid sm:grid-cols-3 gap-4 mb-12"
           >
-            <a href="mailto:Damage@lunayum.com" className="p-6 rounded-2xl text-center block hover:border-yum-pink transition-colors"
+            <a href="mailto:support@drinkyum.com" className="p-6 rounded-2xl text-center block hover:border-yum-pink transition-colors"
               style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <Mail className="w-8 h-8 text-yum-pink mx-auto mb-3" />
               <h3 className="text-white font-semibold mb-1">Report by Email</h3>
-              <p className="text-white/50 text-sm">Damage@lunayum.com</p>
+              <p className="text-white/50 text-sm">support@drinkyum.com</p>
             </a>
             <a href="tel:8558055327" className="p-6 rounded-2xl text-center block hover:border-yum-pink transition-colors"
               style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -127,7 +127,7 @@ export default function ShippingPolicyPage() {
               <p>Shortages, shipping damage, incorrect products, missing documentation, or any other shipment discrepancy must be reported to the Company within two (2) business days of delivery, using one of the methods below:</p>
               <Bullets items={[
                 "Online Form — the preferred method. Complete the claim form so photographs and supporting details can be attached directly to the claim record.",
-                "Email — send a report to Damage@lunayum.com if the online form cannot be used.",
+                "Email — send a report to support@drinkyum.com if the online form cannot be used.",
                 "Phone — call 855-805-5327 for assistance or to notify the Company of an issue.",
               ]} />
               <p className="text-white/80 font-medium mt-4">For faster review, submit through the online form and attach photos. Include when available:</p>

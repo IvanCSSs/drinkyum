@@ -70,12 +70,12 @@ export default function ShippingIssuesPage() {
       const res = await fetch("/api/shipping-claim", { method: "POST", body });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setError(data.message || "Something went wrong. Please try again or email Damage@lunayum.com.");
+        setError(data.message || "Something went wrong. Please try again or email support@drinkyum.com.");
       } else {
         setIsSubmitted(true);
       }
     } catch {
-      setError("Submission failed. Please email Damage@lunayum.com or call 855-805-5327.");
+      setError("Submission failed. Please email support@drinkyum.com or call 855-805-5327.");
     } finally {
       setIsSubmitting(false);
     }
@@ -108,8 +108,8 @@ export default function ShippingIssuesPage() {
             </p>
             <p className="text-white/40 text-sm mt-3">
               Prefer email or phone? Reach us at{" "}
-              <a href="mailto:Damage@lunayum.com" className="text-yum-pink hover:underline">
-                Damage@lunayum.com
+              <a href="mailto:support@drinkyum.com" className="text-yum-pink hover:underline">
+                support@drinkyum.com
               </a>{" "}
               or <span className="text-white/60">855-805-5327</span>. See our{" "}
               <Link href="/shipping-policy" className="text-yum-pink hover:underline">
