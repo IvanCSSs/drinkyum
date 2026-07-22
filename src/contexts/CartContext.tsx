@@ -42,6 +42,7 @@ interface CartContextType {
   openDrawer: () => void;
   closeDrawer: () => void;
   addToCart: (variantId: string, quantity?: number, metadata?: Record<string, unknown>) => Promise<void>;
+  addToCartSilent: (variantId: string, quantity?: number, metadata?: Record<string, unknown>) => Promise<void>;
   addSubscription: (variantId: string, quantity: number, subscriptionOptionId: string) => Promise<void>;
   updateQuantity: (lineItemId: string, quantity: number) => Promise<void>;
   removeItem: (lineItemId: string) => Promise<void>;
@@ -149,6 +150,44 @@ export function CartProvider({ children }: { children: ReactNode }) {
       throw err;
     } finally {
       setIsAddingToCart(false);
+    }
+  }, []);
+
+  // Silent add — same as addToCart but never opens the drawer. Used for
+  // checkbox-style additions (e.g. the checkout order bump) where the item
+  // should just update the cart totals in place, no drawer slide-out.
+  const addToCartSilent = useCallback(async (
+    variantId: string,
+    quantity: number = 1,
+    metadata?: Record<string, unknown>
+  ) => {
+    try {
+      setError(null);
+      const updatedCart = await apiAddToCart(variantId, quantity, metadata);
+      setCart(updatedCart);
+
+      const addedItem = updatedCart.items.find(i => i.variant_id === variantId)
+        || updatedCart.items[updatedCart.items.length - 1];
+      if (addedItem) {
+        trackAddToCart({
+          productId: addedItem.variant?.product?.id || variantId,
+          variantId: addedItem.variant_id,
+          title: addedItem.title,
+          quantity,
+          price: addedItem.unit_price,
+        });
+        trackGtagAddToCart({
+          item_id: addedItem.variant?.product?.id || variantId,
+          item_name: addedItem.title,
+          price: addedItem.unit_price,
+          quantity,
+          currency: 'USD',
+        });
+      }
+    } catch (err) {
+      console.error("Failed to add to cart (silent):", err);
+      setError("Failed to add item to cart");
+      throw err;
     }
   }, []);
 
@@ -396,6 +435,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         openDrawer,
         closeDrawer,
         addToCart,
+        addToCartSilent,
         addSubscription,
         updateQuantity,
         removeItem,

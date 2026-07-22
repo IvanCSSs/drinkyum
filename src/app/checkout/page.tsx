@@ -296,8 +296,7 @@ function CheckoutPageInner() {
     removeCoupon,
     updateShippingAddress,
     selectShippingRate: selectShippingRateContext,
-    refreshCart,
-    addToCart,
+    addToCartSilent,
     removeItem,
   } = useCart();
 
@@ -319,15 +318,14 @@ function CheckoutPageInner() {
       if (bumpAdded && bumpLine) {
         await removeItem(bumpLine.id);
       } else {
-        await addToCart(BUMP_PRODUCT_ID, 1, { order_bump: true });
+        await addToCartSilent(BUMP_PRODUCT_ID, 1, { order_bump: true });
       }
-      await refreshCart();
     } catch (err) {
       console.error("[Order Bump] toggle failed:", err);
     } finally {
       setBumpBusy(false);
     }
-  }, [bumpBusy, bumpAdded, bumpLine, removeItem, addToCart, refreshCart]);
+  }, [bumpBusy, bumpAdded, bumpLine, removeItem, addToCartSilent]);
 
   // Transform CartContext items to checkout format
   const cartItems = useMemo(() => contextItems.map(item => ({
