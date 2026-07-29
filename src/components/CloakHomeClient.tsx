@@ -251,7 +251,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 				</div>
 
 				<p className="relative z-10 text-white/85 text-lg sm:text-xl max-w-xl mb-8 leading-relaxed text-center">
-					Everything you like about your shot — without the burn, the guesswork, or the crash. Powered by ancient plants for effects you can actually feel.
+					Clean energy, sharp focus, an easy lift in your mood, or a calm, relaxed unwind — one small shot, your way. A natural, plant-powered alternative for people who want to feel good without the burn, the guesswork, or the crash.
 				</p>
 
 				<button
@@ -446,7 +446,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 							Icon: Leaf,
 							name: "KRAT🌿M",
 							label: "Southeast Asian Botanical",
-							desc: "A tropical leaf used for centuries in Southeast Asia for its natural balancing properties. The single active heart of every YUM shot.",
+							desc: "A tropical leaf used for centuries in Southeast Asia for natural energy, focus, mood, and calm. The single active heart of every YUM shot — a plant-based alternative people reach for to feel good.",
 						},
 						{
 							Icon: FlaskConical,
@@ -494,18 +494,18 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 					{[
 						{
 							num: "01",
-							title: "Sip the Botanicals",
-							desc: "A 14ml shot of ancient plants. No mixing, no waiting, no aftertaste.",
+							title: "Energy & Focus",
+							desc: "A clean, natural pick-me-up for when you need energy and sharp focus — a smooth botanical lift without the jittery crash of coffee or an energy drink.",
 						},
 						{
 							num: "02",
-							title: "Feel the Shift",
-							desc: "Within 15–20 minutes the botanicals work in. Smooth, present, clear.",
+							title: "Mood & Calm",
+							desc: "Feel good, ease stress, and relax. Within 15–20 minutes the botanicals settle in for an uplifted mood and a calm, mellow unwind — present, clear, never overwhelming.",
 						},
 						{
 							num: "03",
-							title: "Find Your Flow",
-							desc: "Stay sharp. Stay social. Or quietly enjoy the moment, your way.",
+							title: "Social & Flow",
+							desc: "Stay social and confident, or quietly enjoy the moment. A functional shot people reach for as a feel-good alternative to alcohol on a night out or a relaxed evening in.",
 						},
 					].map((step) => (
 						<div
@@ -869,10 +869,12 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						<p className="text-white/70 leading-relaxed text-sm sm:text-base">
 							In the heart of Southeast Asia, communities have revered this
 							tropical leaf for centuries. Farmers chewed it to restore energy,
-							soothe long days, and stay alert under the sun. It was tradition
-							before it was a trend — and it's the single active heart of every
-							YUM shot. No filler botanicals, no kitchen-sink blend. Just the
-							leaf, sourced from growers who do it properly.
+							sharpen focus, lift the mood, soothe long days, and stay calm and
+							alert under the sun — a natural pick-me-up long before energy
+							drinks or wellness shots existed. It was tradition before it was a
+							trend, and it's the single active heart of every YUM shot. No
+							filler botanicals, no kitchen-sink blend. Just the leaf, sourced
+							from growers who do it properly.
 						</p>
 					</div>
 
