@@ -146,12 +146,12 @@ export default function WhatIsKratomPage() {
             </figcaption>
           </figure>
 
-          {/* beach product break */}
+          {/* lifestyle break — different subject/setting (marina) to avoid repetition */}
           <figure className="my-10 overflow-hidden rounded-3xl border border-white/10">
             <div className="relative aspect-square sm:aspect-[4/3]">
               <Image
-                src="/images/cloak/lifestyle-beachheld.jpg"
-                alt="A YUM botanical extract shot held up at the beach"
+                src="/images/cloak/lifestyle-marina.jpg"
+                alt="A YUM botanical extract shot at the marina"
                 fill
                 className="object-cover object-center"
                 sizes="(max-width: 768px) 100vw, 672px"
