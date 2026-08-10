@@ -1,10 +1,28 @@
 import { MetadataRoute } from "next";
 import { getBlogPosts } from "@/lib/wordpress-posts";
 
+const IS_CLOAK = process.env.NEXT_PUBLIC_CLOAK === "true";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // The cloak (.co) is self-contained: its own base URL and its own small set of
+  // indexable pages — it does NOT list the .com store/blog. This lets the cloak's
+  // PMax URL-expansion discover /what-is-kratom from the cloak's own sitemap.
+  if (IS_CLOAK) {
+    const baseUrl = "https://drinkyum.co";
+    const cloakPages: { path: string; priority: number }[] = [
+      { path: "/what-is-kratom", priority: 1 },
+    ];
+    return cloakPages.map(({ path, priority }) => ({
+      url: `${baseUrl}${path}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority,
+    }));
+  }
+
+  // Money site (.com) — full sitemap.
   const baseUrl = "https://www.drinkyum.com";
 
-  // Static pages
   const staticPages = [
     "",
     "/collections",
@@ -21,11 +39,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries = staticPages.map((path) => ({
     url: `${baseUrl}${path}`,
     lastModified: new Date(),
-    changeFrequency: path === "" ? "daily" as const : "weekly" as const,
+    changeFrequency: path === "" ? ("daily" as const) : ("weekly" as const),
     priority: path === "" ? 1 : path === "/collections" ? 0.9 : 0.7,
   }));
 
-  // Blog posts
   let blogEntries: MetadataRoute.Sitemap = [];
   try {
     const { posts } = await getBlogPosts({ per_page: 100 });
