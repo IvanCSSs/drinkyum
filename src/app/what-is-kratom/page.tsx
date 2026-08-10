@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/what-is-kratom" },
 };
 
-function SampleCTA({ label = "Try a YUM sample — free" }: { label?: string }) {
+function SampleCTA({ label = "See the YUM range" }: { label?: string }) {
   return (
     <div className="my-12 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-yum-pink/10 to-yum-cyan/5">
       <div className="grid sm:grid-cols-2 items-center">
@@ -30,12 +30,12 @@ function SampleCTA({ label = "Try a YUM sample — free" }: { label?: string }) 
             actually like.
           </p>
           <Link
-            href="/free-sample"
+            href="/"
             className="inline-block rounded-full bg-yum-pink hover:bg-yum-pink-light transition px-7 py-3.5 font-bold text-white"
           >
             {label} →
           </Link>
-          <p className="text-white/40 text-xs mt-3">Full 14ml bottle · just cover shipping</p>
+          <p className="text-white/40 text-xs mt-3">Two flavors · lab-tested · ships nationwide</p>
         </div>
       </div>
     </div>
@@ -247,13 +247,13 @@ export default function WhatIsKratomPage() {
                   The fastest way to answer &ldquo;is it for me?&rdquo; — taste it.
                 </h2>
                 <p className="text-white/80 mb-5 max-w-md text-sm sm:text-base">
-                  A full 14ml YUM bottle, on us — you just cover shipping. One per customer.
+                  Lab-tested, standardized, and actually pleasant to drink. Two flavors, ships nationwide.
                 </p>
                 <Link
-                  href="/free-sample"
+                  href="/"
                   className="inline-block rounded-full bg-yum-pink hover:bg-yum-pink-light transition px-10 py-4 font-bold text-white text-lg"
                 >
-                  Claim your free sample →
+                  Shop the YUM range →
                 </Link>
               </div>
             </div>

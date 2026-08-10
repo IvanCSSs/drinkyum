@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 
 /**
- * Engagement popup for the kratom education page.
- * Fires on: (1) scroll past ~35% of the article, or (2) exit-intent (mouse to top),
- * whichever comes first — then never again this session (sessionStorage).
- * Goal: capture the reader who's now educated + curious with the free-sample offer.
+ * Engagement popup — follows Klaviyo's standard, gentler trigger rules:
+ *   - Time delay: ~8 seconds after load (not immediate), OR
+ *   - Scroll depth: past ~50% of the page,
+ *   whichever comes first — then not again this session (sessionStorage).
+ * No aggressive exit-intent / fast 40s fallback; give the reader time to engage first.
  */
 export default function FreeSamplePopup() {
   const [open, setOpen] = useState(false);
@@ -29,31 +30,25 @@ export default function FreeSamplePopup() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (sessionStorage.getItem("yum_sample_popup_seen")) return;
 
-    // Scroll trigger — past 35% of the page
+    // Klaviyo-style time delay: 8 seconds
+    const timer = window.setTimeout(show, 8000);
+
+    // Klaviyo-style scroll trigger: past 50% of the page
     const onScroll = () => {
-      const scrolled = window.scrollY / (document.body.scrollHeight - window.innerHeight);
-      if (scrolled > 0.35) {
+      const denom = document.body.scrollHeight - window.innerHeight;
+      const scrolled = denom > 0 ? window.scrollY / denom : 0;
+      if (scrolled > 0.5) {
         show();
         window.removeEventListener("scroll", onScroll);
       }
     };
-    // Exit-intent trigger — mouse leaves toward the top (desktop)
-    const onMouseOut = (e: MouseEvent) => {
-      if (e.clientY <= 0) {
-        show();
-        document.removeEventListener("mouseout", onMouseOut);
-      }
-    };
-    // Time fallback — 40s in, if still reading
-    const timer = window.setTimeout(show, 40000);
-
     window.addEventListener("scroll", onScroll, { passive: true });
-    document.addEventListener("mouseout", onMouseOut);
+
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      document.removeEventListener("mouseout", onMouseOut);
       window.clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
     };
   }, [show]);
 
@@ -84,20 +79,20 @@ export default function FreeSamplePopup() {
           Before you go
         </p>
         <h3 className="relative text-2xl font-bold text-white mb-3 leading-snug">
-          Try the extract that&apos;s actually easy to drink — free.
+          Try the extract that&apos;s actually easy to drink.
         </h3>
         <p className="relative text-white/70 text-sm leading-relaxed mb-6">
           Now that you know what to look for, taste the difference for yourself.
-          A full 14ml YUM bottle — <span className="text-white font-semibold">just cover shipping.</span>{" "}
-          No bitter aftertaste, lab-tested, one per customer.
+          <span className="text-white font-semibold"> Lab-tested, standardized,</span> and no bitter
+          aftertaste — in two flavors people actually come back for.
         </p>
 
         <Link
-          href="/free-sample"
+          href="/"
           onClick={close}
           className="relative block w-full rounded-full bg-yum-pink hover:bg-yum-pink-light transition py-4 font-bold text-white text-lg"
         >
-          Claim my free sample →
+          See the full range →
         </Link>
         <button
           onClick={close}
