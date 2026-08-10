@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "What Is Kratom? The Honest, Nuanced Answer Google's First Page Won't Give You",
   description:
     "You searched 'what is kratom' and got FDA warnings on one side and Reddit praise on the other. Here's the straight, nuanced answer — what it is, how it works, why product quality decides everything, and how to try it responsibly.",
-  alternates: { canonical: "/kratom-guide" },
+  alternates: { canonical: "/what-is-kratom" },
 };
 
 function SampleCTA({ label = "Try a YUM sample — free" }: { label?: string }) {
