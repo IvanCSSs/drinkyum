@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import FreeSamplePopup from "./FreeSamplePopup";
 
 export const metadata: Metadata = {
-  title: "What Is Kratom? The Honest, Nuanced Answer Google's First Page Won't Give You",
+  title: "What Is Kratom? 10 Things You've Heard That Deserve More Nuance",
   description:
     "You searched 'what is kratom' and got FDA warnings on one side and Reddit praise on the other. Here's the straight, nuanced answer — what it is, how it works, why product quality decides everything, and how to try it responsibly.",
   alternates: { canonical: "/what-is-kratom" },
@@ -40,7 +40,7 @@ export default function KratomGuidePage() {
         <header className="mb-12">
           <p className="uppercase tracking-[0.3em] text-white/40 text-xs mb-5">The honest answer</p>
           <h1 className="text-4xl sm:text-5xl font-bold leading-[1.1] mb-6 text-balance">
-            What Is Kratom, Actually?
+            What Is Kratom? 10 Things You&rsquo;ve Heard That Deserve More Nuance
           </h1>
           <p className="text-white/70 text-lg leading-relaxed">
             You typed &ldquo;what is kratom&rdquo; into Google and got a wall of FDA warnings, a Mayo
