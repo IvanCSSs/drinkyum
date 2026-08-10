@@ -132,12 +132,12 @@ export default function WhatIsKratomPage() {
 
           {/* lifestyle image break */}
           <figure className="my-10 overflow-hidden rounded-3xl border border-white/10">
-            <div className="relative aspect-[16/9]">
+            <div className="relative aspect-square sm:aspect-[4/3]">
               <Image
-                src="/images/cloak/night-cheers.png"
-                alt="Friends enjoying YUM together"
+                src="/images/cloak/lifestyle-beachforward.jpg"
+                alt="A YUM botanical extract shot at the beach"
                 fill
-                className="object-cover"
+                className="object-cover object-center"
                 sizes="(max-width: 768px) 100vw, 672px"
               />
             </div>
