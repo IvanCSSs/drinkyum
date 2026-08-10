@@ -146,19 +146,6 @@ export default function WhatIsKratomPage() {
             </figcaption>
           </figure>
 
-          {/* lifestyle break — different subject/setting (marina) to avoid repetition */}
-          <figure className="my-10 overflow-hidden rounded-3xl border border-white/10">
-            <div className="relative aspect-square sm:aspect-[4/3]">
-              <Image
-                src="/images/cloak/lifestyle-marina.jpg"
-                alt="A YUM botanical extract shot at the marina"
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 768px) 100vw, 672px"
-              />
-            </div>
-          </figure>
-
           <h2 className="text-2xl font-bold text-white pt-2">
             5 things that separate a good extract from a bad one
           </h2>
@@ -228,6 +215,19 @@ export default function WhatIsKratomPage() {
             we&rsquo;ll tell you is that <em>if</em> you&rsquo;re going to try it, the product you pick
             matters more than almost anything else you&rsquo;ll read today.
           </p>
+
+          {/* lifestyle break — marina (well-separated from the earlier beach image) */}
+          <figure className="my-10 overflow-hidden rounded-3xl border border-white/10">
+            <div className="relative aspect-square sm:aspect-[4/3]">
+              <Image
+                src="/images/cloak/lifestyle-marina.jpg"
+                alt="A YUM botanical extract shot at the marina"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, 672px"
+              />
+            </div>
+          </figure>
 
           <h2 className="text-2xl font-bold text-white pt-4">If it&rsquo;s your first time</h2>
           <p>
