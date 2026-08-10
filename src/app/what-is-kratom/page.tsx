@@ -66,15 +66,15 @@ export default function WhatIsKratomPage() {
           </p>
         </header>
 
-        {/* hero image */}
+        {/* hero image — warm beach lifestyle */}
         <figure className="mb-12 overflow-hidden rounded-3xl border border-white/10">
           <div className="relative aspect-[16/10]">
             <Image
-              src="/images/product-1.png"
-              alt="DrinkYUM kratom extract beverages"
+              src="/images/cloak/life-beachcheers.jpg"
+              alt="Two people toasting YUM botanical extract shots at the beach at sunset"
               fill
               priority
-              className="object-cover"
+              className="object-cover object-center"
               sizes="(max-width: 768px) 100vw, 672px"
             />
           </div>
@@ -144,6 +144,19 @@ export default function WhatIsKratomPage() {
             <figcaption className="bg-white/[0.03] px-5 py-3 text-center text-white/50 text-sm">
               The right product turns a gamble into something you actually look forward to.
             </figcaption>
+          </figure>
+
+          {/* beach product break */}
+          <figure className="my-10 overflow-hidden rounded-3xl border border-white/10">
+            <div className="relative aspect-square sm:aspect-[4/3]">
+              <Image
+                src="/images/cloak/lifestyle-beachheld.jpg"
+                alt="A YUM botanical extract shot held up at the beach"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, 672px"
+              />
+            </div>
           </figure>
 
           <h2 className="text-2xl font-bold text-white pt-2">
