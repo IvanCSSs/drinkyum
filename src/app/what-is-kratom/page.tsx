@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   description:
     "You searched 'what is kratom' and got FDA warnings on one side and Reddit praise on the other. Here's the straight, nuanced answer — what it is, how it works, why product quality decides everything, and how to try it responsibly.",
   alternates: { canonical: "/what-is-kratom" },
+  // Override the site-wide (cloak) noindex for THIS page only: an indexed, crawlable
+  // kratom explainer gives Google a trusted relevance signal (the QS engine behind the
+  // old account's cheap CPC). Rest of the .co cloak stays noindex via layout.tsx.
+  robots: { index: true, follow: true },
 };
 
 function SampleCTA({ label = "See the YUM range" }: { label?: string }) {
