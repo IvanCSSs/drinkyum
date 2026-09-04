@@ -1,6 +1,8 @@
 'use client';
 
 import Script from 'next/script';
+import { useEffect } from 'react';
+import { trackSignupLead } from '@/lib/gtag';
 
 /**
  * Klaviyo tracking script and identify helper.
@@ -10,6 +12,22 @@ import Script from 'next/script';
 const KLAVIYO_COMPANY_ID = 'XumC9D';
 
 export default function Klaviyo() {
+  // Fire the Google Ads "Sign-up" conversion when a visitor submits any
+  // Klaviyo onsite form (popup / embed). Klaviyo dispatches a `klaviyoForms`
+  // CustomEvent on window with detail.type === 'submit' on a successful
+  // submission. This is the main opt-in source on /welcome (the popup), which
+  // previously created Klaviyo profiles with zero Google Ads conversion.
+  useEffect(() => {
+    function onKlaviyoForm(e: Event) {
+      const detail = (e as CustomEvent).detail as { type?: string } | undefined;
+      if (detail?.type === 'submit') {
+        trackSignupLead('klaviyo_popup');
+      }
+    }
+    window.addEventListener('klaviyoForms', onKlaviyoForm as EventListener);
+    return () => window.removeEventListener('klaviyoForms', onKlaviyoForm as EventListener);
+  }, []);
+
   return (
     <Script
       id="klaviyo-script"

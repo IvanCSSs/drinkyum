@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { klaviyoTrack } from "@/components/Klaviyo";
+import { trackSignupLead } from "@/lib/gtag";
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
@@ -31,6 +32,9 @@ export default function Newsletter() {
 
       // Log the signup event for activity/attribution (non-blocking).
       klaviyoTrack('Newsletter Signup', { email, source: 'homepage' });
+
+      // Report the Google Ads "Sign-up" conversion (deduped per session).
+      trackSignupLead('newsletter_form');
 
       setIsSubmitted(true);
       setEmail("");

@@ -101,6 +101,35 @@ export function trackPurchase(
   });
 }
 
+// ── .com email opt-in / sign-up lead (the "Sign-up" conversion) ──────
+
+/**
+ * Fired when a visitor opts into email marketing on the .com money site —
+ * from ANY source: the Klaviyo popup, the homepage Newsletter form, or the
+ * checkout marketing-consent box. Reports the Google Ads "Sign-up"
+ * conversion so ads (which otherwise only ever see completed purchases) get
+ * a mid-funnel lead signal to optimize toward, plus a GA4 generate_lead.
+ *
+ * Deduped per session so one person opting in via multiple surfaces (e.g.
+ * popup then checkout) only counts once.
+ */
+const SIGNUP_SENT_KEY = 'yum_signup_conv_sent';
+
+export function trackSignupLead(source: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (sessionStorage.getItem(SIGNUP_SENT_KEY)) return;
+    sessionStorage.setItem(SIGNUP_SENT_KEY, '1');
+  } catch {
+    // sessionStorage unavailable — still fire once per page load rather than block
+  }
+
+  gtag('event', 'generate_lead', { lead_type: 'email_optin', source });
+  gtag('event', 'conversion', {
+    send_to: 'AW-17931720610/q_0BCMryn-4cEKKvweZC',
+  });
+}
+
 // ── Cloak free-sample lead (separate account, env-driven) ────────────
 
 /**

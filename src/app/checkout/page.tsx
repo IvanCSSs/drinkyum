@@ -31,7 +31,7 @@ import {
   type Address
 } from "@/lib/wc-checkout";
 import { trackCheckoutStep } from "@/lib/analytics";
-import { trackBeginCheckout, type GtagItem } from "@/lib/gtag";
+import { trackBeginCheckout, trackSignupLead, type GtagItem } from "@/lib/gtag";
 import { tracker } from "@/lib/tracker";
 import { trackMetaEvent } from "@/components/MetaPixel";
 import { klaviyoStartedCheckout, klaviyoIdentify } from "@/components/Klaviyo";
@@ -1409,6 +1409,10 @@ function CheckoutPageInner() {
                 smsConsent: smsMarketing,
               }),
             }).catch(() => {});
+
+            // Report the Google Ads "Sign-up" conversion for the email opt-in
+            // (deduped per session, so it won't double-count a popup opt-in).
+            if (emailMarketing) trackSignupLead("checkout_consent");
           }
 
           window.location.href = `/order-confirmation/${order.id}?key=${order.order_key}`;
