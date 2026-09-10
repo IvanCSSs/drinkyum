@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 
 const yumFeatures = [
-  { label: "Activation Time", value: "15 minutes" },
-  { label: "Duration", value: "6-8 hours" },
-  { label: "Crash", value: "Zero" },
+  { label: "Activation Time", value: "20-30 minutes" },
+  { label: "Duration", value: "3-4 hours" },
+  { label: "Crash", value: "Gentle offset" },
   { label: "Taste", value: "Exceptional" },
-  { label: "Purity", value: "75% mitragynine" },
+  { label: "Purity", value: "266 mg mitragynine / 30ml" },
   { label: "Lab Testing", value: "Every batch" },
   { label: "Portability", value: "Pocket-sized" },
   { label: "Price per Dose", value: "Premium but worth it" },

@@ -37,7 +37,7 @@ import tracker from "@/lib/tracker";
 // Default benefits for all products
 const defaultBenefits = [
   { icon: "flask", title: "Lab Tested", description: "Third-party verified for purity and potency" },
-  { icon: "leaf", title: "Premium Extract", description: "High-quality concentration" },
+  { icon: "leaf", title: "266mg Mitragynine", description: "Per 30ml bottle · 7-OH not detected" },
   { icon: "zap", title: "Fast Acting", description: "Feel the effects within 20-30 minutes" },
   { icon: "clock", title: "Long Lasting", description: "3-4 hours of balanced effects" },
 ];
@@ -260,15 +260,33 @@ export default function ProductPage({
       });
     }
 
-    if (metadata.ingredients && Array.isArray(metadata.ingredients)) {
-      legacySections.push({
-        id: "ingredients",
-        title: "Ingredients",
-        type: "list",
-        content: metadata.ingredients as string[],
-        order: order++,
-      });
-    }
+    // Canonical ingredient list — must match the bottle label exactly.
+    // WooCommerce metadata can override, but the fallback guarantees every
+    // product page shows one consistent list.
+    const bottleIngredients =
+      metadata.ingredients && Array.isArray(metadata.ingredients)
+        ? (metadata.ingredients as string[])
+        : [
+            "Water",
+            "Vegetable Glycerin",
+            "Sugar",
+            "Kratom Extract (75% mitragynine)",
+            "Sunflower Lecithin",
+            "Natural Flavors",
+            "Alcohol*",
+            "Potassium Phosphate",
+            "Polysorbate 80",
+            "Potassium Sorbate",
+            "Acesulfame K",
+            "Neotame",
+          ];
+    legacySections.push({
+      id: "ingredients",
+      title: "Ingredients",
+      type: "list",
+      content: bottleIngredients,
+      order: order++,
+    });
 
     if (metadata.usage) {
       legacySections.push({
@@ -613,21 +631,22 @@ export default function ProductPage({
             </h2>
             <div className="space-y-4 text-white/60 leading-relaxed">
               <p>
-                YUM is a premium kratom extract standardized for 75% mitragynine
-                — the primary active alkaloid in the kratom leaf (Mitragyna
-                speciosa), known for energy, focus, and a smooth, balanced
-                experience. Unlike raw kratom powder, our extract is precisely
-                dosed for consistency batch to batch.
+                YUM is a premium kratom extract delivering 266 mg of mitragynine
+                per 30ml bottle — the primary active alkaloid in the kratom leaf
+                (Mitragyna speciosa), known for energy, focus, and a smooth,
+                balanced experience. 7-OH (7-hydroxymitragynine): not detected.
+                Unlike raw kratom powder, our extract is precisely dosed for
+                consistency batch to batch.
               </p>
               <p>
                 Every batch of our kratom extract is third-party lab tested for
-                potency and purity — you get the verified mitragynine percentage
-                and a full safety screening, so you always know exactly what&apos;s
-                in your kratom shot.
+                potency and purity — you get the verified mitragynine content in
+                milligrams and a full safety screening, so you always know
+                exactly what&apos;s in your kratom shot.
               </p>
               <p className="text-white/50 text-sm">
                 New to kratom? Start with half a serving (about 7ml) and wait
-                30&ndash;45 minutes to assess effects before taking more. For adults
+                20&ndash;30 minutes to assess effects before taking more. For adults
                 21+. Not evaluated by the FDA. Do not use if pregnant, nursing,
                 or taking medication.
               </p>

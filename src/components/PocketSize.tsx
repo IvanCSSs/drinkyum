@@ -5,11 +5,11 @@ import Image from "next/image";
 
 const features = [
   {
-    title: "TSA-Friendly",
-    description: "Take it everywhere legally",
+    title: "Grab-and-Go",
+    description: "No prep, no powder, no mess",
   },
   {
-    title: "Same 75% Extract",
+    title: "Same Full-Strength Extract",
     description: "No compromise on quality",
   },
   {
@@ -134,7 +134,7 @@ export default function PocketSize() {
               >
                 All the power of our 30ml bottles, optimized for shorter missions. 
                 The 14ml is your rapid deployment option—pocket-sized dominance for 
-                when you need a quick power-up without committing to the full 6-8 hour window.
+                when you need a quick power-up without committing to the full 3-4 hour window.
               </motion.p>
 
               {/* CTA Button */}

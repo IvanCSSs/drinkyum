@@ -36,6 +36,7 @@ import { tracker } from "@/lib/tracker";
 import { trackMetaEvent } from "@/components/MetaPixel";
 import { klaviyoStartedCheckout, klaviyoIdentify } from "@/components/Klaviyo";
 import { saveAbandonedCart } from "@/lib/abandoned-cart";
+import { isRestrictedState, shippingRestrictionError } from "@/lib/restricted-states";
 
 // Payment configuration from WordPress REST API
 interface PaymentConfig {
@@ -186,6 +187,10 @@ const US_STATES = [
   "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
   "Wisconsin", "Wyoming"
 ];
+
+// States we cannot ship to are excluded from the shipping-address dropdown.
+// Billing addresses may still use any state.
+const SHIPPABLE_STATES = US_STATES.filter((s) => !isRestrictedState(s));
 
 // =============================================================================
 // MEDUSA API HELPERS
@@ -358,6 +363,7 @@ function CheckoutPageInner() {
   const [state, setState] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [saveInfo, setSaveInfo] = useState(true);
+  const [ageConfirmed, setAgeConfirmed] = useState(false); // 21+ attestation, required at payment step
   const [selectedShipping, setSelectedShipping] = useState<"standard" | "express">("standard");
   const [confirmedShippingPrice, setConfirmedShippingPrice] = useState<number | null>(null);
   const [sameAsBilling, setSameAsBilling] = useState(true);
@@ -1100,9 +1106,19 @@ function CheckoutPageInner() {
     { id: 3, name: "Payment" },
   ];
 
+  // ZIP-level geo-block: catches both a restricted state selection and a
+  // ZIP code inside a restricted state paired with an allowed-state dropdown.
+  const shippingBlockError = useMemo(
+    () =>
+      state || zipCode.trim().length >= 5
+        ? shippingRestrictionError(state, zipCode)
+        : null,
+    [state, zipCode]
+  );
+
   const canProceed = () => {
     if (currentStep === 1) {
-      return email && firstName && lastName && address && city && state && zipCode;
+      return email && firstName && lastName && address && city && state && zipCode && !shippingBlockError;
     }
     if (currentStep === 2) {
       return selectedShipping;
@@ -1198,6 +1214,13 @@ function CheckoutPageInner() {
   // Handle final submission
   const handleSubmit = useCallback(async () => {
     if (!checkoutId) return;
+
+    // Hard stop for restricted shipping destinations (state or ZIP level)
+    const restrictionError = shippingRestrictionError(state, zipCode);
+    if (restrictionError) {
+      setPaymentError(restrictionError);
+      return;
+    }
 
     const checkoutStartedAt = performance.now();
     console.log('[Checkout][TIMING] submit_start', { checkoutId, startedAt: checkoutStartedAt });
@@ -1953,7 +1976,7 @@ function CheckoutPageInner() {
                               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-yum-pink transition-colors appearance-none cursor-pointer"
                             >
                               <option value="" className="bg-yum-dark">Select</option>
-                              {US_STATES.map((s) => (
+                              {SHIPPABLE_STATES.map((s) => (
                                 <option key={s} value={s} className="bg-yum-dark">{s}</option>
                               ))}
                             </select>
@@ -1973,6 +1996,11 @@ function CheckoutPageInner() {
                           />
                         </div>
                       </div>
+                      {shippingBlockError && (
+                        <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                          {shippingBlockError} Orders to restricted states are cancelled and refunded, so we stop them here instead.
+                        </div>
+                      )}
                       <label className="flex items-center gap-3 cursor-pointer mt-2">
                         <input
                           type="checkbox"
@@ -2459,6 +2487,21 @@ function CheckoutPageInner() {
                     </button>
                   )}
 
+                  {/* 21+ age attestation - required before payment */}
+                  <label className="flex items-start gap-3 cursor-pointer mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                    <input
+                      type="checkbox"
+                      checked={ageConfirmed}
+                      onChange={(e) => setAgeConfirmed(e.target.checked)}
+                      className="w-5 h-5 mt-0.5 rounded border-white/20 bg-white/5 text-yum-pink focus:ring-yum-pink"
+                    />
+                    <span className="text-white/60 text-sm">
+                      I confirm that I am 21 years of age or older, and that the
+                      shipping address on this order is not in a state where this
+                      product is restricted.
+                    </span>
+                  </label>
+
                   {/* Payment Error Display */}
                   {paymentError && (
                     <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 mb-4">
@@ -2479,6 +2522,7 @@ function CheckoutPageInner() {
                       onClick={handleSubmit}
                       disabled={
                         processingPayment ||
+                        !ageConfirmed ||
                         !paymentConfig?.configured ||
                         (paymentConfig.provider === "authorize_net" && !acceptJsLoaded) ||
                         (paymentConfig.provider === "stripe" && !stripeLoaded)

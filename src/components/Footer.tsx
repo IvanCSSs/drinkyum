@@ -118,7 +118,7 @@ export default function Footer() {
           {/* Copyright & Address */}
           <div className="order-3 sm:order-1 text-center sm:text-left">
             <span className="text-[12px] lg:text-[13px] text-white block">
-              © DrinkYUM 2025. All rights reserved.
+              © DrinkYUM {new Date().getFullYear()}. All rights reserved.
             </span>
             <span 
               className="text-[10px] lg:text-[11px] block mt-1"

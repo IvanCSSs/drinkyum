@@ -30,6 +30,21 @@ const nextConfig: NextConfig = {
     ];
   },
   /**
+   * Redirects for legacy Shopify-era URLs still indexed by search engines
+   * and linked from old ads (/shop, /pages/*, /collections/all).
+   */
+  async redirects() {
+    return [
+      { source: '/shop', destination: '/collections', permanent: true },
+      { source: '/pages/shop', destination: '/collections', permanent: true },
+      { source: '/collections/all', destination: '/collections', permanent: true },
+      { source: '/pages/faq', destination: '/faq', permanent: true },
+      { source: '/pages/contact', destination: '/contact', permanent: true },
+      { source: '/pages/about', destination: '/about', permanent: true },
+    ];
+  },
+
+  /**
    * CDN Rewrites for Tenant-Scoped Assets
    *
    * The backend returns relative URLs like `/cdn/products/abc123.jpg`.

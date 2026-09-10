@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 
 const stats = [
   {
-    label: "PURITY",
-    value: "75%",
-    description: "Pharmaceutical-grade precision. Every bottle.",
+    label: "MITRAGYNINE",
+    value: "266mg",
+    description: "Per 30ml bottle. Verified by third-party COA.",
   },
   {
     label: "TESTED",
@@ -76,7 +76,7 @@ export default function About() {
                   backgroundClip: "text",
                 }}
               >
-                {" "}is the result of relentless experimentation in pursuit of the perfect kratom extract. We&apos;ve achieved what others said was impossible: 75% mitragynine purity, zero bitterness, lab-verified consistency, and flavors so exceptional they&apos;ve become the benchmark for what premium extraction should deliver.
+                {" "}is the result of relentless experimentation in pursuit of the perfect kratom extract. We&apos;ve achieved what others said was impossible: 266 mg of mitragynine per 30ml bottle, no bitterness, lab-verified consistency, and flavors so exceptional they&apos;ve become the benchmark for what premium extraction should deliver.
               </span>
             </p>
           </div>

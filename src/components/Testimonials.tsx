@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 const timelineCards = [
   {
     label: "IGNITION",
-    time: "T+15",
+    time: "T+20-30M",
     color: "rgba(225, 37, 144, 1)",
     dotColor: "rgba(225, 37, 144, 1)",
     features: [
@@ -29,15 +29,15 @@ const timelineCards = [
   },
   {
     label: "SUSTAINED",
-    time: "T+6-8H",
+    time: "T+3-4H",
     color: "rgba(226, 197, 48, 1)",
     dotColor: "rgba(0, 184, 228, 1)",
     features: [
-      "→ Zero crash",
+      "→ Gradual offset",
       "→ Smooth decline",
       "→ Natural re-entry",
     ],
-    tagline: "No withdrawal. No regrets.",
+    tagline: "Ends as smooth as it starts.",
   },
 ];
 

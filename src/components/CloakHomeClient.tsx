@@ -60,7 +60,7 @@ const REVIEWS = [
 const STACK_UP = {
 	yum: [
 		"Smooth, sippable flavor",
-		"Balanced, no crash",
+		"Balanced, smooth offset",
 		"Standardized every batch",
 		"Lab tested, results on file",
 		"Try a full bottle free",
@@ -93,7 +93,7 @@ const FAQS = [
 	},
 	{
 		q: "How long until I feel it?",
-		a: "Most people feel the shift within 15–20 minutes. Effects last roughly 2–4 hours depending on your body and what else is in your system.",
+		a: "Most people feel the shift within 20–30 minutes. Effects last roughly 3–4 hours depending on your body and what else is in your system.",
 	},
 	{
 		q: "Can I drink alc🍺hol with it?",
@@ -500,7 +500,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						{
 							num: "02",
 							title: "Mood & Calm",
-							desc: "Feel good, ease stress, and relax. Within 15–20 minutes the botanicals settle in for an uplifted mood and a calm, mellow unwind — present, clear, never overwhelming.",
+							desc: "Feel good, ease stress, and relax. Within 20–30 minutes the botanicals settle in for an uplifted mood and a calm, mellow unwind — present, clear, never overwhelming.",
 						},
 						{
 							num: "03",
@@ -666,7 +666,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 						{
 							eyebrow: "Chemistry",
 							title: "Leaf-proportional profile.",
-							desc: "Most extracts spike one compound for a cheap punch. We keep the active profile balanced — the way the plant actually grows. No synthetic spikes, no crash.",
+							desc: "Most extracts spike one compound for a cheap punch. We keep the active profile balanced — the way the plant actually grows. No synthetic spikes, and a smooth, gradual offset.",
 						},
 					].map((claim) => (
 						<div
@@ -894,7 +894,7 @@ export default function CloakHomeClient({ sampleOptions }: Props) {
 							We don't. Our extraction is standardized batch to batch and kept
 							proportional to the leaf — the way the plant actually grows. The
 							same bottle hits the same way every time, with no synthetic spikes
-							and no crash on the back end.
+							and a smooth, gradual offset on the back end.
 						</p>
 					</div>
 

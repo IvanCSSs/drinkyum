@@ -6,6 +6,7 @@ import { FileText, AlertTriangle, Scale, ShoppingBag, Ban, Gavel } from "lucide-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileLogo from "@/components/MobileLogo";
+import { RESTRICTED_STATES } from "@/lib/restricted-states";
 
 export default function TermsOfServicePage() {
   return (
@@ -161,12 +162,9 @@ export default function TermsOfServicePage() {
                     possessed in your jurisdiction. We currently cannot ship to:
                   </p>
                   <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li>Alabama</li>
-                    <li>Arkansas</li>
-                    <li>Indiana</li>
-                    <li>Rhode Island</li>
-                    <li>Vermont</li>
-                    <li>Wisconsin</li>
+                    {RESTRICTED_STATES.map((s) => (
+                      <li key={s.code}>{s.name}</li>
+                    ))}
                     <li>International destinations</li>
                   </ul>
                   <p className="mt-4">

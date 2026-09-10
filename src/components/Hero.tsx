@@ -209,9 +209,9 @@ export default function Hero() {
                     backgroundClip: "text",
                   }}
                 >
-                  Crafted with only the finest ingredients, our extract promises 
-                  unparalleled taste and efficacy. We guarantee quality with third-party 
-                  testing, showcasing a premium 7.5% mitragyna extract. Experience the 
+                  Crafted with only the finest ingredients, our extract promises
+                  unparalleled taste and efficacy. Every batch is third-party tested —
+                  266 mg of mitragynine per 30ml bottle, 7-OH not detected. Experience the
                   difference with YUM, where quality meets unbeatable flavor.
                 </p>
               </motion.div>

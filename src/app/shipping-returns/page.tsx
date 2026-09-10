@@ -6,6 +6,7 @@ import { Truck, RotateCcw, Clock, Package, MapPin, AlertCircle } from "lucide-re
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileLogo from "@/components/MobileLogo";
+import { restrictedStatesSentence } from "@/lib/restricted-states";
 
 export default function ShippingReturnsPage() {
   return (
@@ -122,8 +123,8 @@ export default function ShippingReturnsPage() {
                   <div>
                     <h4 className="text-yellow-300 font-semibold mb-1">Shipping Restrictions</h4>
                     <p className="text-yellow-200/70 text-sm">
-                      Due to state regulations, we cannot ship to the following states: Alabama, Arkansas, Indiana, 
-                      Rhode Island, Vermont, and Wisconsin. We also cannot ship internationally at this time.
+                      Due to state regulations, we cannot ship to the following states: {restrictedStatesSentence()}.
+                      We also cannot ship internationally at this time. Checkout will not accept orders shipping to these states.
                     </p>
                   </div>
                 </div>

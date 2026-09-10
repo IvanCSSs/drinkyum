@@ -17,7 +17,7 @@ const fallbackProducts = [
     handle: "yum-bubble-gum-30ml-single",
     title: "YUM Bubble Gum 30ml Single",
     subtitle: "Premium kratom extract with bubble gum flavor",
-    description: "Start with one capful. Feel the difference in 20-30 minutes — clean focus, elevated mood, and sustained energy for 3-4 hours. No crash. No hangover feeling the next morning.",
+    description: "Start with one capful. Feel the difference in 20-30 minutes — clean focus, elevated mood, and sustained energy for 3-4 hours, with a smooth, gradual offset.",
     thumbnail: "/images/bg-single-30ml.png",
     variants: [{ id: "54", prices: [{ id: "price-54", amount: 24.99, currency_code: "usd" }] }],
     images: [{ id: "img-54", url: "/images/bg-single-30ml.png", alt: "YUM Bubble Gum 30ml Single" }],
@@ -27,7 +27,7 @@ const fallbackProducts = [
     handle: "triple-play-yum-bubble-gum-30ml-3-pack",
     title: "Triple Play – YUM Bubble Gum 30ml (3 pack)",
     subtitle: "Best-selling 3-pack of premium bubble gum flavored extract",
-    description: "Our best value for Bubble Gum fans. Three bottles at the lowest per-unit price. Start with one capful per bottle. 3-4 hours of clean, focused energy with no crash.",
+    description: "Our best value for Bubble Gum fans. Three bottles at the lowest per-unit price. Start with one capful per bottle. 3-4 hours of clean, focused energy with a smooth offset.",
     thumbnail: "/images/bg-triple-30ml.png",
     variants: [{ id: "60", prices: [{ id: "price-60", amount: 70.00, currency_code: "usd" }] }],
     images: [{ id: "img-60", url: "/images/bg-triple-30ml.png", alt: "YUM Bubble Gum 30ml Triple Play" }],
@@ -37,7 +37,7 @@ const fallbackProducts = [
     handle: "triple-play-yum-tropical-breeze-30ml-3-pack",
     title: "Triple Play – YUM Tropical Breeze 30ml (3 pack)",
     subtitle: "Best-selling 3-pack of premium tropical-flavored extract",
-    description: "Our best value for Tropical Breeze fans. Three bottles at the lowest per-unit price. Start with one capful per bottle. 3-4 hours of clean, focused energy with no crash.",
+    description: "Our best value for Tropical Breeze fans. Three bottles at the lowest per-unit price. Start with one capful per bottle. 3-4 hours of clean, focused energy with a smooth offset.",
     thumbnail: "/images/tb-triple-30ml.png",
     variants: [{ id: "62", prices: [{ id: "price-62", amount: 70.00, currency_code: "usd" }] }],
     images: [{ id: "img-62", url: "/images/tb-triple-30ml.png", alt: "YUM Tropical Breeze 30ml Triple Play" }],
@@ -211,7 +211,7 @@ export default function Products() {
                   backgroundClip: "text",
                 }}
               >
-                Our most powerful packs at our best prices. Premium 75% extract, unbeatable flavors, proven results.
+                Our most powerful packs at our best prices. 266 mg mitragynine per 30ml bottle, lab-verified, unbeatable flavors.
               </p>
             </div>
 
@@ -334,6 +334,11 @@ export default function Products() {
                               {product.title}
                             </h3>
                           </Link>
+
+                          {/* COA spec line: mg per bottle + 7-OH status */}
+                          <span className="text-[11px] leading-[1.2] text-white/40">
+                            266 mg mitragynine / 30ml · 7-OH not detected
+                          </span>
 
                           <span
                             className="text-[14px] font-bold leading-[14px] mb-2"

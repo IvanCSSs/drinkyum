@@ -9,11 +9,11 @@ const testimonials = [
     author: "Kratom man",
   },
   {
-    quote: "YUM changed everything for me. Clean energy, no crash, and the taste is actually incredible. This is the future of kratom.",
+    quote: "YUM changed everything for me. Clean energy, a smooth landing, and the taste is actually incredible. This is the future of kratom.",
     author: "Sarah K.",
   },
   {
-    quote: "I was skeptical at first, but after trying YUM I'm never going back. The 75% extract is no joke - pure performance in a bottle.",
+    quote: "I was skeptical at first, but after trying YUM I'm never going back. The full-strength extract is no joke - pure performance in a bottle.",
     author: "Mike T.",
   },
 ];

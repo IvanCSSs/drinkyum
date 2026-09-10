@@ -5,12 +5,12 @@ import { getProducts } from "@/lib/wc-products";
 export const metadata: Metadata = {
   title: "DrinkYUM | Premium Botanical Extract Shots",
   description:
-    "Discover YUM — the smoothest botanical extract shot on the market. 75% purity, zero bitterness, lab-tested every batch. Two incredible flavors. Ships nationwide.",
+    "Discover YUM — the smoothest botanical extract shot on the market. 266 mg mitragynine per 30ml, no bitterness, lab-tested every batch. Two incredible flavors.",
   robots: { index: false, follow: false }, // Don't index this landing page
   openGraph: {
     title: "DrinkYUM | Premium Botanical Extract Shots",
     description:
-      "The smoothest botanical extract shot on the market. 75% purity, zero bitterness, lab-tested every batch. Two incredible flavors.",
+      "The smoothest botanical extract shot on the market. 266 mg mitragynine per 30ml, no bitterness, lab-tested every batch. Two incredible flavors.",
     siteName: "DrinkYUM",
     type: "website",
     url: "https://www.drinkyum.com/welcome",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "DrinkYUM | Premium Botanical Extract Shots",
     description:
-      "The smoothest botanical extract shot on the market. 75% purity, zero bitterness, lab-tested every batch.",
+      "The smoothest botanical extract shot on the market. 266 mg mitragynine per 30ml, no bitterness, lab-tested every batch.",
   },
 };
 

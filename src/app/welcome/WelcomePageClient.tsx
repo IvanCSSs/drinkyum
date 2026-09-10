@@ -93,7 +93,7 @@ export default function WelcomePageClient({ initialProducts }: WelcomePageClient
             <span className="text-white">Extract Shots</span>
           </h1>
           <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-8">
-            75% extract purity. Zero bitterness. Lab-tested every batch.
+            266 mg mitragynine per 30ml. No bitterness. Lab-tested every batch.
             Two incredible flavors that deliver clean, sustained energy for 3-4 hours.
           </p>
           <a
@@ -113,9 +113,9 @@ export default function WelcomePageClient({ initialProducts }: WelcomePageClient
       <section className="py-12 px-4 border-y border-white/10">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
-            { icon: FlaskConical, label: "75% Purity", sub: "Pharmaceutical-grade" },
+            { icon: FlaskConical, label: "266mg Mitragynine", sub: "Per 30ml \u00b7 COA-verified" },
             { icon: Shield, label: "Lab-Tested", sub: "Every single batch" },
-            { icon: Zap, label: "3-4 Hour Energy", sub: "Clean, no crash" },
+            { icon: Zap, label: "3-4 Hour Energy", sub: "Clean, smooth offset" },
             { icon: Star, label: "15,000+ Fans", sub: "And counting" },
           ].map(({ icon: Icon, label, sub }) => (
             <div key={label} className="flex flex-col items-center text-center gap-2">
@@ -260,7 +260,7 @@ export default function WelcomePageClient({ initialProducts }: WelcomePageClient
             {[
               {
                 title: "Unmatched Purity",
-                desc: "75% extract purity — pharmaceutical-grade precision in every bottle. We don't cut corners.",
+                desc: "266 mg mitragynine per 30ml, verified by third-party COA — 7-OH not detected. We don't cut corners.",
               },
               {
                 title: "Zero Bitterness",
@@ -291,7 +291,7 @@ export default function WelcomePageClient({ initialProducts }: WelcomePageClient
       <section className="py-16 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-white/40 text-sm mb-6">
-            Must be 21+ to purchase. Ships to all legal US states.
+            Must be 21+ to purchase. We do not ship to states where kratom is banned or restricted.
           </p>
           <a
             href="#products"

@@ -1,12 +1,13 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Package, Truck, CreditCard, RotateCcw, Leaf, HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileLogo from "@/components/MobileLogo";
+import { restrictedStatesSentence } from "@/lib/restricted-states";
 
 interface FAQItem {
   question: string;
@@ -32,15 +33,15 @@ const faqCategories: FAQCategory[] = [
       },
       {
         question: "How should I use YUM?",
-        answer: "Shake well before use. Start with a small serving to assess your tolerance. Effects typically begin within 15-30 minutes. Do not exceed recommended serving sizes. Not intended for daily use.",
+        answer: "Shake well before use. Start with a small serving to assess your tolerance. Effects typically begin within 20-30 minutes and last around 3-4 hours. Do not exceed recommended serving sizes. Not intended for daily use.",
       },
       {
         question: "What flavors do you offer?",
-        answer: "We currently offer several delicious flavors including Tropical Breeze, Berry Blast, and more. Check our Shop page for the full lineup. We're always working on new flavors based on customer feedback!",
+        answer: "We currently offer Bubble Gum and Tropical Breeze, available as single bottles, 3-packs, sampler packs, and bundles. Check our Shop page for the full lineup. We're always working on new flavors based on customer feedback!",
       },
       {
         question: "Is kratom legal?",
-        answer: "Kratom is legal in most US states. However, it is banned in Alabama, Arkansas, Indiana, Rhode Island, Vermont, and Wisconsin. Some cities and counties also have restrictions. It's your responsibility to know the laws in your area before ordering.",
+        answer: `Kratom is legal in many US states, but a number of states ban or restrict kratom products like ours. We do not ship to ${restrictedStatesSentence()}. Some cities and counties also have restrictions. It's your responsibility to know the laws in your area before ordering.`,
       },
       {
         question: "How should I store YUM products?",
@@ -71,7 +72,7 @@ const faqCategories: FAQCategory[] = [
       },
       {
         question: "What states can't you ship to?",
-        answer: "Due to state regulations, we cannot ship to Alabama, Arkansas, Indiana, Rhode Island, Vermont, or Wisconsin. Orders to these states will be cancelled and refunded.",
+        answer: `Due to state regulations, we cannot ship to ${restrictedStatesSentence()}. Checkout will not accept orders shipping to these states, and any order that slips through will be cancelled and refunded.`,
       },
     ],
   },
@@ -160,21 +161,19 @@ function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boole
           className={`w-5 h-5 text-white/50 flex-shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
         />
       </button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <p className="pb-5 text-white/60 leading-relaxed">
-              {item.answer}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Answer stays in the DOM when closed (animated to height 0) so
+          crawlers and fetchers see the full Q&A, not just headings. */}
+      <motion.div
+        initial={false}
+        animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        className="overflow-hidden"
+        aria-hidden={!isOpen}
+      >
+        <p className="pb-5 text-white/60 leading-relaxed">
+          {item.answer}
+        </p>
+      </motion.div>
     </div>
   );
 }
@@ -191,11 +190,29 @@ export default function FAQPage() {
     }));
   };
 
+  // FAQPage structured data so search engines index every Q&A regardless of
+  // which category tab is active in the UI.
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqCategories.flatMap((category) =>
+      category.items.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      }))
+    ),
+  };
+
   return (
     <main className="min-h-screen bg-yum-dark">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <Navbar />
       <MobileLogo />
-      
+
       <section className="relative pt-32 lg:pt-44 pb-16 lg:pb-24 px-4">
         <div className="max-w-[1000px] mx-auto">
           {/* Header */}

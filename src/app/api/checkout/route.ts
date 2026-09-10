@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { buildWpApiUrl } from '@/lib/wp-api-url'
+import { shippingRestrictionError } from '@/lib/restricted-states'
 
 // Using buildWpApiUrl for compatibility with subdirectory multisite
 function getStoreApiUrl(path: string) { return buildWpApiUrl(`/wc/store/v1${path}`) }
@@ -123,11 +124,27 @@ export async function POST(request: NextRequest) {
         endpoint = '/cart/select-shipping-rate'
         break
 
-      case 'complete':
+      case 'complete': {
         // Complete checkout - this is the main checkout endpoint
         // WooCommerce Store API expects payment data in the request
+        // Server-side geo-block: refuse orders shipping to restricted states,
+        // even if the client-side check was bypassed. ZIP-level.
+        const shipTo = payload.shipping_address || payload.billing_address
+        if (shipTo) {
+          const restriction = shippingRestrictionError(
+            shipTo.state || '',
+            shipTo.postcode || shipTo.postal_code || ''
+          )
+          if (restriction) {
+            return NextResponse.json(
+              { code: 'restricted_shipping_destination', message: restriction },
+              { status: 400 }
+            )
+          }
+        }
         endpoint = '/checkout'
         break
+      }
 
       case 'get-payment-gateways':
         // List available payment gateways

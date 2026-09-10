@@ -13,7 +13,7 @@ const testingPoints = [
   {
     icon: FlaskConical,
     title: "Alkaloid Content",
-    description: "We test every batch for mitragynine and 7-hydroxymitragynine levels to ensure consistent potency.",
+    description: "Every batch is tested for mitragynine content (mg per bottle) and screened for 7-OH and mitragynine pseudoindoxyl.",
   },
   {
     icon: Shield,
@@ -33,33 +33,22 @@ const testingPoints = [
 ];
 
 const certifications = [
-  { name: "GMP Certified", description: "Good Manufacturing Practices" },
-  { name: "Third-Party Tested", description: "Independent lab verification" },
-  { name: "AKA GMP Qualified", description: "American Kratom Association standards" },
+  { name: "Third-Party Tested", description: "Independent lab verification by Cora Science" },
+  { name: "COA For Every Lot", description: "Certificate of analysis published per production lot" },
 ];
 
-// Placeholder batch data - would come from backend in production
+// Published COA data. To publish the PDF: drop it at public/lab/coa-BC01-0045.pdf
+// and set coaPdf below to "/lab/coa-BC01-0045.pdf".
 const recentBatches = [
   {
-    batchNumber: "YUM-2024-1201",
-    product: "Triple Play - Tropical Breeze",
-    testDate: "December 1, 2024",
-    mitragynine: "1.8%",
+    batchNumber: "BC01-0045",
+    product: "YUM Kratom Extract Shot (30ml)",
+    lab: "Cora Science",
+    mitragynine: "266 mg / 30ml",
+    sevenOh: "Not detected",
+    pseudoindoxyl: "Not detected",
     status: "Passed",
-  },
-  {
-    batchNumber: "YUM-2024-1115",
-    product: "Triple Play - Berry Blast",
-    testDate: "November 15, 2024",
-    mitragynine: "1.7%",
-    status: "Passed",
-  },
-  {
-    batchNumber: "YUM-2024-1101",
-    product: "Triple Play - Original",
-    testDate: "November 1, 2024",
-    mitragynine: "1.9%",
-    status: "Passed",
+    coaPdf: null as string | null,
   },
 ];
 
@@ -216,22 +205,23 @@ export default function LabResultsPage() {
               }}
             >
               {/* Table Header */}
-              <div className="hidden lg:grid lg:grid-cols-5 gap-4 p-4 bg-white/5 border-b border-white/10">
-                <div className="text-white/60 text-sm font-medium">Batch #</div>
+              <div className="hidden lg:grid lg:grid-cols-6 gap-4 p-4 bg-white/5 border-b border-white/10">
+                <div className="text-white/60 text-sm font-medium">Lot #</div>
                 <div className="text-white/60 text-sm font-medium">Product</div>
-                <div className="text-white/60 text-sm font-medium">Test Date</div>
+                <div className="text-white/60 text-sm font-medium">Lab</div>
                 <div className="text-white/60 text-sm font-medium">Mitragynine</div>
+                <div className="text-white/60 text-sm font-medium">7-OH</div>
                 <div className="text-white/60 text-sm font-medium">Status</div>
               </div>
-              
+
               {/* Table Rows */}
               {recentBatches.map((batch, index) => (
-                <div 
+                <div
                   key={batch.batchNumber}
-                  className={`grid lg:grid-cols-5 gap-2 lg:gap-4 p-4 ${index !== recentBatches.length - 1 ? 'border-b border-white/5' : ''}`}
+                  className={`grid lg:grid-cols-6 gap-2 lg:gap-4 p-4 ${index !== recentBatches.length - 1 ? 'border-b border-white/5' : ''}`}
                 >
                   <div className="flex lg:block items-center justify-between">
-                    <span className="lg:hidden text-white/40 text-xs">Batch #</span>
+                    <span className="lg:hidden text-white/40 text-xs">Lot #</span>
                     <span className="text-white font-mono text-sm">{batch.batchNumber}</span>
                   </div>
                   <div className="flex lg:block items-center justify-between">
@@ -239,12 +229,16 @@ export default function LabResultsPage() {
                     <span className="text-white/80 text-sm">{batch.product}</span>
                   </div>
                   <div className="flex lg:block items-center justify-between">
-                    <span className="lg:hidden text-white/40 text-xs">Test Date</span>
-                    <span className="text-white/60 text-sm">{batch.testDate}</span>
+                    <span className="lg:hidden text-white/40 text-xs">Lab</span>
+                    <span className="text-white/60 text-sm">{batch.lab}</span>
                   </div>
                   <div className="flex lg:block items-center justify-between">
                     <span className="lg:hidden text-white/40 text-xs">Mitragynine</span>
                     <span className="text-yum-cyan font-medium text-sm">{batch.mitragynine}</span>
+                  </div>
+                  <div className="flex lg:block items-center justify-between">
+                    <span className="lg:hidden text-white/40 text-xs">7-OH</span>
+                    <span className="text-white/80 text-sm">{batch.sevenOh}</span>
                   </div>
                   <div className="flex lg:block items-center justify-between">
                     <span className="lg:hidden text-white/40 text-xs">Status</span>
@@ -253,12 +247,25 @@ export default function LabResultsPage() {
                       {batch.status}
                     </span>
                   </div>
+                  {batch.coaPdf && (
+                    <div className="lg:col-span-6 pt-2">
+                      <a
+                        href={batch.coaPdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-yum-pink text-sm hover:underline"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download full COA (PDF)
+                      </a>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-            
+
             <p className="text-white/40 text-sm text-center mt-4">
-              Need a Certificate of Analysis? <Link href="/contact" className="text-yum-pink hover:underline">Contact us</Link> with your batch number.
+              Mitragynine pseudoindoxyl: not detected. Need a Certificate of Analysis? <Link href="/contact" className="text-yum-pink hover:underline">Contact us</Link> with your lot number.
             </p>
           </motion.div>
 
@@ -273,7 +280,7 @@ export default function LabResultsPage() {
             <h2 className="text-2xl lg:text-3xl font-bold text-white text-center mb-10">
               Our Certifications
             </h2>
-            <div className="grid sm:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
               {certifications.map((cert, index) => (
                 <div
                   key={cert.name}
