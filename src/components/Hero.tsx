@@ -211,7 +211,7 @@ export default function Hero() {
                 >
                   Crafted with only the finest ingredients, our extract promises
                   unparalleled taste and efficacy. Every batch is third-party tested —
-                  266 mg of mitragynine per 30ml bottle, 7-OH not detected. Experience the
+                  255 mg of mitragynine per 30ml bottle, 7-OH below the limit of quantitation. Experience the
                   difference with YUM, where quality meets unbeatable flavor.
                 </p>
               </motion.div>

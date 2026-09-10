@@ -7,7 +7,7 @@ const faqs = [
   {
     question: "What is kratom?",
     answer:
-      "YUM is a premium kratom extract shot delivering 266 mg of mitragynine per 30ml bottle, verified by third-party lab testing, with 7-OH not detected. Mitragynine is the primary alkaloid in the kratom leaf. It's not an energy drink—it's a precision-crafted botanical extract.",
+      "YUM is a premium kratom extract shot delivering 42.5 mg of mitragynine per serving — 255 mg per 30ml bottle — verified by third-party lab testing, with 7-OH below 0.33 mg per serving (under the limit of quantitation). Mitragynine is the primary alkaloid in the kratom leaf. It's not an energy drink—it's a precision-crafted botanical extract.",
   },
   {
     question: "How do I use YUM?",

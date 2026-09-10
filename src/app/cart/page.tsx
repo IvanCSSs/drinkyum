@@ -21,6 +21,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
+import { ProductWarningFull } from "@/components/ProductWarning";
 import { useCart } from "@/contexts/CartContext";
 
 // Shipping thresholds
@@ -462,6 +463,9 @@ export default function CartPage() {
                       ${total.toFixed(2)}
                     </span>
                   </div>
+
+                  {/* Regulatory warning - required above checkout */}
+                  <ProductWarningFull className="mb-4" />
 
                   {/* Checkout Button */}
                   <Link

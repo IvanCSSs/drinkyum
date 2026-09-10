@@ -7,7 +7,7 @@ const yumFeatures = [
   { label: "Duration", value: "3-4 hours" },
   { label: "Crash", value: "Gentle offset" },
   { label: "Taste", value: "Exceptional" },
-  { label: "Purity", value: "266 mg mitragynine / 30ml" },
+  { label: "Purity", value: "255 mg mitragynine / 30ml" },
   { label: "Lab Testing", value: "Every batch" },
   { label: "Portability", value: "Pocket-sized" },
   { label: "Price per Dose", value: "Premium but worth it" },

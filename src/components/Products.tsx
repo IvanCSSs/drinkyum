@@ -211,7 +211,7 @@ export default function Products() {
                   backgroundClip: "text",
                 }}
               >
-                Our most powerful packs at our best prices. 266 mg mitragynine per 30ml bottle, lab-verified, unbeatable flavors.
+                Our most powerful packs at our best prices. 255 mg mitragynine per 30ml bottle, lab-verified, unbeatable flavors.
               </p>
             </div>
 
@@ -337,7 +337,7 @@ export default function Products() {
 
                           {/* COA spec line: mg per bottle + 7-OH status */}
                           <span className="text-[11px] leading-[1.2] text-white/40">
-                            266 mg mitragynine / 30ml · 7-OH not detected
+                            255 mg mitragynine / 30ml · 7-OH &lt;0.33 mg (LOQ)
                           </span>
 
                           <span

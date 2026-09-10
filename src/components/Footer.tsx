@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { ProductWarningShort } from "@/components/ProductWarning";
 
 const navLinks = [
   { number: "01", label: "Home", href: "/" },
@@ -94,20 +95,14 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* FDA Disclaimer */}
-        <div 
+        {/* Sitewide short warning (WARNING lead-in + KEEP OUT + FDA) */}
+        <div
           className="pt-6 lg:pt-8 text-center"
           style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
         >
-          <p 
-            className="text-[10px] lg:text-[11px] leading-relaxed max-w-3xl mx-auto"
-            style={{ color: "rgba(255, 255, 255, 0.4)" }}
-          >
-            <strong>Disclaimer:</strong> These statements have not been evaluated by the Food and Drug Administration. 
-            This product is not intended to diagnose, treat, cure, or prevent any disease. 
-            Consult your healthcare provider before use, especially if you are pregnant, nursing, taking medications, or have a medical condition.
-            Must be 21+ to purchase. Do not operate heavy machinery after consumption.
-          </p>
+          <div className="max-w-3xl mx-auto">
+            <ProductWarningShort />
+          </div>
         </div>
 
         {/* Bottom Bar - stack on mobile */}

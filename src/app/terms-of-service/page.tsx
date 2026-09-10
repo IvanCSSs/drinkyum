@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileLogo from "@/components/MobileLogo";
 import { RESTRICTED_STATES } from "@/lib/restricted-states";
+import { ProductWarningFull } from "@/components/ProductWarning";
 
 export default function TermsOfServicePage() {
   return (
@@ -175,9 +176,10 @@ export default function TermsOfServicePage() {
               </div>
 
               {/* Section 5 */}
-              <div>
-                <h2 className="text-xl font-bold text-white mb-4">5. Product Use & Disclaimer</h2>
+              <div id="product-warning" className="scroll-mt-32">
+                <h2 className="text-xl font-bold text-white mb-4">5. Product Use & Warning</h2>
                 <div className="text-white/70 leading-relaxed space-y-4">
+                  <ProductWarningFull />
                   <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                     <p className="text-yellow-200/90">
                       <span className="font-semibold text-yellow-300">Important:</span> Our products are 

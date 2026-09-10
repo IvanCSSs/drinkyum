@@ -37,6 +37,7 @@ import { trackMetaEvent } from "@/components/MetaPixel";
 import { klaviyoStartedCheckout, klaviyoIdentify } from "@/components/Klaviyo";
 import { saveAbandonedCart } from "@/lib/abandoned-cart";
 import { isRestrictedState, shippingRestrictionError } from "@/lib/restricted-states";
+import { ProductWarningFull } from "@/components/ProductWarning";
 
 // Payment configuration from WordPress REST API
 interface PaymentConfig {
@@ -2487,6 +2488,9 @@ function CheckoutPageInner() {
                     </button>
                   )}
 
+                  {/* Regulatory warning - required above Place order */}
+                  <ProductWarningFull className="mb-4" />
+
                   {/* 21+ age attestation - required before payment */}
                   <label className="flex items-start gap-3 cursor-pointer mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
                     <input
@@ -2496,9 +2500,7 @@ function CheckoutPageInner() {
                       className="w-5 h-5 mt-0.5 rounded border-white/20 bg-white/5 text-yum-pink focus:ring-yum-pink"
                     />
                     <span className="text-white/60 text-sm">
-                      I confirm that I am 21 years of age or older, and that the
-                      shipping address on this order is not in a state where this
-                      product is restricted.
+                      I am 21+ and have read the warnings.
                     </span>
                   </label>
 

@@ -44,9 +44,9 @@ const recentBatches = [
     batchNumber: "BC01-0045",
     product: "YUM Kratom Extract Shot (30ml)",
     lab: "Cora Science",
-    mitragynine: "266 mg / 30ml",
-    sevenOh: "Not detected",
-    pseudoindoxyl: "Not detected",
+    mitragynine: "255 mg / 30ml (42.5 mg per serving)",
+    sevenOh: "< 0.33 mg/serving (below LOQ)",
+    pseudoindoxyl: "< LOQ",
     status: "Passed",
     coaPdf: null as string | null,
   },
@@ -265,7 +265,7 @@ export default function LabResultsPage() {
             </div>
 
             <p className="text-white/40 text-sm text-center mt-4">
-              Mitragynine pseudoindoxyl: not detected. Need a Certificate of Analysis? <Link href="/contact" className="text-yum-pink hover:underline">Contact us</Link> with your lot number.
+              7-OH and mitragynine pseudoindoxyl were below the limit of quantitation (LOQ) — the smallest amount the lab's method can reliably measure. Need a Certificate of Analysis? <Link href="/contact" className="text-yum-pink hover:underline">Contact us</Link> with your lot number.
             </p>
           </motion.div>
 

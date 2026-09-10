@@ -22,6 +22,7 @@ import Navbar from "@/components/Navbar";
 import MobileLogo from "@/components/MobileLogo";
 import Footer from "@/components/Footer";
 import SubscribeSaveWidget from "@/components/SubscribeSaveWidget";
+import { ProductWarningFull } from "@/components/ProductWarning";
 import { useCart } from "@/contexts/CartContext";
 import {
   formatPrice,
@@ -37,7 +38,7 @@ import tracker from "@/lib/tracker";
 // Default benefits for all products
 const defaultBenefits = [
   { icon: "flask", title: "Lab Tested", description: "Third-party verified for purity and potency" },
-  { icon: "leaf", title: "266mg Mitragynine", description: "Per 30ml bottle · 7-OH not detected" },
+  { icon: "leaf", title: "255mg Mitragynine", description: "Per 30ml bottle (42.5 mg/serving) · 7-OH <0.33 mg (LOQ)" },
   { icon: "zap", title: "Fast Acting", description: "Feel the effects within 20-30 minutes" },
   { icon: "clock", title: "Long Lasting", description: "3-4 hours of balanced effects" },
 ];
@@ -515,6 +516,9 @@ export default function ProductPage({
                 )}
               </div>
 
+              {/* Regulatory warning - required next to Buy on every PDP */}
+              <ProductWarningFull className="mb-6" />
+
               {/* Trust Badges */}
               <div className="flex flex-wrap gap-4 mb-8 pb-8 border-b border-white/10">
                 <Link href="/lab-results" className="flex items-center gap-2 text-white/60 text-sm hover:text-white transition-colors">
@@ -631,10 +635,12 @@ export default function ProductPage({
             </h2>
             <div className="space-y-4 text-white/60 leading-relaxed">
               <p>
-                YUM is a premium kratom extract delivering 266 mg of mitragynine
-                per 30ml bottle — the primary active alkaloid in the kratom leaf
-                (Mitragyna speciosa), known for energy, focus, and a smooth,
-                balanced experience. 7-OH (7-hydroxymitragynine): not detected.
+                YUM is a premium kratom extract delivering 42.5 mg of mitragynine
+                per serving (255 mg per 30ml bottle) — the primary active
+                alkaloid in the kratom leaf (Mitragyna speciosa), known for
+                energy, focus, and a smooth, balanced experience.
+                7-OH (7-hydroxymitragynine): less than 0.33 mg per serving,
+                below the limit of quantitation (LOQ).
                 Unlike raw kratom powder, our extract is precisely dosed for
                 consistency batch to batch.
               </p>

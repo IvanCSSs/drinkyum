@@ -37,7 +37,7 @@ const values = [
 
 const stats = [
   { value: "15K+", label: "Subscribers" },
-  { value: "266mg", label: "Mitragynine / 30ml" },
+  { value: "255mg", label: "Mitragynine / 30ml" },
   { value: "100%", label: "Lab Tested" },
   { value: "24/48h", label: "Fast Shipping" },
 ];
