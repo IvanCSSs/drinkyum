@@ -11,19 +11,58 @@ import { buildWpApiUrl } from "@/lib/wp-api-url"
 
 import { NextRequest, NextResponse } from 'next/server'
 
-// Using buildWpApiUrl for compatibility
-function getCoCartUrl(path: string) { return buildWpApiUrl(`/cocart/v2${path}`) }
+// The name of the header/cookie that carries the CoCart cart key between the
+// browser and this proxy. CoCart identifies a guest cart by its cart_key
+// (NOT by cookies), so we must persist and forward this on every request or
+// the cart silently resets to empty on each page load.
+const CART_KEY_HEADER = 'x-cart-key'
+const CART_KEY_COOKIE = 'yum_cart_key'
 
-// Forward cookies from client to WooCommerce
+/**
+ * Extract the CoCart cart key the browser is holding, from either the
+ * X-Cart-Key header (client-side fetches) or the yum_cart_key cookie
+ * (survives full navigations / the handoff → checkout redirect).
+ */
+function getCartKey(request: NextRequest): string | null {
+  const headerKey = request.headers.get(CART_KEY_HEADER)
+  if (headerKey) return headerKey
+  const cookieKey = request.cookies.get(CART_KEY_COOKIE)?.value
+  return cookieKey || null
+}
+
+// Using buildWpApiUrl for compatibility. Appends ?cart_key= so CoCart loads
+// the correct guest cart. Also used to decorate custom mu-plugin endpoints
+// that operate on the same WC session.
+function getCoCartUrl(path: string, cartKey?: string | null) {
+  return buildWpApiUrl(`/cocart/v2${path}`, cartKey ? { cart_key: cartKey } : undefined)
+}
+
+// Append cart_key to any WP REST URL built via buildWpApiUrl (for the custom
+// coupon/subscription mu-plugin endpoints, which share the WC session).
+function withCartKey(url: string, cartKey?: string | null): string {
+  if (!cartKey) return url
+  const u = new URL(url)
+  u.searchParams.set('cart_key', cartKey)
+  return u.toString()
+}
+
+// Forward cookies + cart key from client to WooCommerce.
 function getForwardHeaders(request: NextRequest): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   }
 
-  // Forward cookies for session persistence (this is what CoCart actually uses)
+  // Forward cookies (some WC session bits still ride cookies)
   const cookie = request.headers.get('Cookie')
   if (cookie) {
     headers['Cookie'] = cookie
+  }
+
+  // Forward the cart key as a header too (belt-and-suspenders; CoCart accepts
+  // it via query param, which getCoCartUrl adds, but this is harmless).
+  const cartKey = getCartKey(request)
+  if (cartKey) {
+    headers['Cart-Key'] = cartKey
   }
 
   return headers
@@ -258,7 +297,13 @@ function transformCoCartToWCFormat(coCartData: CoCartResponse): WCStoreCartForma
 }
 
 // Copy response headers from WooCommerce to our response (especially Set-Cookie)
-function buildResponse(wcResponse: Response, data: unknown, status: number = 200): NextResponse {
+// and echo the CoCart cart key back to the browser so it persists the session.
+function buildResponse(
+  wcResponse: Response,
+  data: unknown,
+  status: number = 200,
+  cartKey?: string | null,
+): NextResponse {
   const response = NextResponse.json(data, { status })
 
   // Forward Set-Cookie headers from WooCommerce (critical for session persistence!)
@@ -272,6 +317,27 @@ function buildResponse(wcResponse: Response, data: unknown, status: number = 200
     response.headers.append('Set-Cookie', modifiedCookie)
   })
 
+  // Resolve the cart key: prefer one parsed from the CoCart response body/
+  // header (freshest), else the one the caller threaded through.
+  const resolvedKey =
+    cartKey ||
+    wcResponse.headers.get('CoCart-API-Cart-Key') ||
+    null
+
+  if (resolvedKey) {
+    // Expose to client JS so it can store + resend on the next fetch.
+    response.headers.set(CART_KEY_HEADER, resolvedKey)
+    // Persist as a first-party cookie so a full navigation (cart → checkout,
+    // or the .co → .com handoff redirect) keeps the same CoCart cart.
+    response.cookies.set(CART_KEY_COOKIE, resolvedKey, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days, matches CoCart guest cart expiry
+      sameSite: 'lax',
+      secure: true,
+      httpOnly: false, // client JS needs to read it to send X-Cart-Key
+    })
+  }
+
   // Also keep Cart-Token and Nonce for backwards compatibility
   const cartToken = wcResponse.headers.get('Cart-Token')
   if (cartToken) {
@@ -282,9 +348,21 @@ function buildResponse(wcResponse: Response, data: unknown, status: number = 200
     response.headers.set('Nonce', nonce)
   }
 
-  response.headers.set('Access-Control-Expose-Headers', 'Cart-Token, Nonce, Set-Cookie')
+  response.headers.set(
+    'Access-Control-Expose-Headers',
+    `Cart-Token, Nonce, Set-Cookie, ${CART_KEY_HEADER}`,
+  )
 
   return response
+}
+
+/** Pull cart_key out of a parsed CoCart response body, if present. */
+function cartKeyFromBody(data: unknown): string | null {
+  if (data && typeof data === 'object' && 'cart_key' in data) {
+    const k = (data as { cart_key?: unknown }).cart_key
+    if (typeof k === 'string' && k.length > 0) return k
+  }
+  return null
 }
 
 // CoCart types (simplified)
@@ -371,9 +449,10 @@ async function fetchStoreApiNonce(request: NextRequest): Promise<{ nonce?: strin
 
 export async function GET(request: NextRequest) {
   try {
+    const cartKey = getCartKey(request)
     // Fetch CoCart data and WC Store API nonce in parallel
     const [wcResponse, storeNonce] = await Promise.all([
-      fetch(getCoCartUrl("/cart"), {
+      fetch(getCoCartUrl("/cart", cartKey), {
         method: 'GET',
         headers: getForwardHeaders(request),
         credentials: 'include',
@@ -382,10 +461,11 @@ export async function GET(request: NextRequest) {
     ])
 
     const coCartData = await wcResponse.json()
-    
+    const respKey = cartKeyFromBody(coCartData) || cartKey
+
     // Check if it's an error response
     if (coCartData.code) {
-      return buildResponse(wcResponse, coCartData, wcResponse.status)
+      return buildResponse(wcResponse, coCartData, wcResponse.status, respKey)
     }
 
     // Transform CoCart response to WC Store API format
@@ -395,7 +475,7 @@ export async function GET(request: NextRequest) {
     wcFormatData = await mergeStoreApiData(wcFormatData, request)
 
     // Build response and inject WC Store API nonce so checkout works
-    const response = buildResponse(wcResponse, wcFormatData, wcResponse.status)
+    const response = buildResponse(wcResponse, wcFormatData, wcResponse.status, respKey)
     if (storeNonce.nonce) {
       response.headers.set('Nonce', storeNonce.nonce)
     }
@@ -414,6 +494,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const cartKey = getCartKey(request)
     const body = await request.json()
     const { action, ...payload } = body
 
@@ -433,7 +514,7 @@ export async function POST(request: NextRequest) {
 
       case 'add-subscription': {
         // Use Subscribe & Save REST endpoint (CoCart doesn't trigger WC subscription hooks)
-        const ssUrl = buildWpApiUrl('/subscribe-save/v1/add-to-cart')
+        const ssUrl = withCartKey(buildWpApiUrl('/subscribe-save/v1/add-to-cart'), cartKey)
         const ssResp = await fetch(ssUrl, {
           method: 'POST',
           headers: getForwardHeaders(request),
@@ -447,22 +528,25 @@ export async function POST(request: NextRequest) {
         })
         const ssData = await ssResp.json()
         if (ssData.code || !ssData.success) {
-          return buildResponse(ssResp, ssData, ssResp.status)
+          return buildResponse(ssResp, ssData, ssResp.status, cartKey)
         }
+        // The S&S endpoint may mint a new cart if none existed — capture it.
+        const ssKey = cartKeyFromBody(ssData) || cartKey
         // Subscription added — now fetch the full cart via CoCart to return normalized format
-        const cartAfterSs = await fetch(getCoCartUrl('/cart'), {
+        const cartAfterSs = await fetch(getCoCartUrl('/cart', ssKey), {
           method: 'GET',
           headers: getForwardHeaders(request),
           credentials: 'include',
         })
         const coCartAfterSs = await cartAfterSs.json()
+        const afterSsKey = cartKeyFromBody(coCartAfterSs) || ssKey
         if (coCartAfterSs.code) {
-          return buildResponse(cartAfterSs, coCartAfterSs, cartAfterSs.status)
+          return buildResponse(cartAfterSs, coCartAfterSs, cartAfterSs.status, afterSsKey)
         }
         const wcFormatAfterSs = transformCoCartToWCFormat(coCartAfterSs)
         // Merge Store API subscription extensions into the transformed cart
         const mergedCart = await mergeStoreApiData(wcFormatAfterSs, request)
-        return buildResponse(cartAfterSs, mergedCart, cartAfterSs.status)
+        return buildResponse(cartAfterSs, mergedCart, cartAfterSs.status, afterSsKey)
       }
         
       case 'update-item':
@@ -489,7 +573,7 @@ export async function POST(request: NextRequest) {
         
       case 'apply-coupon': {
         // Use custom mu-plugin endpoint (CoCart has no coupon support)
-        const applyUrl = buildWpApiUrl('/store/v1/cart/coupon')
+        const applyUrl = withCartKey(buildWpApiUrl('/store/v1/cart/coupon'), cartKey)
         const applyResp = await fetch(applyUrl, {
           method: 'POST',
           headers: getForwardHeaders(request),
@@ -498,29 +582,30 @@ export async function POST(request: NextRequest) {
         })
         const applyData = await applyResp.json()
         if (applyData.code) {
-          return buildResponse(applyResp, applyData, applyResp.status)
+          return buildResponse(applyResp, applyData, applyResp.status, cartKey)
         }
 
         // Custom coupon endpoint can return sparse/partial cart payloads.
         // Re-fetch the full CoCart cart so the frontend transform always gets
         // a complete billing_address/customer shape.
-        const cartAfterCoupon = await fetch(getCoCartUrl('/cart'), {
+        const cartAfterCoupon = await fetch(getCoCartUrl('/cart', cartKey), {
           method: 'GET',
           headers: getForwardHeaders(request),
           credentials: 'include',
         })
         const coCartAfterCoupon = await cartAfterCoupon.json()
+        const afterCouponKey = cartKeyFromBody(coCartAfterCoupon) || cartKey
         if (coCartAfterCoupon.code) {
-          return buildResponse(cartAfterCoupon, coCartAfterCoupon, cartAfterCoupon.status)
+          return buildResponse(cartAfterCoupon, coCartAfterCoupon, cartAfterCoupon.status, afterCouponKey)
         }
         let wcFormatAfterCoupon = transformCoCartToWCFormat(coCartAfterCoupon)
         wcFormatAfterCoupon = await mergeStoreApiData(wcFormatAfterCoupon, request)
-        return buildResponse(cartAfterCoupon, wcFormatAfterCoupon, cartAfterCoupon.status)
+        return buildResponse(cartAfterCoupon, wcFormatAfterCoupon, cartAfterCoupon.status, afterCouponKey)
       }
-        
+
       case 'remove-coupon': {
         // Use custom mu-plugin endpoint
-        const removeUrl = buildWpApiUrl(`/store/v1/cart/coupon/${payload.code}`)
+        const removeUrl = withCartKey(buildWpApiUrl(`/store/v1/cart/coupon/${payload.code}`), cartKey)
         const removeResp = await fetch(removeUrl, {
           method: 'DELETE',
           headers: getForwardHeaders(request),
@@ -528,21 +613,22 @@ export async function POST(request: NextRequest) {
         })
         const removeData = await removeResp.json()
         if (removeData.code) {
-          return buildResponse(removeResp, removeData, removeResp.status)
+          return buildResponse(removeResp, removeData, removeResp.status, cartKey)
         }
         // Re-fetch full CoCart cart so billing_address and all fields are present
-        const cartAfterRemove = await fetch(getCoCartUrl('/cart'), {
+        const cartAfterRemove = await fetch(getCoCartUrl('/cart', cartKey), {
           method: 'GET',
           headers: getForwardHeaders(request),
           credentials: 'include',
         })
         const coCartAfterRemove = await cartAfterRemove.json()
+        const afterRemoveKey = cartKeyFromBody(coCartAfterRemove) || cartKey
         if (coCartAfterRemove.code) {
-          return buildResponse(cartAfterRemove, coCartAfterRemove, cartAfterRemove.status)
+          return buildResponse(cartAfterRemove, coCartAfterRemove, cartAfterRemove.status, afterRemoveKey)
         }
         let wcFormatAfterRemove = transformCoCartToWCFormat(coCartAfterRemove)
         wcFormatAfterRemove = await mergeStoreApiData(wcFormatAfterRemove, request)
-        return buildResponse(cartAfterRemove, wcFormatAfterRemove, cartAfterRemove.status)
+        return buildResponse(cartAfterRemove, wcFormatAfterRemove, cartAfterRemove.status, afterRemoveKey)
       }
         
       case 'clear-cart':
@@ -552,7 +638,7 @@ export async function POST(request: NextRequest) {
 
       case 'select-shipping-rate': {
         // Set the shipping method via CoCart, then re-fetch full cart with shipping_rates
-        const shippingResp = await fetch(getCoCartUrl('/cart/shipping-method'), {
+        const shippingResp = await fetch(getCoCartUrl('/cart/shipping-method', cartKey), {
           method: 'POST',
           headers: getForwardHeaders(request),
           credentials: 'include',
@@ -560,21 +646,22 @@ export async function POST(request: NextRequest) {
         })
         const shippingData = await shippingResp.json()
         if (shippingData.code) {
-          return buildResponse(shippingResp, shippingData, shippingResp.status)
+          return buildResponse(shippingResp, shippingData, shippingResp.status, cartKey)
         }
         // Re-fetch full cart so shipping_total and shipping_rates are updated
-        const cartAfterShipping = await fetch(getCoCartUrl('/cart'), {
+        const cartAfterShipping = await fetch(getCoCartUrl('/cart', cartKey), {
           method: 'GET',
           headers: getForwardHeaders(request),
           credentials: 'include',
         })
         const coCartAfterShipping = await cartAfterShipping.json()
+        const afterShippingKey = cartKeyFromBody(coCartAfterShipping) || cartKey
         if (coCartAfterShipping.code) {
-          return buildResponse(cartAfterShipping, coCartAfterShipping, cartAfterShipping.status)
+          return buildResponse(cartAfterShipping, coCartAfterShipping, cartAfterShipping.status, afterShippingKey)
         }
         let wcFormatAfterShipping = transformCoCartToWCFormat(coCartAfterShipping)
         wcFormatAfterShipping = await mergeStoreApiData(wcFormatAfterShipping, request)
-        return buildResponse(cartAfterShipping, wcFormatAfterShipping, cartAfterShipping.status)
+        return buildResponse(cartAfterShipping, wcFormatAfterShipping, cartAfterShipping.status, afterShippingKey)
       }
         
       default:
@@ -584,26 +671,27 @@ export async function POST(request: NextRequest) {
         )
     }
 
-    const wcResponse = await fetch(getCoCartUrl(endpoint), {
+    const wcResponse = await fetch(getCoCartUrl(endpoint, cartKey), {
       method,
       headers: getForwardHeaders(request),
       credentials: 'include',
-      body: method !== 'DELETE' || Object.keys(requestBody).length > 0 
-        ? JSON.stringify(requestBody) 
+      body: method !== 'DELETE' || Object.keys(requestBody).length > 0
+        ? JSON.stringify(requestBody)
         : undefined,
     })
 
     const coCartData = await wcResponse.json()
+    const respKey = cartKeyFromBody(coCartData) || cartKey
 
     // Check if it's an error response
     if (coCartData.code) {
-      return buildResponse(wcResponse, coCartData, wcResponse.status)
+      return buildResponse(wcResponse, coCartData, wcResponse.status, respKey)
     }
 
     // Transform CoCart response to WC Store API format
     const wcFormatData = transformCoCartToWCFormat(coCartData)
 
-    return buildResponse(wcResponse, wcFormatData, wcResponse.status)
+    return buildResponse(wcResponse, wcFormatData, wcResponse.status, respKey)
   } catch (error) {
     console.error('[Cart API] Error:', error)
     return NextResponse.json(

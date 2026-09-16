@@ -42,9 +42,13 @@ function decodeHtmlEntities(text: string): string {
   return doc.documentElement.textContent || text
 }
 
-// Note: Cart sessions are now managed via cookies (not localStorage)
-// The API route forwards cookies to/from CoCart
-const CART_TOKEN_KEY = 'wc_cart_token' // kept for backwards compat, but cookies are primary
+// CoCart identifies a guest cart by its cart_key (NOT cookies). We persist it
+// in localStorage and re-send it as X-Cart-Key on every request so the cart
+// survives reloads, navigations and the .co → .com checkout handoff. The proxy
+// also mirrors it to a first-party cookie for full navigations.
+const CART_KEY_KEY = 'yum_cart_key'
+const CART_KEY_HEADER = 'X-Cart-Key'
+const CART_TOKEN_KEY = 'wc_cart_token' // kept for backwards compat
 const CART_NONCE_KEY = 'wc_cart_nonce'
 
 // Types matching WooCommerce Store API response
@@ -349,21 +353,42 @@ function setStoredNonce(nonce: string): void {
 }
 
 /**
+ * Get / set the CoCart cart key (the actual session identifier).
+ */
+function getStoredCartKey(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem(CART_KEY_KEY)
+}
+
+function setStoredCartKey(key: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(CART_KEY_KEY, key)
+  }
+}
+
+/**
  * Clear stored cart data
  */
 export function clearStoredCartId(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(CART_TOKEN_KEY)
     localStorage.removeItem(CART_NONCE_KEY)
+    localStorage.removeItem(CART_KEY_KEY)
   }
 }
 
 /**
- * Build headers for Store API requests
+ * Build headers for cart requests. The X-Cart-Key is what actually keys the
+ * CoCart guest cart; Cart-Token/Nonce are retained for compatibility.
  */
 function getHeaders(): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+  }
+
+  const cartKey = getStoredCartKey()
+  if (cartKey) {
+    headers[CART_KEY_HEADER] = cartKey
   }
 
   const cartToken = getStoredCartToken()
@@ -380,9 +405,14 @@ function getHeaders(): HeadersInit {
 }
 
 /**
- * Update stored tokens from response headers
+ * Update stored tokens + cart key from response headers.
  */
 function updateTokensFromResponse(response: Response): void {
+  const newCartKey = response.headers.get(CART_KEY_HEADER)
+  if (newCartKey) {
+    setStoredCartKey(newCartKey)
+  }
+
   const newToken = response.headers.get('Cart-Token')
   if (newToken) {
     setStoredCartToken(newToken)
