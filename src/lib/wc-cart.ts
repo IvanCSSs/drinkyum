@@ -353,10 +353,36 @@ function setStoredNonce(nonce: string): void {
 }
 
 /**
+ * Read the yum_cart_key cookie, if present. The cart handoff (.co → .com) sets
+ * this cookie on the redirect to /checkout, so on a fresh landing it is the
+ * authoritative cart key — more current than anything in localStorage (which
+ * may hold a stale/empty cart from a previous visit).
+ */
+function getCookieCartKey(): string | null {
+  if (typeof document === 'undefined') return null
+  const m = document.cookie.match(/(?:^|;\s*)yum_cart_key=([^;]+)/)
+  return m ? decodeURIComponent(m[1]) : null
+}
+
+/**
  * Get / set the CoCart cart key (the actual session identifier).
+ *
+ * Precedence: the cookie wins over localStorage. The handoff sets the cookie
+ * fresh, so honoring it prevents a stale localStorage key from overriding a
+ * just-handed-off cart (which showed up as "your cart is empty" at checkout).
+ * We also sync the cookie value back into localStorage so both stay aligned.
  */
 function getStoredCartKey(): string | null {
   if (typeof window === 'undefined') return null
+  const cookieKey = getCookieCartKey()
+  if (cookieKey) {
+    try {
+      if (localStorage.getItem(CART_KEY_KEY) !== cookieKey) {
+        localStorage.setItem(CART_KEY_KEY, cookieKey)
+      }
+    } catch {}
+    return cookieKey
+  }
   return localStorage.getItem(CART_KEY_KEY)
 }
 
