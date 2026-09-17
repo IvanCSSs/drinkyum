@@ -117,6 +117,12 @@ export async function GET(request: NextRequest) {
 	const redirectUrl = new URL("/checkout", "https://www.drinkyum.com");
 	redirectUrl.searchParams.set("utm_source", "yum-direct");
 	redirectUrl.searchParams.set("utm_medium", "partner");
+	// Affiliate referral carried from .co: the GoAffPro loader auto-links a
+	// ?ref= URL param (autolink_ref_parameter) and sets its cookie on .com,
+	// so the conversion push on /order-confirmation attributes correctly.
+	if (payload.ref) {
+		redirectUrl.searchParams.set("ref", payload.ref.slice(0, 64));
+	}
 	const response = NextResponse.redirect(redirectUrl, 302);
 	response.cookies.set(CART_KEY_COOKIE, cartKey, {
 		path: "/",

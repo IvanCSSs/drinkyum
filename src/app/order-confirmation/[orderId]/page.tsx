@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import { trackPurchase, type GtagItem } from "@/lib/gtag";
 import { klaviyoPlacedOrder, klaviyoIdentify } from "@/components/Klaviyo";
 import { trackMetaEvent } from "@/components/MetaPixel";
+import { trackGoaffproConversion } from "@/lib/goaffpro";
 import { useCart } from "@/contexts/CartContext";
 
 // Order type matching the WooCommerce API response
@@ -132,6 +133,25 @@ export default function OrderConfirmationPage() {
             value: ord.total,
             currency,
             num_items: ord.items.reduce((sum, item) => sum + item.quantity, 0),
+          });
+
+          // GoAffPro affiliate conversion — the loader attributes it against
+          // the ref cookie it set on the affiliate click (no-op otherwise).
+          trackGoaffproConversion({
+            id: String(ord.id),
+            number: String(ord.display_id || ord.id),
+            total: ord.total,
+            subtotal: Math.max(
+              0,
+              ord.total - (ord.tax_total || 0) - (ord.shipping_total || 0),
+            ),
+            currency,
+            line_items: ord.items.map((item) => ({
+              id: String(item.variant?.product?.id || item.id),
+              name: item.title,
+              quantity: item.quantity,
+              price: item.unit_price,
+            })),
           });
         }
         // Klaviyo purchase tracking

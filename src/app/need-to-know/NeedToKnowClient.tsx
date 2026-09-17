@@ -16,6 +16,15 @@ export default function NeedToKnowClient() {
 	const coupon = searchParams?.get("c") ?? undefined;
 	const flavor = searchParams?.get("f") ?? "";
 
+	// GoAffPro affiliate referral cookie (set by the loader on affiliate-link
+	// landings). Carried through the handoff token so the .com side can re-set
+	// it — cookies don't cross the .co → .com domain hop.
+	const getRefCookie = (): string | undefined => {
+		if (typeof document === "undefined") return undefined;
+		const m = document.cookie.match(/(?:^|;\s*)ref=([^;]+)/);
+		return m ? decodeURIComponent(m[1]) : undefined;
+	};
+
 	// Cloak funnel: reached the info/disclaimer interstitial. Fires once on
 	// mount into the cloak's own GA4 property.
 	useEffect(() => {
@@ -38,6 +47,7 @@ export default function NeedToKnowClient() {
 					body: JSON.stringify({
 						items: [{ variantId, quantity: 1 }],
 						coupon,
+						ref: getRefCookie(),
 					}),
 				});
 				if (!res.ok) throw new Error(`sign failed: ${res.status}`);
@@ -91,6 +101,7 @@ export default function NeedToKnowClient() {
 					body: JSON.stringify({
 						items: [{ variantId, quantity: 1 }],
 						coupon,
+						ref: getRefCookie(),
 					}),
 				});
 				if (!res.ok) throw new Error(`sign failed: ${res.status}`);

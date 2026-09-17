@@ -16,6 +16,7 @@ interface SignBody {
 	cartKey?: string;
 	items?: Array<{ variantId?: string; quantity?: number }>;
 	coupon?: string;
+	ref?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -43,10 +44,12 @@ export async function POST(request: NextRequest) {
 
 	try {
 		const couponCode = body.coupon?.trim();
+		const refCode = body.ref?.trim();
 		const token = await signHandoffToken({
 			cartKey: body.cartKey,
 			items,
 			coupon: couponCode ? couponCode : undefined,
+			ref: refCode ? refCode.slice(0, 64) : undefined,
 			ttlSeconds: 300,
 		});
 		return NextResponse.json({ token, handoffUrl });

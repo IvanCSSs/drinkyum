@@ -16,6 +16,9 @@ export interface HandoffPayload {
 	cartKey?: string;
 	items: Array<{ variantId: string; quantity: number }>;
 	coupon?: string;
+	/** Affiliate referral code (GoAffPro `ref` cookie on .co) — carried across
+	 * the domain hop so the .com loader can re-set its cookie via ?ref=. */
+	ref?: string;
 	exp: number; // unix seconds
 	source: "co";
 }
@@ -73,6 +76,7 @@ export async function signHandoffToken(
 		cartKey: payload.cartKey,
 		items: payload.items,
 		coupon: payload.coupon,
+		ref: payload.ref,
 		exp: Math.floor(Date.now() / 1000) + (payload.ttlSeconds ?? 300),
 		source: "co",
 	};
