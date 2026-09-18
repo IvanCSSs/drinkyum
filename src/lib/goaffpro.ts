@@ -19,9 +19,19 @@ interface GoaffproOrder {
 	number: string;
 	total: number;
 	subtotal: number;
+	discount: number;
 	currency: string;
+	/** Customer identity powers GoAffPro's customer analytics, lifetime-value
+	 * and recurring-referral commissions — without it orders are anonymous
+	 * and those panels stay empty. */
+	customer?: {
+		email?: string;
+		first_name?: string;
+		last_name?: string;
+	};
 	line_items: Array<{
 		id: string;
+		product_id?: string;
 		name: string;
 		quantity: number;
 		price: number;

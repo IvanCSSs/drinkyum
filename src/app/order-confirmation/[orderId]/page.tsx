@@ -137,17 +137,29 @@ export default function OrderConfirmationPage() {
 
           // GoAffPro affiliate conversion — the loader attributes it against
           // the ref cookie it set on the affiliate click (no-op otherwise).
+          // Customer + discount fields feed its customer/coupon analytics;
+          // the loader adds the coupon code itself from its dcode cookie.
+          const gfpName = ord.billing_address || ord.shipping_address;
           trackGoaffproConversion({
             id: String(ord.id),
             number: String(ord.display_id || ord.id),
             total: ord.total,
-            subtotal: Math.max(
+            subtotal: ord.subtotal ?? Math.max(
               0,
               ord.total - (ord.tax_total || 0) - (ord.shipping_total || 0),
             ),
+            discount: ord.discount_total || 0,
             currency,
+            customer: ord.email
+              ? {
+                  email: ord.email,
+                  first_name: gfpName?.first_name,
+                  last_name: gfpName?.last_name,
+                }
+              : undefined,
             line_items: ord.items.map((item) => ({
-              id: String(item.variant?.product?.id || item.id),
+              id: String(item.id),
+              product_id: String(item.variant?.product?.id || item.id),
               name: item.title,
               quantity: item.quantity,
               price: item.unit_price,
