@@ -15,6 +15,114 @@ import { shippingRestrictionError } from '@/lib/restricted-states'
 // Using buildWpApiUrl for compatibility with subdirectory multisite
 function getStoreApiUrl(path: string) { return buildWpApiUrl(`/wc/store/v1${path}`) }
 
+const CART_KEY_COOKIE = 'yum_cart_key'
+const CART_KEY_HEADER = 'x-cart-key'
+
+/**
+ * Mirror the CoCart cart into the WC Store API session before placing an order.
+ *
+ * The storefront cart lives in CoCart (keyed by cart_key), but order placement
+ * goes through the Store API /checkout, which has a SEPARATE session. Without
+ * this sync the Store API cart is empty and checkout fails with
+ * "Cannot place an order, your cart is empty."
+ *
+ * The Store API session persists via its wp_woocommerce_session_* cookie (the
+ * Cart-Token alone does NOT persist on this backend — verified), so we carry
+ * the cookies it hands back through every hop and return them for the final
+ * /checkout POST.
+ *
+ * Best-effort: any failure returns null and the caller falls through to the
+ * previous behavior rather than blocking checkout in a new way.
+ */
+async function syncCartToStoreApi(
+  request: NextRequest,
+): Promise<{ cookie: string; cartToken?: string; nonce?: string } | null> {
+  try {
+    const cartKey =
+      request.headers.get(CART_KEY_HEADER) ||
+      request.cookies.get(CART_KEY_COOKIE)?.value
+    if (!cartKey) return null
+
+    // 1) Read the CoCart cart (items + applied coupons).
+    const coCartUrl = buildWpApiUrl('/cocart/v2/cart', { cart_key: cartKey })
+    const coRes = await fetch(coCartUrl, { method: 'GET' })
+    if (!coRes.ok) return null
+    const coCart = await coRes.json()
+    const items: Array<{ id: number; quantity: number }> = (coCart?.items || [])
+      .map((i: { id?: number; quantity?: { value?: number } | number }) => ({
+        id: Number(i.id),
+        quantity:
+          typeof i.quantity === 'object'
+            ? Number(i.quantity?.value ?? 0)
+            : Number(i.quantity ?? 0),
+      }))
+      .filter((i: { id: number; quantity: number }) => i.id > 0 && i.quantity > 0)
+    if (items.length === 0) return null
+    const coupons: string[] = (coCart?.coupons || [])
+      .map((c: { coupon?: string; code?: string }) => c.coupon || c.code)
+      .filter(Boolean)
+
+    // 2) Prime a Store API session; carry its cookies + token + nonce forward.
+    let cookie = ''
+    let cartToken: string | undefined
+    let nonce: string | undefined
+    const absorb = (res: Response) => {
+      const set = (res.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie?.() ?? []
+      const session = set.filter(c => /^wp_woocommerce_session_/i.test(c.trim()))
+      if (session.length > 0) cookie = session.map(c => c.split(';')[0]).join('; ')
+      const ct = res.headers.get('Cart-Token'); if (ct) cartToken = ct
+      const nc = res.headers.get('Nonce'); if (nc) nonce = nc
+    }
+    const hdrs = () => {
+      const h: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (cookie) h.Cookie = cookie
+      if (cartToken) h['Cart-Token'] = cartToken
+      if (nonce) h.Nonce = nonce
+      return h
+    }
+
+    absorb(await fetch(getStoreApiUrl('/cart'), { method: 'GET' }))
+
+    // 3) Clear anything stale, then add each item.
+    const existing = await fetch(getStoreApiUrl('/cart'), { headers: hdrs() })
+    absorb(existing)
+    const existingCart = await existing.json().catch(() => null)
+    if (existingCart?.items?.length) {
+      for (const it of existingCart.items) {
+        const r = await fetch(getStoreApiUrl('/cart/remove-item'), {
+          method: 'POST', headers: hdrs(), body: JSON.stringify({ key: it.key }),
+        })
+        absorb(r)
+      }
+    }
+    for (const item of items) {
+      const r = await fetch(getStoreApiUrl('/cart/add-item'), {
+        method: 'POST', headers: hdrs(),
+        body: JSON.stringify({ id: item.id, quantity: item.quantity }),
+      })
+      absorb(r)
+      if (!r.ok) {
+        console.error('[checkout sync] add-item failed', r.status, await r.text().catch(() => ''))
+        return null
+      }
+    }
+    // 4) Re-apply coupons (non-fatal — order proceeds at full price if refused).
+    for (const code of coupons) {
+      const r = await fetch(getStoreApiUrl('/cart/apply-coupon'), {
+        method: 'POST', headers: hdrs(), body: JSON.stringify({ code }),
+      })
+      absorb(r)
+      if (!r.ok) console.error('[checkout sync] coupon failed', code, r.status)
+    }
+
+    if (!cookie) return null
+    return { cookie, cartToken, nonce }
+  } catch (err) {
+    console.error('[checkout sync] threw', err)
+    return null
+  }
+}
+
 // Forward headers from client to WooCommerce
 function getForwardHeaders(request: NextRequest): HeadersInit {
   const headers: HeadersInit = {
@@ -112,6 +220,9 @@ export async function POST(request: NextRequest) {
 
     let endpoint = '/checkout'
     let method = 'POST'
+    // Session handed back by syncCartToStoreApi() on the complete path, so the
+    // final /checkout POST runs against the session that actually holds items.
+    let syncedSession: { cookie: string; cartToken?: string; nonce?: string } | null = null
 
     switch (action) {
       case 'update-customer':
@@ -142,6 +253,12 @@ export async function POST(request: NextRequest) {
             )
           }
         }
+        // Mirror the CoCart cart into the Store API session so /checkout sees
+        // the items. Best-effort: on failure we proceed exactly as before.
+        syncedSession = await syncCartToStoreApi(request)
+        if (!syncedSession) {
+          console.warn('[checkout] cart sync unavailable — placing order on the forwarded session')
+        }
         endpoint = '/checkout'
         break
       }
@@ -163,6 +280,13 @@ export async function POST(request: NextRequest) {
     }
 
     const forwardHeaders = getForwardHeaders(request) as Record<string, string>
+    if (syncedSession) {
+      // Override with the session that holds the synced cart — the browser's
+      // own cookies point at a different (empty) Store API session.
+      forwardHeaders['Cookie'] = syncedSession.cookie
+      if (syncedSession.cartToken) forwardHeaders['Cart-Token'] = syncedSession.cartToken
+      if (syncedSession.nonce) forwardHeaders['Nonce'] = syncedSession.nonce
+    }
     const fullUrl = getStoreApiUrl(endpoint)
 
     const wcResponse = await fetch(fullUrl, {
