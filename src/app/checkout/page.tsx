@@ -336,6 +336,10 @@ function CheckoutPageInner() {
   // Transform CartContext items to checkout format
   const cartItems = useMemo(() => contextItems.map(item => ({
     id: item.id,
+    // Numeric WooCommerce product id. `item.id` is the cart LINE key (a hash),
+    // which CoCart cannot resolve — saving it into abandoned-cart records made
+    // every recovery link add zero items and land on an empty checkout.
+    productId: item.variant_id || item.variant?.id || item.id,
     name: item.title,
     price: `$${item.unit_price.toFixed(2)}`,
     priceNum: item.unit_price,
@@ -793,7 +797,7 @@ function CheckoutPageInner() {
     const cartTotal = cartItems.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
     await saveAbandonedCart({
       cart: cartItems.map(item => ({
-        product_id: item.id,
+        product_id: item.productId,
         name: item.name,
         quantity: item.quantity,
         price: item.priceNum,
@@ -982,8 +986,8 @@ function CheckoutPageInner() {
 
         // Save to abandoned cart system (initial save without email)
         saveAbandonedCart({
-          cart: newSession.cartItems.map((item: { id: string | number; name: string; priceNum: number; quantity: number; image: string }) => ({
-            product_id: item.id,
+          cart: newSession.cartItems.map((item: { id: string | number; productId?: string | number; name: string; priceNum: number; quantity: number; image: string }) => ({
+            product_id: item.productId ?? item.id,
             name: item.name,
             quantity: item.quantity,
             price: item.priceNum,

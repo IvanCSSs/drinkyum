@@ -41,13 +41,44 @@ export default function CartRecoveryPage() {
 
         // Clear current cart and add recovered items
         clearCart()
-        
+
+        // Older records stored the obfuscated product id — md5(numericId) — which
+        // is what /products/<hash> URLs use. CoCart can't resolve it, so every add
+        // silently 404'd and the customer landed on an empty checkout. MD5 is one
+        // way, so we resolve by hashing each catalog id and matching.
+        const resolveProductId = async (item: { product_id: string | number }): Promise<string | null> => {
+          const raw = String(item.product_id)
+          if (/^\d+$/.test(raw)) return raw
+          try {
+            const res = await fetch(`/api/products/resolve-hash?hash=${encodeURIComponent(raw)}`)
+            if (!res.ok) return null
+            const json = await res.json()
+            return json?.id ? String(json.id) : null
+          } catch (err) {
+            console.error('[CartRecovery] resolve failed for', raw, err)
+          }
+          return null
+        }
+
+        let added = 0
         for (const item of data.cart) {
           try {
-            await addToCart(String(item.product_id), item.quantity)
+            const pid = await resolveProductId(item)
+            if (!pid) {
+              console.error('[CartRecovery] could not resolve product', item.product_id)
+              continue
+            }
+            await addToCart(pid, item.quantity)
+            added++
           } catch (err) {
             console.error('[CartRecovery] Failed to add item:', item.product_id, err)
           }
+        }
+
+        if (added === 0) {
+          setStatus('error')
+          setErrorMsg('We could not restore these items — they may no longer be available.')
+          return
         }
 
         // Mark cart as recovered
