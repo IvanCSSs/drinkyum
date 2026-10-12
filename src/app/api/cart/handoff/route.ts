@@ -117,6 +117,14 @@ export async function GET(request: NextRequest) {
 	const redirectUrl = new URL("/checkout", "https://www.drinkyum.com");
 	redirectUrl.searchParams.set("utm_source", "yum-direct");
 	redirectUrl.searchParams.set("utm_medium", "partner");
+	// Free-sample flow: tell the checkout so it uses the sample fast lane
+	// (Standard $8.99 preselected, shipping step skipped, order bump shown).
+	// Until 2026-10-12 this was never set, so the bump never rendered for
+	// real .co visitors and step 2 mislabeled the sample's shipping as $5.99.
+	const FREE_SAMPLE_VARIANTS = new Set(["1674", "1676"]);
+	if (items.some((i) => FREE_SAMPLE_VARIANTS.has(String(i.variantId))) || /^FREESAMPLE/i.test(payload.coupon ?? "")) {
+		redirectUrl.searchParams.set("offer", "free-sample");
+	}
 	// Affiliate referral carried from .co: the GoAffPro loader auto-links a
 	// ?ref= URL param (autolink_ref_parameter) and sets its cookie on .com,
 	// so the conversion push on /order-confirmation attributes correctly.

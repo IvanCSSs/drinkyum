@@ -1105,11 +1105,13 @@ function CheckoutPageInner() {
   // "your cart is empty" state while the cart hydrates.
   const isEmpty = !cartLoading && cartItems.length === 0;
 
+  // Free-sample fast lane: the only shipping choice is Standard $8.99, so the
+  // shipping step is skipped (Information -> Payment). Ids stay stable.
   const steps = [
     { id: 1, name: "Information" },
     { id: 2, name: "Shipping" },
     { id: 3, name: "Payment" },
-  ];
+  ].filter((s) => !(isFreeSampleOffer && s.id === 2));
 
   // ZIP-level geo-block: catches both a restricted state selection and a
   // ZIP code inside a restricted state paired with an allowed-state dropdown.
@@ -1133,12 +1135,14 @@ function CheckoutPageInner() {
 
   // Handle step transitions (save session on each step)
   const handleStepChange = useCallback((newStep: number) => {
+    if (newStep === 2) trackCheckoutStep('shipping_entered', { checkout_id: checkoutId });
+    if (newStep === 3) trackCheckoutStep('payment_started', { checkout_id: checkoutId, free_sample: isFreeSampleOffer });
     setCurrentStep(newStep);
     // Scroll to top on step change for better UX
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // Save session with new step
     setTimeout(() => saveCheckoutSession(), 0);
-  }, [saveCheckoutSession]);
+  }, [saveCheckoutSession, checkoutId, isFreeSampleOffer]);
 
   // Customer info structure for saving/loading
   interface SavedCustomerInfo {
@@ -1764,6 +1768,22 @@ function CheckoutPageInner() {
               {/* Step 1: Contact & Shipping Info */}
               {currentStep === 1 && (
                 <div className="space-y-6">
+                  {/* Free-sample offer bar (mobile: the order summary sits below the form) */}
+                  {isFreeSampleOffer && (
+                    <div
+                      className="lg:hidden rounded-2xl p-4 flex items-center justify-between gap-3"
+                      style={{ background: "rgba(225,37,143,0.08)", border: "1px solid rgba(225,37,143,0.35)" }}
+                    >
+                      <div>
+                        <p className="text-white font-semibold text-sm">Free 14ml bottle — you only cover shipping</p>
+                        <p className="text-white/60 text-xs mt-0.5">No subscription. Not the best shot you've had? We refund the shipping.</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-white/50 text-xs">Total</p>
+                        <p className="text-white font-bold text-lg">$8.99</p>
+                      </div>
+                    </div>
+                  )}
                   {/* Contact */}
                   <div 
                     className="p-6 rounded-2xl"
@@ -2019,7 +2039,17 @@ function CheckoutPageInner() {
                   </div>
 
                   <button
-                    onClick={() => canProceed() && handleStepChange(2)}
+                    onClick={() => {
+                      if (!canProceed()) return;
+                      if (isFreeSampleOffer) {
+                        // Fast lane: Standard $8.99 is the only option — skip the shipping step.
+                        setSelectedShipping("standard");
+                        setConfirmedShippingPrice(8.99);
+                        handleStepChange(3);
+                      } else {
+                        handleStepChange(2);
+                      }
+                    }}
                     disabled={!canProceed()}
                     className="w-full py-4 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     style={{
@@ -2029,7 +2059,7 @@ function CheckoutPageInner() {
                       boxShadow: canProceed() ? "0 4px 20px rgba(225,37,143,0.4)" : "none",
                     }}
                   >
-                    Continue to Shipping
+                    {isFreeSampleOffer ? "Continue to Payment" : "Continue to Shipping"}
                   </button>
                 </div>
               )}
@@ -2518,7 +2548,7 @@ function CheckoutPageInner() {
 
                   <div className="flex gap-4">
                     <button
-                      onClick={() => handleStepChange(2)}
+                      onClick={() => handleStepChange(isFreeSampleOffer ? 1 : 2)}
                       className="px-6 py-4 rounded-xl font-medium text-white/60 hover:text-white transition-colors"
                       style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
                     >
