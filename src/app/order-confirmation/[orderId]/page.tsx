@@ -348,7 +348,7 @@ export default function OrderConfirmationPage() {
                     <p className="text-white/50 text-sm">Qty: {item.quantity}</p>
                   </div>
                   <div className="text-white font-medium">
-                    ${(item.total / 100).toFixed(2)}
+                    ${(item.total).toFixed(2)}
                   </div>
                 </div>
               ))}
@@ -358,25 +358,25 @@ export default function OrderConfirmationPage() {
             <div className="border-t border-white/10 pt-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-white/60">Subtotal</span>
-                <span className="text-white">${(order.subtotal / 100).toFixed(2)}</span>
+                <span className="text-white">${(order.subtotal).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-white/60">Shipping</span>
-                <span className="text-white">${(order.shipping_total / 100).toFixed(2)}</span>
+                <span className="text-white">${(order.shipping_total).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-white/60">Tax</span>
-                <span className="text-white">${(order.tax_total / 100).toFixed(2)}</span>
+                <span className="text-white">${(order.tax_total).toFixed(2)}</span>
               </div>
               {order.discount_total > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-white/60">Discount</span>
-                  <span className="text-green-400">-${(order.discount_total / 100).toFixed(2)}</span>
+                  <span className="text-green-400">-${(order.discount_total).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between pt-2 border-t border-white/10">
                 <span className="text-white font-semibold">Total</span>
-                <span className="text-white text-xl font-bold">${(order.total / 100).toFixed(2)}</span>
+                <span className="text-white text-xl font-bold">${(order.total).toFixed(2)}</span>
               </div>
             </div>
           </motion.div>
